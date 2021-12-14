@@ -5,11 +5,13 @@ import Router from "./router"
 const router = new Router(6060)
 
 const test = async (req: Request, res: Response, next: NextFunction) => {
+    // @ts-ignore
     return res.status(200).json({
         message: "hello",
     })
 }
 
+// @ts-ignore
 router.addRoutes("/", test)
 router.startServer()
 /* const routes = express.Router()
