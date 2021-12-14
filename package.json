@@ -1,0 +1,16 @@
+{
+    "name": "expoll_server",
+    "version": "1.0.0",
+    "description": "",
+    "main": "compiled/index.js",
+    "scripts": {
+        "compile": "npx tsc",
+        "serve": "node compiled/index.js",
+        "dev": "npm run compile && npm run serve"
+    },
+    "author": "mt32",
+    "license": "ISC",
+    "dependencies": {
+        "typescript": "^4.5.4"
+    }
+}
