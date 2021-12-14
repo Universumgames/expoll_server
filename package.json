@@ -4,13 +4,19 @@
     "description": "",
     "main": "compiled/index.js",
     "scripts": {
-        "compile": "npx tsc",
+        "build": "npm run compile",
+        "compile": "rm -rf compiled/ && npx tsc",
         "serve": "node compiled/index.js",
-        "dev": "npm run compile && npm run serve"
+        "dev": "npm run compile; npm run serve"
     },
     "author": "mt32",
     "license": "ISC",
+    "devDependencies": {
+        "tslint": "^5.12.1",
+        "typescript": "^3.3.3"
+    },
     "dependencies": {
-        "typescript": "^4.5.4"
+        "@types/express": "^4.17.13",
+        "express": "^4.17.1"
     }
 }
