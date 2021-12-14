@@ -1,5 +1,5 @@
-import express, { NextFunction, Express } from "express"
-import http from "http"
+import { NextFunction } from "express"
+// import http from "http"
 import Router from "./router"
 
 const router = new Router(6060)
@@ -12,11 +12,11 @@ const test = async (req: Request, res: Response, next: NextFunction) => {
 
 router.addRoutes("/", test)
 router.startServer()
-/*const routes = express.Router()
+/* const routes = express.Router()
 routes.get("/test", test)
 const router: Express = express()
 router.use("/", routes)
 
 const httpServer = http.createServer(router)
 const PORT: any = 6060
-httpServer.listen(PORT, () => console.log(`Server is running on http://localhost:${PORT}`))*/
+httpServer.listen(PORT, () => console.log(`Server is running on http://localhost:${PORT}`)) */

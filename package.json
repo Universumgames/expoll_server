@@ -7,12 +7,16 @@
         "build": "npm run compile",
         "compile": "rm -rf compiled/ && npx tsc",
         "serve": "node compiled/index.js",
-        "dev": "npm run compile; npm run serve"
+        "dev": "npm run compile; npm run serve",
+        "lint": "npx eslint ./src/**"
     },
     "author": "mt32",
     "license": "ISC",
     "devDependencies": {
-        "tslint": "^5.12.1",
+        "@typescript-eslint/eslint-plugin": "^5.7.0",
+        "@typescript-eslint/parser": "^5.7.0",
+        "eslint": "^8.4.1",
+        "eslint-config-google": "^0.14.0",
         "typescript": "^3.3.3"
     },
     "dependencies": {
