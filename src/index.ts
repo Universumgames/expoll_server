@@ -1,6 +1,10 @@
+import Database from "./database"
 import { NextFunction } from "express"
 // import http from "http"
 import Router from "./router"
+
+const db = new Database()
+db.init()
 
 const router = new Router(6060)
 

@@ -12,10 +12,31 @@
     "plugins": ["@typescript-eslint"],
     "rules": {
         "semi": ["warn", "never"],
-        "indent": ["error", 4],
+        "indent": [
+            "warn",
+            4,
+            {
+                "ignoredNodes": [],
+                "MemberExpression": 1,
+                "FunctionDeclaration": { "parameters": "first" }
+            }
+        ],
         "no-extra-semi": ["error"],
         "quotes": ["warn", "double", { "avoidEscape": true, "allowTemplateLiterals": true }],
         "object-curly-spacing": ["warn", "always"],
-        "max-len": ["warn", 90]
+        "max-len": ["warn", 120],
+        "no-unused-vars": ["warn"],
+        "require-jsdoc": [
+            "warn",
+            {
+                "require": {
+                    "FunctionDeclaration": true,
+                    "MethodDefinition": true,
+                    "ClassDeclaration": true,
+                    "ArrowFunctionExpression": false,
+                    "FunctionExpression": true
+                }
+            }
+        ]
     }
 }

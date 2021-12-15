@@ -20,6 +20,7 @@ export default class Router {
         this.router = express()
         // eslint-disable-next-line new-cap
         this.routes = express.Router()
+        this.setup()
     }
 
     /**
