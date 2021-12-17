@@ -1,4 +1,5 @@
 /* eslint-disable new-cap */
+import { v4 as uuidv4 } from "uuid"
 import {
     Entity,
     Column,
@@ -7,13 +8,17 @@ import {
     PrimaryColumn,
     ManyToOne,
     ManyToMany,
-    SaveOptions,
-    Repository,
+    CreateDateColumn,
+    UpdateDateColumn,
+    OneToMany
 } from "typeorm"
 
-type tUserID = number
-type tPollID = number
-type tOptionId = number
+export type tUserID = number
+export type tPollID = string
+export type tOptionId = number
+
+export type tDate = Date
+export type tDateTime = Date
 
 @Entity()
 /**
@@ -37,18 +42,23 @@ export class User extends BaseEntity {
 
     @ManyToMany((type) => Poll, (poll) => poll.id)
     polls: Poll[]
-}
 
-@Entity()
-/**
- * A quick login with an URL
- */
-export class quickLogin extends BaseEntity {
-    @ManyToOne((type) => User, (user) => user.id)
-    user: User
+    @ManyToMany((type) => Vote, (vote) => vote.id)
+    votes: Vote[]
 
-    @PrimaryColumn()
-    link: string
+    @Column({ unique: true })
+    loginKey: string = User.generateLoginKey()
+
+    @Column()
+    active: boolean
+
+    /**
+     * Generate new random login key
+     * @return {String} new login key
+     */
+    private static generateLoginKey(): string {
+        return uuidv4()
+    }
 }
 
 @Entity()
@@ -56,42 +66,57 @@ export class quickLogin extends BaseEntity {
  * Poll meta data, except vote options and votes
  */
 export class Poll extends BaseEntity {
-    @ManyToOne((type) => User, (user) => user.id)
+    @ManyToOne((type) => User, (user) => user.id, { nullable: false })
     admin: User
 
-    @PrimaryGeneratedColumn()
-    id: tPollID
+    @PrimaryColumn()
+    id: tPollID = Poll.generatePollID()
+
+    /**
+     * Generate new random poll id
+     * @return {String} new poll id
+     */
+    private static generatePollID(): string {
+        return uuidv4()
+    }
 
     @Column()
     name: string
 
-    @Column()
+    @CreateDateColumn()
     created: Date
 
-    @Column()
+    @UpdateDateColumn()
     updated: Date
 
     @Column()
     description: string
 
     @Column()
-    polltype: PollType
+    polltype: PollType = PollType.String
 
-    @ManyToOne((type) => Vote, (vote) => vote.id)
+    @OneToMany((type) => Vote, (vote) => vote.id)
     votes: Vote[]
+
+    @Column()
+    /**
+     * sets the number votes each user can send for this poll
+     * use a number <= 0 to set it to infinity
+     */
+    maxPerUserVoteCount: number = -1
 }
 
-enum PollType {
+export enum PollType {
     String = 0,
     Date = 1,
-    DateTime = 2,
+    DateTime = 2
 }
 
 /**
  * Base class for a poll option to vote for
  */
 export abstract class PollOption extends BaseEntity {
-    @ManyToOne((type) => Poll, (poll) => poll.id)
+    @ManyToOne((type) => Poll, (poll) => poll.id, { nullable: false })
     poll: Poll
 
     @PrimaryColumn()
@@ -102,7 +127,7 @@ export abstract class PollOption extends BaseEntity {
 /**
  * Poll option for a poll with strings
  */
-export class pollOptionString extends PollOption {
+export class PollOptionString extends PollOption {
     @Column()
     value: string
 }
@@ -111,11 +136,11 @@ export class pollOptionString extends PollOption {
 /**
  * Poll Option with date (end optional)
  */
-export class pollOptionDate extends PollOption {
-    @Column()
+export class PollOptionDate extends PollOption {
+    @Column({ type: "date" })
     dateStart: Date
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, type: "date" })
     dateEnd!: Date
 }
 
@@ -123,11 +148,11 @@ export class pollOptionDate extends PollOption {
 /**
  * Poll option wht datetime (end optional)
  */
-export class pollOptionDateTime extends PollOption {
-    @Column()
+export class PollOptionDateTime extends PollOption {
+    @Column({ type: "datetime" })
     dateTimeStart: Date
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, type: "datetime" })
     dateTimeEnd!: Date
 }
 
@@ -139,11 +164,15 @@ export class Vote extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number
 
-    @ManyToMany((type) => User, (user) => user.id)
+    @ManyToOne((type) => User, (user) => user.id, { nullable: false })
     user: User
 
-    @ManyToMany((type) => Poll, (poll) => poll.id)
+    @ManyToOne((type) => Poll, (poll) => poll.id, { nullable: false })
     poll: Poll
 
+    @Column()
     optionID: tOptionId
+
+    @Column()
+    votedFor: boolean = false
 }

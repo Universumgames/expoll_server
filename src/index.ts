@@ -1,22 +1,15 @@
 import Database from "./database"
-import { NextFunction } from "express"
+import { NextFunction, Request, Response } from "express"
 // import http from "http"
 import Router from "./router"
+import apiRoutes from "./routes/apiroutes"
 
 const db = new Database()
 db.init()
 
 const router = new Router(6060)
 
-const test = async (req: Request, res: Response, next: NextFunction) => {
-    // @ts-ignore
-    return res.status(200).json({
-        message: "hello",
-    })
-}
-
-// @ts-ignore
-router.addRoutes("/", test)
+router.addRoutes("/", apiRoutes)
 router.startServer()
 /* const routes = express.Router()
 routes.get("/test", test)

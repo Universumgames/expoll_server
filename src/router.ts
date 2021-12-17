@@ -20,7 +20,6 @@ export default class Router {
         this.router = express()
         // eslint-disable-next-line new-cap
         this.routes = express.Router()
-        this.setup()
     }
 
     /**
@@ -37,7 +36,7 @@ export default class Router {
      */
     startServer(): void {
         if (!this.isSetUp) {
-            console.error("Router is not fully setup, setting up manually (may cause problems)")
+            // console.error("Router is not fully setup, setting up manually (may cause problems)")
             this.setup()
         }
         this.httpServer.listen(this.port, () => {
