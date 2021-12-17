@@ -1,7 +1,8 @@
 {
     "env": {
         "browser": true,
-        "es2021": true
+        "es2021": true,
+        "es6": true
     },
     "extends": ["google", "eslint:recommended"],
     "parser": "@typescript-eslint/parser",
@@ -16,7 +17,11 @@
             "warn",
             4,
             {
-                "ignoredNodes": [],
+                "ignoredNodes": [
+                    "FunctionExpression > .params[decorators.length > 0]",
+                    "FunctionExpression > .params > :matches(Decorator, :not(:first-child))",
+                    "ClassBody.body > PropertyDefinition[decorators.length > 0] > .key"
+                ],
                 "MemberExpression": 1,
                 "FunctionDeclaration": { "parameters": "first" }
             }
@@ -37,6 +42,7 @@
                     "FunctionExpression": true
                 }
             }
-        ]
+        ],
+        "comma-dangle": ["error", "never"]
     }
 }
