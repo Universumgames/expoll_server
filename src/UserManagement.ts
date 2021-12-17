@@ -1,5 +1,6 @@
 import Database from "./database"
-import { Poll, tPollID, User, Vote } from "./interfaces"
+import { Poll, User, Vote } from "./entities/entities"
+import { tPollID } from "./interfaces"
 
 /**
  * Manger class to create delete and change users

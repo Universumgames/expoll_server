@@ -1,5 +1,5 @@
 import { Connection, createConnection } from "typeorm"
-import { User } from "./interfaces"
+import { User } from "./entities/entities"
 
 /**
  * Database class to manage access to database
@@ -24,7 +24,7 @@ export default class Database {
                 password: "password",
                 database: "expoll",
                 // eslint-disable-next-line no-undef
-                entities: [__dirname + "/interfaces.js"],
+                entities: [__dirname + "/entities/entities.js"],
                 synchronize: true
             })
             const repo = this.dbConnection.getRepository(User)

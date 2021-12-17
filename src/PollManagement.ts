@@ -1,15 +1,6 @@
 import Database from "./database"
-import {
-    Poll,
-    PollOptionDate,
-    PollOptionDateTime,
-    PollOptionString,
-    PollType,
-    tDate,
-    tDateTime,
-    tPollID,
-    User
-} from "./interfaces"
+import { Poll, PollOptionDate, PollOptionDateTime, PollOptionString, User } from "./entities/entities"
+import { PollType, tDate, tDateTime, tPollID } from "./interfaces"
 
 type basicPollOptions = { admin: User; name: string; description: string }
 /**
