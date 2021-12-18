@@ -52,6 +52,53 @@ To retrieve all polls the user has access to or to retrieve data from a specific
 When passing no additional data, only essential information is passed, like the name, admin information, number of participants, last updated and the description.
 When retrieving a single poll by passing the poll ID all information about the poll is retrieved. The information passed, additional to "basic" information (sent when passing no data), are the available options to select from, all Votes the User made and all Votes by the other users. [Information about voting](#vote-endpoints)
 
+Detailed request list:
+
+-   Path `/poll`
+-   HTTP Method `GET`
+-   Retrieve basic information
+    -   required JSON fields: none
+    -   returns (JSON)
+        -   List of Polls
+            -   `pollID` (String) unique id
+            -   `admin` the poll creator
+                -   `firstName` (String)
+                -   `lastName` (String)
+                -   `username` (String)
+            -   `description` (String)
+            -   `userCount` (Int) number users voted on this poll
+            -   `lastUpdated` (DateTime (specifics not defined yet))
+            -   `type` (0: String, 1: Date, 2: DateTime)
+-   Retrieve detailed information
+    -   required JSON fields:
+        -   `pollID` the poll id
+        -   returns (JSON)
+            -   `pollID` (String) unique id
+            -   `admin` the poll creator
+                -   `firstName` (String)
+                -   `lastName` (String)
+                -   `username` (String)
+            -   `description` (String)
+            -   `userCount` (Int) number users voted on this poll
+            -   `lastUpdated` (DateTime (specifics not defined yet))
+            -   `type` (0: String, 1: Date, 2: DateTime)
+            -   List of options
+                -   `optionID` (Int)
+                -   `value` (String) when type is String
+                -   `dateStart`(Date) when type is Date
+                -   `dateEnd`(Date | null) when type is Date
+                -   `dateTimeStart` (DateTime) when type is Datetime
+                -   `dateTimeEnd` (DateTime) when type is Datetime
+            -   List of votes
+                -   `optionID` (Int) the id of the option from the selectables from the poll
+                -   `votedFor` (boolean) wether or not the user agrees or disagrees
+                -   `userID`
+            -   List of participating users
+                -   `firstName`(String)
+                -   `lastName` (String)
+                -   `username` (String)
+                -   `id` (String)
+
 ### Create a Poll
 
 To create any kind of Poll basic settings are needed like the name of the poll and the type of the poll (String, Date, DateTime) and the number of vote each user can choose simultaneously. As admin the current user (identified via [loginKey](#login-method)) is used, which is the only one to edit this poll.
@@ -91,9 +138,9 @@ Detailed request list:
 -   path `/vote`
 -   HTTP Method `POST`
 -   required JSON fields:
-    -   `pollID` the poll this vote is directed to
-    -   `optionID` the id of the option from the selectables from the poll
-    -   `votedFor` boolean, wether or not the user agrees or disagrees
+    -   `pollID` (String) the poll this vote is directed to
+    -   `optionID` (Int) the id of the option from the selectables from the poll
+    -   `votedFor` (boolean) wether or not the user agrees or disagrees
 -   returns (HTTP codes)
     -   `200` Vote was accepted
     -   `406` (Not acceptable) Vote is unacceptable
