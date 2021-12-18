@@ -13,7 +13,10 @@
     "author": "mt32",
     "license": "MIT",
     "devDependencies": {
+        "@types/cookie-parser": "^1.4.2",
         "@types/uuid": "^8.3.3",
+        "@types/express": "^4.17.13",
+        "@types/node": "^16.11.13",
         "@typescript-eslint/eslint-plugin": "^5.7.0",
         "@typescript-eslint/parser": "^5.7.0",
         "eslint": "^8.4.1",
@@ -23,8 +26,7 @@
         "typescript": "^4.5.4"
     },
     "dependencies": {
-        "@types/express": "^4.17.13",
-        "@types/node": "^16.11.13",
+        "cookie-parser": "^1.4.6",
         "express": "^4.17.1",
         "mariadb": "^2.5.5",
         "mysql": "^2.18.1",

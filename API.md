@@ -37,8 +37,10 @@ Detailed request list:
     -   `lastName` (String)
     -   `mail` (String)
     -   `username` (String)
--   returns (JSON)
+-   returns on ok (JSON) 200
     -   `loginKey` (String) the loginKey have to be set as a cookie, it is checked for every request
+-   return on missing request elements 400 (Bad Request)
+-   return on user exists (mail address is key) 406 (Not acceptable)
 
 ### Edit User settings
 
