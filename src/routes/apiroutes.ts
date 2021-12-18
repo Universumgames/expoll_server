@@ -1,11 +1,13 @@
 import express, { NextFunction, Request, Response } from "express"
 import pollRoutes from "./pollRoutes"
 import userRoutes from "./userRoutes"
+import voteRoutes from "./voteRoutes"
 
 // eslint-disable-next-line new-cap
 const apiRoutes = express.Router()
 apiRoutes.use("/user", userRoutes)
 apiRoutes.use("/poll", pollRoutes)
+apiRoutes.use("/vote", voteRoutes)
 
 const test = async (req: Request, res: Response, next: NextFunction) => {
     return res.status(200).json({

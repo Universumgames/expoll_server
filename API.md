@@ -4,14 +4,17 @@
 
 Configured on our server, the API is accessible via the `/api`Endpoint
 
-| Endpoint | HTTP Method | Summary                                                                                             |
-| -------- | ----------- | --------------------------------------------------------------------------------------------------- |
-| `/user`  | -           | [Link](#user-endpoints)                                                                             |
-| `/user`  | POST        | [Details](#create-a-user) - Creating a user with Full Name and a unique, not yet used, mail address |
-| `/user`  | PUT         | [Details](#edit-user-settings) - Edit own user                                                      |
-| `/poll`  | -           | [Link](#poll-endpoints)                                                                             |
-| `/poll`  | POST        | [Details](#create-a-poll) - Creating a new Poll                                                     |
-| `/poll`  | PUT         | [Details](#edit-a-poll) - Editing an existing Poll                                                  |
+| Endpoint | HTTP Method | Summary                                                                               |
+| :------- | :---------: | ------------------------------------------------------------------------------------- |
+| `/user`  |      -      | [Link](#user-endpoints)                                                               |
+| `/user`  |    POST     | [Details](#create-a-user) - Creating a user                                           |
+| `/user`  |     PUT     | [Details](#edit-user-settings) - Edit own user                                        |
+| `/poll`  |      -      | [Link](#poll-endpoints)                                                               |
+| `/poll`  |     GET     | [Details](#retrieve-polls) - Get all/specific polls the user created or has access to |
+| `/poll`  |    POST     | [Details](#create-a-poll) - Creating a new Poll                                       |
+| `/poll`  |     PUT     | [Details](#edit-a-poll) - Editing an existing Poll                                    |
+| `/vote`  |      -      | [Link](#vote-endpoints)                                                               |
+| `/vote`  |    POST     | [Details](#vote-or-replace-previous-one) - Vote on a poll                             |
 
 ## Login Method
 
@@ -43,6 +46,12 @@ Detailed request list:
 
 ## Poll-Endpoints
 
+### Retrieve polls
+
+To retrieve all polls the user has access to or to retrieve data from a specific poll data either no additional data is required or the poll id needs to be send.
+When passing no additional data, only essential information is passed, like the name, admin information, number of participants, last updated and the description.
+When retrieving a single poll by passing the poll ID all information about the poll is retrieved. The information passed, additional to "basic" information (sent when passing no data), are the available options to select from, all Votes the User made and all Votes by the other users. [Information about voting](#vote-endpoints)
+
 ### Create a Poll
 
 To create any kind of Poll basic settings are needed like the name of the poll and the type of the poll (String, Date, DateTime) and the number of vote each user can choose simultaneously. As admin the current user (identified via [loginKey](#login-method)) is used, which is the only one to edit this poll.
@@ -70,3 +79,21 @@ Detailed request list:
 ### Edit a poll
 
 <small>Not going to be implemented in first version</small>
+
+## Vote Endpoints
+
+### Vote or replace previous one
+
+To vote on a poll you need the `pollID`, the selected option and wether or not it is selected or not. The user creating is vote is identified with the [loginKey](#login-method). When the user already voted for that poll and the option was already voted for once, the vote gets replaced as long as the maximum number of votes for that poll is not reached.
+
+Detailed request list:
+
+-   path `/vote`
+-   HTTP Method `POST`
+-   required JSON fields:
+    -   `pollID` the poll this vote is directed to
+    -   `optionID` the id of the option from the selectables from the poll
+    -   `votedFor` boolean, wether or not the user agrees or disagrees
+-   returns (HTTP codes)
+    -   `200` Vote was accepted
+    -   `406` (Not acceptable) Vote is unacceptable
