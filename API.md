@@ -59,9 +59,10 @@ Detailed request list:
 -   Path `/poll`
 -   HTTP Method `GET`
 -   Retrieve basic information
-    -   required JSON fields: none
+    -   required JSON fields: none (besides `loginKey` when not sent as cookie)
+    -   returns 401 (Unauthorized) if loginKey is invalid
     -   returns (JSON)
-        -   List of Polls
+        -   `polls`: List of Polls
             -   `pollID` (String) unique id
             -   `admin` the poll creator
                 -   `firstName` (String)
@@ -74,6 +75,8 @@ Detailed request list:
 -   Retrieve detailed information
     -   required JSON fields:
         -   `pollID` the poll id
+        -   returns 401 (Unauthorized) if loginKey is invalid
+        -   returns 400 (Bad Request) if poll was not found in users accessible poll list
         -   returns (JSON)
             -   `pollID` (String) unique id
             -   `admin` the poll creator
@@ -83,8 +86,9 @@ Detailed request list:
             -   `description` (String)
             -   `userCount` (Int) number users voted on this poll
             -   `lastUpdated` (DateTime (specifics not defined yet))
+            -   `created` (DateTime (specifics not defined yet))
             -   `type` (0: String, 1: Date, 2: DateTime)
-            -   List of options
+            -   `options`: List of options
                 -   `optionID` (Int)
                 -   `value` (String) when type is String
                 -   `dateStart`(Date) when type is Date
