@@ -18,6 +18,7 @@ export interface IUser {
     polls: IPoll[]
     votes: IVote[]
     loginKey: string
+    admin: boolean
 }
 
 export enum PollType {
@@ -36,7 +37,7 @@ export interface IPoll {
     created: Date
     updated: Date
     description: string
-    polltype: PollType
+    type: PollType
     votes: IVote[]
 
     maxPerUserVoteCount: number

@@ -27,7 +27,7 @@ export default class Database {
                 entities: [__dirname + "/entities/entities.js"],
                 synchronize: true
             })
-            const repo = this.dbConnection.getRepository(User)
+            /* const repo = this.dbConnection.getRepository(User)
             const u = new User()
             const u2 = await repo.findOne({ where: { mail: "test@test.com" } })
             Object.assign(u, u2)
@@ -36,7 +36,7 @@ export default class Database {
             u.mail = "test@test.com"
             u.username = "universum"
             u.active = true
-            await repo.save(u)
+            await repo.save(u) */
         } catch (e) {
             console.error("COnnection failed", e)
         }

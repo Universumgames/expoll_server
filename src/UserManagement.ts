@@ -34,7 +34,7 @@ class UserManager {
     async createUser(firstName: string, lastName: string, mail: string, username: string): Promise<User> {
         const u = new User()
         u.mail = mail
-        const existing = this.getUser(mail)
+        const existing = this.getUser({ mail: mail })
         if (existing != undefined) Object.assign(u, existing)
         u.username = username
         u.firstName = firstName
@@ -56,7 +56,7 @@ class UserManager {
         mail: string,
         settings: { firstName?: string; lastName?: string; username?: string }
     ): Promise<User | undefined> {
-        const user = await this.getUser(mail)
+        const user = await this.getUser({ mail: mail })
         if (user == undefined) return undefined
 
         if (settings.firstName != undefined) user.firstName = settings.firstName
@@ -69,22 +69,26 @@ class UserManager {
 
     /**
      * Get User with given mail address
-     * @param {string?} mail the mail address of the user to be searched for
+     * @param {{}} data the mail address of the user to be searched for
      * @param {string?} loginKey the loginKey of the user to be searched for
-     * @return {User | undefined} returns found User or undefined if not existant
+     * @return {Promise<User | undefined>} returns found User or undefined if not existant
      */
-    async getUser(mail?: string, loginKey?: string): Promise<User | undefined> {
-        if (mail != undefined) return await this.repo.findOne({ where: { mail: mail } })
-        else return await this.repo.findOne({ where: { loginKey: loginKey } })
+    async getUser(data: { mail?: string; loginKey?: string; username?: string }): Promise<User | undefined> {
+        if (data.mail != undefined) return await this.repo.findOne({ where: { mail: data.mail } })
+        else if (data.loginKey != undefined) return await this.repo.findOne({ where: { loginKey: data.loginKey } })
+        else if (data.username != undefined) return await this.repo.findOne({ where: { username: data.username } })
+        else return undefined
     }
 
     /**
      * Check if user with mail address exists
-     * @param {string} mail the mail address of the user to search
+     * @param {{string, string}} option the mail address of the user to search
      * @return {Promise<Boolean>} true when User exist, false otherwise
      */
-    async checkUserExists(mail: string): Promise<Boolean> {
-        return (await this.getUser(mail)) != undefined
+    async checkUserExists(option: { mail?: string; username?: string }): Promise<Boolean> {
+        const mailUser = option.mail != undefined ? await this.getUser({ mail: option.mail }) : undefined
+        const nameUser = option.username != undefined ? await this.getUser({ username: option.username }) : undefined
+        return mailUser != undefined || nameUser != undefined
     }
 
     /**
@@ -93,7 +97,8 @@ class UserManager {
      * @return {Promise<Boolean>} true when User exist, false otherwise
      */
     async checkLoginKeyExists(loginKey: string): Promise<Boolean> {
-        return (await this.getUser(undefined, loginKey)) != undefined
+        const u = await this.getUser({ loginKey: loginKey })
+        return u != undefined
     }
 
     /**
@@ -101,7 +106,7 @@ class UserManager {
      * @param {string} mail the to-be-deleted user's mail adress
      */
     async deactivateUser(mail: string) {
-        const user = await this.getUser(mail)
+        const user = await this.getUser({ mail: mail })
         if (user != undefined) {
             user.active = false
             user.save()
@@ -114,7 +119,7 @@ class UserManager {
      * @return {Poll[]} users polls
      */
     async getPolls(mail: string): Promise<Poll[]> {
-        const user = await this.getUser(mail)
+        const user = await this.getUser({ mail: mail })
         if (user == undefined) return []
         return user.polls
     }
@@ -126,7 +131,7 @@ class UserManager {
      * @return {Vote[]} given Votes from user to Poll
      */
     async getVotes(mail: string, pollID: tPollID): Promise<Vote[]> {
-        const user = await this.getUser(mail)
+        const user = await this.getUser({ mail: mail })
         if (user == undefined) return []
         const votes: Vote[] = []
         user.votes.forEach((vote) => {

@@ -41,7 +41,7 @@ class PollManager {
      */
     async createStringPoll(settings: basicPollOptions, options: string[]): Promise<Poll> {
         const poll = new Poll()
-        poll.polltype = PollType.String
+        poll.type = PollType.String
         poll.admin = settings.admin
         poll.description = settings.description
         poll.name = settings.name
@@ -67,7 +67,7 @@ class PollManager {
      */
     async getStringPollOptions(pollID: tPollID): Promise<PollOptionString[] | undefined> {
         const poll = await this.repo.findOne({ where: { id: pollID } })
-        if (poll == undefined || poll.polltype != PollType.String) return undefined
+        if (poll == undefined || poll.type != PollType.String) return undefined
         const options: PollOptionString[] = await this.db.connection
             .getRepository(PollOptionString)
             .find({ where: { poll: poll } })
@@ -84,7 +84,7 @@ class PollManager {
      */
     async createDatePoll(settings: basicPollOptions, options: { start: tDate; end: tDate }[]): Promise<Poll> {
         const poll = new Poll()
-        poll.polltype = PollType.Date
+        poll.type = PollType.Date
         poll.admin = settings.admin
         poll.description = settings.description
         poll.name = settings.name
@@ -111,7 +111,7 @@ class PollManager {
      */
     async getDatePollOptions(pollID: tPollID): Promise<PollOptionDate[] | undefined> {
         const poll = await this.repo.findOne({ where: { id: pollID } })
-        if (poll == undefined || poll.polltype != PollType.Date) return undefined
+        if (poll == undefined || poll.type != PollType.Date) return undefined
         const options: PollOptionDate[] = await this.db.connection
             .getRepository(PollOptionDate)
             .find({ where: { poll: poll } })
@@ -130,7 +130,7 @@ class PollManager {
         options: { start: tDateTime; end: tDateTime }[]
     ): Promise<Poll> {
         const poll = new Poll()
-        poll.polltype = PollType.DateTime
+        poll.type = PollType.DateTime
         poll.admin = settings.admin
         poll.description = settings.description
         poll.name = settings.name
@@ -157,7 +157,7 @@ class PollManager {
      */
     async getDateTimePollOptions(pollID: tPollID): Promise<PollOptionDateTime[] | undefined> {
         const poll = await this.repo.findOne({ where: { id: pollID } })
-        if (poll == undefined || poll.polltype != PollType.DateTime) return undefined
+        if (poll == undefined || poll.type != PollType.DateTime) return undefined
         const options: PollOptionDateTime[] = await this.db.connection
             .getRepository(PollOptionDateTime)
             .find({ where: { poll: poll } })

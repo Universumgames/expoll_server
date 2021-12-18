@@ -13,19 +13,19 @@ const userRoutes = express.Router()
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
     // check valid request body
-    const errorReturn = res.status(400)
-    if (req.body == undefined) return errorReturn
+    const missingFieldRC = 400
+    if (req.body == undefined) return res.status(missingFieldRC).end()
     const body = req.body
-    const mail = body.mail
-    if (mail == undefined) return errorReturn
-    const firstName = body.firstName
-    if (firstName == undefined) return errorReturn
-    const lastName = body.lastName
-    if (lastName == undefined) return errorReturn
-    const username = body.username
-    if (username == undefined) return errorReturn
+    const mail = body.mail as string
+    if (mail == undefined) return res.status(missingFieldRC).end()
+    const firstName = body.firstName as string
+    if (firstName == undefined) return res.status(missingFieldRC).end()
+    const lastName = body.lastName as string
+    if (lastName == undefined) return res.status(missingFieldRC).end()
+    const username = body.username as string
+    if (username == undefined) return res.status(missingFieldRC).end()
     // check user not exist
-    if (await getUserManager().checkUserExists(mail)) return res.status(406)
+    if (await getUserManager().checkUserExists({ mail: mail })) return res.status(406).end()
     // create user
     const user = new User()
     user.mail = mail
@@ -33,7 +33,12 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     user.lastName = lastName
     user.username = username
     const loginKey = user.loginKey
-    user.save()
+    try {
+        await user.save()
+    } catch (e) {
+        console.error(e)
+        return res.status(500).end()
+    }
 
     const data = {
         loginKey: loginKey

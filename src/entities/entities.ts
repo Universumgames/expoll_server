@@ -44,8 +44,11 @@ export class User extends BaseEntity implements IUser {
     @Column({ unique: true })
     loginKey: string = User.generateLoginKey()
 
-    @Column()
+    @Column({ default: true })
     active: boolean
+
+    @Column({ default: false })
+    admin: boolean
 
     /**
      * Generate new random login key
@@ -88,7 +91,7 @@ export class Poll extends BaseEntity implements IPoll {
     description: string
 
     @Column()
-    polltype: PollType = PollType.String
+    type: PollType = PollType.String
 
     @OneToMany((type) => Vote, (vote) => vote.id)
     votes: Vote[]
