@@ -188,7 +188,15 @@ let pollManger!: PollManager
  * @param {Database} db Database object to grant data access
  * @return {PollManger} Poll Manager to manage all Poll tasks
  */
-export default function createUserManager(db: Database): PollManager {
+export function createPollManager(db: Database): PollManager {
     if (pollManger == undefined) pollManger = new PollManager(db)
+    return pollManger
+}
+
+/**
+ * returns initiliazed poll manager
+ * @return {PollManager} current pollmanager
+ */
+export default function getPollManager(): PollManager {
     return pollManger
 }

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 export type tUserID = number
 export type tPollID = string
 export type tOptionId = number

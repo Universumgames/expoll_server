@@ -15,11 +15,12 @@ const test = async (req: Request, res: Response, next: NextFunction) => {
     })
 }
 
-const metaInfo = async (req: Request, res: Response, next: NextFunction) => {
+export const metaInfo = async (req: Request, res: Response, next: NextFunction) => {
     const returnData = {
         body: req.body ?? "",
         headers: req.headers,
         cookies: req.cookies,
+        signedCookies: req.signedCookies,
         url: req.url,
         path: req.path,
         method: req.method,
@@ -34,7 +35,11 @@ const metaInfo = async (req: Request, res: Response, next: NextFunction) => {
         xhr: req.xhr,
         test: "test message"
     }
-    return res.status(200).json(returnData)
+    return res
+        .status(200)
+        .cookie("test-cookie-name", "test-cookie-value", { sameSite: true })
+        .cookie("test2", "testval", { sameSite: true })
+        .json(returnData)
 }
 
 apiRoutes.get("/test", test)

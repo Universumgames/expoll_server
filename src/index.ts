@@ -1,11 +1,15 @@
 import Database from "./database"
-import { NextFunction, Request, Response } from "express"
 // import http from "http"
 import Router from "./router"
 import apiRoutes from "./routes/apiroutes"
+import { createUserManager } from "./UserManagement"
+import { createPollManager } from "./PollManagement"
 
 const db = new Database()
 db.init()
+
+const userManager = createUserManager(db)
+const pollManager = createPollManager(db)
 
 const router = new Router(6060)
 

@@ -145,7 +145,15 @@ let userManager!: UserManager
  * @param {Database} db Database object to grant data access
  * @return {UserManager} User Manager to manage all User todos
  */
-export default function createUserManager(db: Database): UserManager {
+export function createUserManager(db: Database): UserManager {
     if (userManager == undefined) userManager = new UserManager(db)
+    return userManager
+}
+
+/**
+ * returns initialized user manager
+ * @return {UserManager} current user manager
+ */
+export default function getUserManager(): UserManager {
     return userManager
 }
