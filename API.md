@@ -16,6 +16,14 @@ Configured on our server, the API is accessible via the `/api`Endpoint
 | `/vote`  |      -      | [Link](#vote-endpoints)                                                               |
 | `/vote`  |    POST     | [Details](#vote-or-replace-previous-one) - Vote on a poll                             |
 
+## Return code overview
+
+-   `200` OK
+-   `400` (Bad request) parameters missing/invalid
+-   `401` (Unauthorized) LoginKey is invalid
+-   `406` (Not acceptable) Vote is not acceptable / user already exists (mail or username)
+-   `409` (Conflict) wrong parameter type
+
 ## Login Method
 
 Login is handled not with password but with a login key which is received at signup and sent per mail when requested via username or the users mail address.
@@ -116,6 +124,7 @@ Detailed request list:
 -   required JSON fields:
     -   `name` (String)
     -   `maxPerUserVoteCount` (Non decimal number) - the number of options each user choose simultaneously (chose a number <= 0 to set to infinity)
+    -   `description` (String)
     -   `type` (0: String, 1: Date, 2: DateTime)
     -   `options` Array of following type (must correlate to set value above):
         -   in case of type String
@@ -127,7 +136,9 @@ Detailed request list:
             -   `dateTimeStart` (DateTime)
             -   `dateTimeEnd`(DateTime) value can be null or not set
 -   returns (JSON)
-    -   `pollKey` the polls uuid
+    -   `pollID` the polls uuid
+-   return 400 if parameters are missing
+-   returns 409 if parameters are wrong type
 
 ### Edit a poll
 

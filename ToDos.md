@@ -16,6 +16,9 @@
         -   [x] Retrieve detailed Poll data
         -   [x] Create Poll
         -   [ ] Edit Poll
+            -   [ ] add/remove user access
+            -   [ ] add/remove options
+            -   [ ] edit description
     -   [x] Vote
         -   [x] create vote
 
@@ -25,9 +28,12 @@
     -   [x] Create user
     -   [ ] Edit user
     -   [ ] Polls
-        -   [ ] Retrieve Existing Polls
-        -   [ ] Retrieve detailed Poll data
+        -   [x] Retrieve Existing Polls
+        -   [x] Retrieve detailed Poll data
         -   [ ] Create Poll
         -   [ ] Edit Poll
+            -   [ ] add/remove user access
+            -   [ ] add/remove options
+            -   [ ] edit description
     -   [ ] Vote
         -   [ ] create vote
