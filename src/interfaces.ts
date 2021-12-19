@@ -6,6 +6,19 @@ export type tOptionId = number
 export type tDate = Date
 export type tDateTime = Date
 
+export enum ReturnCode {
+    OK = 200,
+    BAD_REQUEST = 400,
+    MISSING_PARAMS = 400,
+    INVALID_PARAMS = 400,
+    UNAUTHORIZED = 401,
+    INVALID_LOGIN_KEY = 401,
+    NOT_ACCEPTABLE = 406,
+    CONFLICT = 409,
+    INVALID_TYPE = 409,
+    INTERNAL_SERVER_ERROR = 500
+}
+
 /**
  * User object storing all user data
  */
