@@ -4,17 +4,21 @@
 
 Configured on our server, the API is accessible via the `/api`Endpoint
 
-| Endpoint | HTTP Method | Summary                                                                               |
-| :------- | :---------: | ------------------------------------------------------------------------------------- |
-| `/user`  |      -      | [Link](#user-endpoints)                                                               |
-| `/user`  |    POST     | [Details](#create-a-user) - Creating a user                                           |
-| `/user`  |     PUT     | [Details](#edit-user-settings) - Edit own user                                        |
-| `/poll`  |      -      | [Link](#poll-endpoints)                                                               |
-| `/poll`  |     GET     | [Details](#retrieve-polls) - Get all/specific polls the user created or has access to |
-| `/poll`  |    POST     | [Details](#create-a-poll) - Creating a new Poll                                       |
-| `/poll`  |     PUT     | [Details](#edit-a-poll) - Editing an existing Poll                                    |
-| `/vote`  |      -      | [Link](#vote-endpoints)                                                               |
-| `/vote`  |    POST     | [Details](#vote-or-replace-previous-one) - Vote on a poll                             |
+| Endpoint      | HTTP Method | Summary                                                                               |
+| :------------ | :---------: | ------------------------------------------------------------------------------------- |
+| `/user`       |      -      | [Link](#user-endpoints)                                                               |
+| `/user`       |    POST     | [Details](#create-a-user) - Creating a user                                           |
+| `/user`       |     GET     | [Details](#get-user-data) - Get user data                                             |
+| `/user`       |     PUT     | [Details](#edit-user-settings) - Edit own user                                        |
+| `/user/login` |    POST     | [Details]() - Login via loginKey or request login mail                                |
+| `user`        |   DELETE    | Deactivate a useraccount - serves no purpose so far                                   |
+| `/poll`       |      -      | [Link](#poll-endpoints)                                                               |
+| `/poll`       |     GET     | [Details](#retrieve-polls) - Get all/specific polls the user created or has access to |
+| `/poll`       |    POST     | [Details](#create-a-poll) - Creating a new Poll                                       |
+| `/poll`       |     PUT     | [Details](#edit-a-poll) - Editing an existing Poll                                    |
+| `/vote`       |      -      | [Link](#vote-endpoints)                                                               |
+| `/vote`       |    POST     | [Details](#vote-or-replace-previous-one) - Vote on a poll                             |
+| `/vote`       |   DELETE    | [Details](#revokedelete-vote) - Revoke vote on poll                                   |
 
 ## Return code overview
 
@@ -50,7 +54,30 @@ Detailed request list:
 -   return on missing request elements 400 (Bad Request)
 -   return on user exists (mail address is key) 406 (Not acceptable)
 
+### Get user data
+
+The get currently logged in userdata this endpoint can be used. Just like any other endpoint just pass the loginkey either via the json request body or as cookie the authorize this request. The return contains all user information like the loginKey itself, userid, admin etc.
+
+Detailed request list:
+
+-   Path `/user`
+-   HTTP Method `GET`
+-   required data: loginKey (cookie or request body)
+-   returns (JSON):
+    -   `loginKey`
+    -   `id`
+    -   `username`
+    -   `firstName`
+    -   `lastName`
+    -   `mail`
+    -   `active` (indicates wether the account has been deactivated, see [Deactivate user](#deactivate-user))
+    -   `admin`(most presumably false)
+
 ### Edit User settings
+
+<small>Not going to be implemented in first version</small>
+
+### Deactivate user
 
 <small>Not going to be implemented in first version</small>
 
@@ -161,3 +188,7 @@ Detailed request list:
 -   returns (HTTP codes)
     -   `200` Vote was accepted
     -   `406` (Not acceptable) Vote is unacceptable
+
+### Revoke/Delete vote
+
+<small>Not going to be implemented in first version</small>
