@@ -1,6 +1,11 @@
+import { Request } from "express"
 import Database from "./database"
 import { Poll, User, Vote } from "./entities/entities"
-import { tPollID } from "./interfaces"
+import { ReturnCode, tPollID, tUserID } from "./interfaces"
+import nodemailer from "nodemailer"
+import SMTPTransport from "nodemailer/lib/smtp-transport"
+import { config } from "./config.dev"
+import getMailManager, { Mail } from "./MailManager"
 
 /**
  * Manger class to create delete and change users
@@ -73,10 +78,16 @@ class UserManager {
      * @param {string?} loginKey the loginKey of the user to be searched for
      * @return {Promise<User | undefined>} returns found User or undefined if not existant
      */
-    async getUser(data: { mail?: string; loginKey?: string; username?: string }): Promise<User | undefined> {
+    async getUser(data: {
+        mail?: string
+        loginKey?: string
+        username?: string
+        userID?: tUserID
+    }): Promise<User | undefined> {
         if (data.mail != undefined) return await this.repo.findOne({ where: { mail: data.mail } })
         else if (data.loginKey != undefined) return await this.repo.findOne({ where: { loginKey: data.loginKey } })
         else if (data.username != undefined) return await this.repo.findOne({ where: { username: data.username } })
+        else if (data.userID != undefined) return await this.repo.findOne({ where: { id: data.userID } })
         else return undefined
     }
 
@@ -141,6 +152,48 @@ class UserManager {
         })
         return votes
     }
+
+    /**
+     * send a mail to the user to receive a login link
+     * @param {string} mail users mail address
+     * @param {Request} req the server hostname
+     * @return {ReturnCode} the returncode of the operation
+     */
+    async sendLoginMail(mail: string, req: Request): Promise<ReturnCode> {
+        if (mail == undefined) return ReturnCode.MISSING_PARAMS
+        const user = await this.getUser({ mail: mail })
+        if (user == undefined) return ReturnCode.INVALID_PARAMS
+
+        getMailManager().sendMail({
+            from: config.mailUser,
+            to: user.mail,
+            subject: "Loginkey for loggin into expoll",
+            text:
+                "Here is you login key for logging in on the expoll website: " +
+                user.loginKey +
+                "\n alternatively you can click this link " +
+                urlBuilder(req, user.loginKey)
+        } as Mail)
+        return ReturnCode.OK
+    }
+}
+
+/**
+ * Build login url sent vie mail
+ * @param {Request} req express request object
+ * @param {string} loginKey the users login key
+ * @return {string} the login url
+ */
+function urlBuilder(req: Request, loginKey: string): string {
+    const port = req.app.settings.port || config.frontEndPort
+    return (
+        req.protocol +
+        "://" +
+        req.hostname +
+        (port == 80 || port == 443 ? "" : ":" + port) +
+        "/#/login/" +
+        encodeURIComponent(loginKey)
+    )
 }
 
 let userManager!: UserManager

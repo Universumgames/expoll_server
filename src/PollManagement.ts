@@ -1,6 +1,7 @@
 import Database from "./database"
-import { Poll, PollOptionDate, PollOptionDateTime, PollOptionString, User } from "./entities/entities"
-import { PollType, tDate, tDateTime, tPollID } from "./interfaces"
+import { Poll, PollOptionDate, PollOptionDateTime, PollOptionString, User, Vote } from "./entities/entities"
+import { PollType, tDate, tDateTime, tOptionId, tPollID, tUserID } from "./interfaces"
+import getUserManager from "./UserManagement"
 
 type basicPollOptions = { admin: User; name: string; description: string }
 /**
@@ -178,6 +179,36 @@ class PollManager {
             if (!users.includes(vote.user)) users.push(vote.user)
         })
         return users
+    }
+
+    /**
+     * g
+     * @param {tUserID} userID the id of the user to check
+     * @param {tPollID} pollID the poll id
+     * @return {number} returns the number of votes the user already has on that poll
+     */
+    async getVoteCountFromUser(userID: tUserID, pollID: tPollID): Promise<number> {
+        const user = await getUserManager().getUser({ userID: userID })
+        if (user == undefined) return -1
+        const poll = await this.getPoll(pollID)
+        if (poll == undefined) return -1
+        if (poll.votes == undefined) return 0
+        const votes = poll.votes.filter((element) => element.poll.id == poll.id && element.user.id == user.id)
+        return votes.length
+    }
+
+    /**
+     * Get existing vote on option
+     * @param {tUserID} userID user id
+     * @param {tPollID} pollID poll id
+     * @param {tOptionID} optionID selected option
+     * @return {Promise<Vote | undefined>} returns existing Vote or undefined if not existent
+     */
+    async getVote(userID: tUserID, pollID: tPollID, optionID: tOptionId): Promise<Vote | undefined> {
+        const user = await getUserManager().getUser({ userID: userID })
+        if (user == undefined) return undefined
+        if (user.votes == undefined) return undefined
+        return user.votes.find((element) => element.optionID == optionID && element.poll.id == pollID)
     }
 }
 

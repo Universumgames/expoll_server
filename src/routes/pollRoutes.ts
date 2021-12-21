@@ -141,6 +141,9 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
         checkedOptions.forEach((o) => {
             o.save()
         })
+        if (user.polls == undefined) user.polls = []
+        user.polls.push(poll)
+        user.save()
 
         return res.status(ReturnCode.OK).json({
             pollID: poll.id
