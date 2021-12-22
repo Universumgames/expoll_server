@@ -1,4 +1,4 @@
-import { IPoll, IPollOption, IPollOptionDate, IPollOptionDateTime, IUser, PollType } from "./../interfaces"
+import { IPoll, IPollOption, IPollOptionDate, IPollOptionDateTime, IUser, ISession, PollType } from "./../interfaces"
 /* eslint-disable new-cap */
 import { v4 as uuidv4 } from "uuid"
 import {
@@ -11,7 +11,9 @@ import {
     ManyToMany,
     CreateDateColumn,
     UpdateDateColumn,
-    OneToMany
+    OneToMany,
+    JoinTable,
+    JoinColumn
 } from "typeorm"
 import { tOptionId, tPollID, tUserID } from "../interfaces"
 
@@ -38,11 +40,11 @@ export class User extends BaseEntity implements IUser {
     @ManyToMany((type) => Poll, (poll) => poll.id)
     polls: Poll[]
 
-    @ManyToMany((type) => Vote, (vote) => vote.id)
+    @OneToMany((type) => Vote, (vote) => vote.user)
     votes: Vote[]
 
-    @Column({ unique: true })
-    loginKey: string = User.generateLoginKey()
+    @OneToMany((type) => Session, (session) => session.user)
+    sessions: Session[]
 
     @Column({ default: true })
     active: boolean
@@ -51,11 +53,55 @@ export class User extends BaseEntity implements IUser {
     admin: boolean
 
     /**
+     * Generate new Session that will be saved automatically
+     * @return {Session} new Session
+     */
+    async generateSession(): Promise<Session> {
+        const session = new Session()
+        session.user = this
+        const ex = new Date()
+        ex.setMonth(ex.getMonth() + 3)
+        session.expiration = ex
+
+        if (this.sessions == undefined) {
+            this.sessions = []
+        }
+        this.sessions.push(session)
+
+        await this.save()
+
+        return session
+    }
+}
+
+@Entity()
+/**
+ * Session ibject to store users session data
+ */
+export class Session extends BaseEntity implements ISession {
+    @PrimaryColumn()
+    loginKey: string = Session.generateLoginKey()
+
+    @Column()
+    expiration: Date
+
+    @ManyToOne((type) => User, (user) => user.sessions)
+    user: User
+
+    /**
      * Generate new random login key
      * @return {String} new login key
      */
     private static generateLoginKey(): string {
         return uuidv4()
+    }
+
+    /**
+     * check wether the session is not expired
+     * @return {boolean} returns true if session is valid
+     */
+    isValid(): boolean {
+        return this.expiration > new Date()
     }
 }
 
@@ -93,7 +139,7 @@ export class Poll extends BaseEntity implements IPoll {
     @Column()
     type: PollType = PollType.String
 
-    @OneToMany((type) => Vote, (vote) => vote.id)
+    @OneToMany((type) => Vote, (vote) => vote.poll)
     votes: Vote[]
 
     @Column()
@@ -156,10 +202,10 @@ export class Vote extends BaseEntity {
     @PrimaryGeneratedColumn()
     id: number
 
-    @ManyToOne((type) => User, (user) => user.id, { nullable: false })
+    @ManyToOne((type) => User, (user) => user.votes, { nullable: false })
     user: User
 
-    @ManyToOne((type) => Poll, (poll) => poll.id, { nullable: false })
+    @ManyToOne((type) => Poll, (poll) => poll.votes, { nullable: false })
     poll: Poll
 
     @Column()

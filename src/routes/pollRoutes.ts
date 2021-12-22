@@ -3,7 +3,6 @@ import { Poll, PollOptionDate, PollOptionDateTime, PollOptionString } from "./..
 import express, { NextFunction, Request, Response } from "express"
 import { getLoginKey } from "../helper"
 import getPollManager from "../PollManagement"
-import Router from "../router"
 import getUserManager from "../UserManagement"
 import { PollType } from "../interfaces"
 

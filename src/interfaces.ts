@@ -19,6 +19,12 @@ export enum ReturnCode {
     INTERNAL_SERVER_ERROR = 500
 }
 
+export interface ISession {
+    loginKey: string
+    expiration: tDateTime
+    user: IUser
+}
+
 /**
  * User object storing all user data
  */
@@ -30,7 +36,7 @@ export interface IUser {
     mail: string
     polls: IPoll[]
     votes: IVote[]
-    loginKey: string
+    sessions: ISession[]
     admin: boolean
 }
 

@@ -3,12 +3,11 @@
     "version": "1.0.0",
     "description": "",
     "main": "compiled/index.js",
-    "target": "es2022",
     "scripts": {
-        "build": "npm run compile",
+        "build": "npm run compile; npm run lint",
         "compile": ": rm -rf compiled/ && \n npx tsc",
         "serve": "node compiled/index.js",
-        "dev": "npm run compile; npm run lint; npm run serve",
+        "dev": "npm run build; npm run serve",
         "lint": "npx eslint ./src --ext .ts"
     },
     "author": "mt32",

@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import Database from "./database"
 // import http from "http"
 import Router from "./router"
@@ -19,7 +20,7 @@ const mailManager = createMailManager()
  */
 async function test() {
     const mailTest = await mailManager.testConnection()
-    console.log("Connection to server is " + (mailTest ? "successful" : "not successful"))
+    console.log("Connection to mail server is " + (mailTest ? "successful" : "not successful"))
 }
 
 test()

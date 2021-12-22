@@ -1,7 +1,7 @@
 import { cookieName } from "./../helper"
 import { ReturnCode } from "./../interfaces"
-import { User } from "./../entities/entities"
-import express, { NextFunction, Request, Response } from "express"
+import { Session, User } from "./../entities/entities"
+import express, { CookieOptions, NextFunction, Request, Response } from "express"
 import getUserManager from "../UserManagement"
 import { getLoginKey } from "../helper"
 
@@ -28,25 +28,33 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
         const username = body.username as string
         if (username == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         // check user not exist
-        if (await getUserManager().checkUserExists({ mail: mail })) return res.status(406).end()
+        if (
+            (await getUserManager().checkUserExists({ mail: mail })) ||
+            (await getUserManager().checkUserExists({ username: username }))
+        )
+            return res.status(406).end()
         // create user
         const user = new User()
         user.mail = mail
         user.firstName = firstName
         user.lastName = lastName
         user.username = username
-        const loginKey = user.loginKey
         try {
+            console.log(user)
             await user.save()
+
+            const session = await user.generateSession()
+            console.log(session)
+            const loginKey = session.loginKey
+
+            const data = {
+                loginKey: loginKey
+            }
+            return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(session)).json(data)
         } catch (e) {
             console.error(e)
             return res.status(500).end()
         }
-
-        const data = {
-            loginKey: loginKey
-        }
-        return res.status(ReturnCode.OK).cookie(cookieName, data, { httpOnly: true, sameSite: "strict" }).json(data)
     } catch (e) {
         console.error(e)
         res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
@@ -56,12 +64,14 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 const getUserData = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const loginKey = getLoginKey(req)
+        if (loginKey == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const user = await getUserManager().getUser({ loginKey: loginKey })
-        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized
+        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized
         const data = {
             loginKey: loginKey
         }
-        return res.status(ReturnCode.OK).cookie(cookieName, data, { httpOnly: true, sameSite: "strict" }).json(user)
+        const session = await getUserManager().getSession(loginKey)
+        return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(session!)).json(user)
     } catch (e) {
         console.error(e)
         res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
@@ -75,15 +85,25 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
             return res.status(await getUserManager().sendLoginMail(req.body.mail, req)).end()
         }
         const user = await getUserManager().getUser({ loginKey: loginKey })
-        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized
+        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized
         const data = {
             loginKey: loginKey
         }
-        return res.status(ReturnCode.OK).cookie(cookieName, data, { httpOnly: true, sameSite: "strict" }).json(user)
+        const session = await getUserManager().getSession(loginKey)
+        return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(session!)).json(user)
     } catch (e) {
         console.error(e)
         res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
     }
+}
+
+/**
+ * create cookie config with expiration date
+ * @param {ISession} session the user session
+ * @return {CookieConfig} necessary cookie config for express
+ */
+function cookieConfig(session: Session): CookieOptions {
+    return { httpOnly: true, sameSite: "strict", expires: session.expiration }
 }
 
 const logout = async (req: Request, res: Response, next: NextFunction) => {

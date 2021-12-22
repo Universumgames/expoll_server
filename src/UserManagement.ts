@@ -1,9 +1,7 @@
 import { Request } from "express"
 import Database from "./database"
-import { Poll, User, Vote } from "./entities/entities"
+import { Poll, Session, User, Vote } from "./entities/entities"
 import { ReturnCode, tPollID, tUserID } from "./interfaces"
-import nodemailer from "nodemailer"
-import SMTPTransport from "nodemailer/lib/smtp-transport"
 import { config } from "./config.dev"
 import getMailManager, { Mail } from "./MailManager"
 
@@ -36,15 +34,17 @@ class UserManager {
      * @param {string} username username for user
      * @return {User} returns new User object or already existent one
      */
-    async createUser(firstName: string, lastName: string, mail: string, username: string): Promise<User> {
+    async createUser(firstName: string, lastName: string, mail: string, username: string): Promise<User | undefined> {
         const u = new User()
         u.mail = mail
-        const existing = this.getUser({ mail: mail })
-        if (existing != undefined) Object.assign(u, existing)
+        if ((await this.checkUserExists({ mail: mail })) || (await this.checkUserExists({ username: username })))
+            return undefined
         u.username = username
         u.firstName = firstName
         u.lastName = lastName
         u.active = true
+
+        console.log(u)
 
         u.save()
 
@@ -85,10 +85,25 @@ class UserManager {
         userID?: tUserID
     }): Promise<User | undefined> {
         if (data.mail != undefined) return await this.repo.findOne({ where: { mail: data.mail } })
-        else if (data.loginKey != undefined) return await this.repo.findOne({ where: { loginKey: data.loginKey } })
-        else if (data.username != undefined) return await this.repo.findOne({ where: { username: data.username } })
+        else if (data.loginKey != undefined) {
+            const session = await this.getSession(data.loginKey)
+            console.log(session)
+            if (session == undefined || !session.isValid) return undefined
+            else return session.user
+        } else if (data.username != undefined) return await this.repo.findOne({ where: { username: data.username } })
         else if (data.userID != undefined) return await this.repo.findOne({ where: { id: data.userID } })
         else return undefined
+    }
+
+    /**
+     * Get session by loginKey
+     * @param {string} loginKey the login key
+     * @return {Session} return usersession
+     */
+    async getSession(loginKey: string): Promise<Session | undefined> {
+        return await this.db.connection
+            .getRepository(Session)
+            .findOne({ where: { loginKey: loginKey }, relations: ["user"] })
     }
 
     /**
@@ -163,16 +178,17 @@ class UserManager {
         if (mail == undefined) return ReturnCode.MISSING_PARAMS
         const user = await this.getUser({ mail: mail })
         if (user == undefined) return ReturnCode.INVALID_PARAMS
-
+        const key = await user.generateSession()
+        console.log(key)
         getMailManager().sendMail({
             from: config.mailUser,
             to: user.mail,
             subject: "Loginkey for loggin into expoll",
             text:
                 "Here is you login key for logging in on the expoll website: " +
-                user.loginKey +
+                key.loginKey +
                 "\n alternatively you can click this link " +
-                urlBuilder(req, user.loginKey)
+                urlBuilder(req, key.loginKey)
         } as Mail)
         return ReturnCode.OK
     }

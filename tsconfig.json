@@ -7,7 +7,7 @@
         "esModuleInterop": true,
         "outDir": "./compiled",
         "rootDir": "./src",
-        "target": "es2017",
+        "target": "esnext",
         "skipLibCheck": true,
         "strict": true,
         "strictPropertyInitialization": false,

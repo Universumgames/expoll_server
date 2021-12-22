@@ -1,5 +1,4 @@
 import { Connection, createConnection } from "typeorm"
-import { User } from "./entities/entities"
 
 /**
  * Database class to manage access to database

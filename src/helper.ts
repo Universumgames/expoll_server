@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from "express"
+import { Request } from "express"
 
 export const cookieName = "expoll_dat"
 

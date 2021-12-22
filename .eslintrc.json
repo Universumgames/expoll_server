@@ -45,6 +45,7 @@
             }
         ],
         "comma-dangle": ["error", "never"],
-        "no-empty": ["warn", { "allowEmptyCatch": true }]
+        "no-empty": ["warn", { "allowEmptyCatch": true }],
+        "curly": "off"
     }
 }
