@@ -15,7 +15,8 @@
         "sourceMap": true,
         "declaration": true,
         "declarationMap": true,
-        "removeComments": true
+        "removeComments": true,
+        "resolveJsonModule": true
 
         /* Visit https://aka.ms/tsconfig.json to read more about this file */
 

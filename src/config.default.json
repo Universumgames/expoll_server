@@ -1,0 +1,9 @@
+{
+    "mailServer": "your-mailserver-url",
+    "mailPort": 587,
+    "mailSecure": false,
+    "mailUser": "your mail",
+    "mailPassword": "password",
+    "serverPort": 6060,
+    "frontEndPort": 8080
+}

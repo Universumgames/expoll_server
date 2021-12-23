@@ -1,5 +1,5 @@
 import nodemailer from "nodemailer"
-import { config } from "./config.dev"
+import { config } from "./config"
 
 export interface Mail {
     from: string

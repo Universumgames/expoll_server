@@ -2,7 +2,7 @@ import { Request } from "express"
 import Database from "./database"
 import { Poll, Session, User, Vote } from "./entities/entities"
 import { ReturnCode, tPollID, tUserID } from "./interfaces"
-import { config } from "./config.dev"
+import { config } from "./config"
 import getMailManager, { Mail } from "./MailManager"
 
 /**

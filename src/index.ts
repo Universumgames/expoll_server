@@ -6,7 +6,7 @@ import apiRoutes from "./routes/apiroutes"
 import { createUserManager } from "./UserManagement"
 import { createPollManager } from "./PollManagement"
 import { createMailManager } from "./MailManager"
-import { config } from "./config.dev"
+import { config } from "./config"
 
 const db = new Database()
 db.init()
