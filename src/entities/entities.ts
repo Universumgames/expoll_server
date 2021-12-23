@@ -115,7 +115,8 @@ export class Session extends BaseEntity implements ISession {
  * Poll meta data, except vote options and votes
  */
 export class Poll extends BaseEntity implements IPoll {
-    @ManyToOne((type) => User, (user) => user.id, { nullable: false })
+    @ManyToOne((type) => User, (user) => user.polls, { nullable: false })
+    @JoinTable()
     admin: User
 
     @PrimaryColumn()
@@ -145,6 +146,7 @@ export class Poll extends BaseEntity implements IPoll {
     type: PollType = PollType.String
 
     @OneToMany((type) => Vote, (vote) => vote.poll)
+    @JoinTable()
     votes: Vote[]
 
     @Column()

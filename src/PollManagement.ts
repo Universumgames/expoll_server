@@ -31,7 +31,7 @@ class PollManager {
      * @return {Poll | undefined} returns corresponding poll or undefined if not found
      */
     async getPoll(pollID: tPollID): Promise<Poll | undefined> {
-        return this.db.connection.getRepository(Poll).findOne({ where: { id: pollID } })
+        return Poll.findOne({ where: { id: pollID }, relations: ["votes", "admin", "votes.user"] })
     }
 
     // #region string polls
@@ -183,19 +183,30 @@ class PollManager {
     }
 
     /**
-     * g
+     * get Vote Count
      * @param {tUserID} userID the id of the user to check
      * @param {tPollID} pollID the poll id
      * @return {number} returns the number of votes the user already has on that poll
      */
     async getVoteCountFromUser(userID: tUserID, pollID: tPollID): Promise<number> {
-        const user = await getUserManager().getUser({ userID: userID })
-        if (user == undefined) return -1
-        const poll = await this.getPoll(pollID)
-        if (poll == undefined) return -1
-        if (poll.votes == undefined) return 0
-        const votes = poll.votes.filter((element) => element.poll.id == poll.id && element.user.id == user.id)
+        const votes = await this.getVotes(userID, pollID)
         return votes.length
+    }
+
+    /**
+     * get Votes
+     * @param {tUserID} userID the id of the user to check
+     * @param {tPollID} pollID the poll id
+     * @return {number} returns the number of votes the user already has on that poll
+     */
+    async getVotes(userID: tUserID, pollID: tPollID): Promise<Vote[]> {
+        const user = await getUserManager().getUser({ userID: userID })
+        if (user == undefined) return []
+        const poll = await this.getPoll(pollID)
+        if (poll == undefined) return []
+        if (poll.votes == undefined) return []
+        const votes = poll.votes.filter((element) => element.poll.id == poll.id && element.user.id == user.id)
+        return votes
     }
 
     /**

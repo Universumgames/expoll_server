@@ -1,5 +1,5 @@
-import { ReturnCode, tDate, tDateTime } from "./../interfaces"
-import { Poll, PollOption, PollOptionDate, PollOptionDateTime, PollOptionString } from "./../entities/entities"
+import { ReturnCode, tDate, tDateTime, tOptionId } from "./../interfaces"
+import { Poll, PollOption, PollOptionDate, PollOptionDateTime, PollOptionString, User } from "./../entities/entities"
 import express, { NextFunction, Request, Response } from "express"
 import { getLoginKey } from "../helper"
 import getPollManager from "../PollManagement"
@@ -21,35 +21,40 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
         const user = await getUserManager().getUser({ loginKey: loginKey })
         if (user == undefined) return res.status(ReturnCode.UNAUTHORIZED).end() // unauthorized
         const body = req.body
-        if (body.pollID == undefined) {
-            const polls = []
+        if (body.pollID == undefined && req.query.pollID == undefined) {
+            // return overview for all polls the user has access to
+            const polls: any = []
             if (user.polls != undefined) {
-                await user.polls.forEach(async (poll) => {
-                    try {
-                        const userCount = (await getPollManager().getContributedUsers(poll.id)).length
-                        const pollAdd = {
-                            admin: {
-                                firstName: poll.admin.firstName,
-                                lastName: poll.admin.lastName,
-                                username: poll.admin.username
-                            },
-                            description: poll.description,
-                            userCount: userCount,
-                            lastUpdated: poll.updated,
-                            type: poll.type as number
-                        }
-                        polls.push(pollAdd)
-                    } catch {}
-                })
+                for (const poll of user.polls) {
+                    const userCount = (await getPollManager().getContributedUsers(poll.id)).length
+                    // simplify and constrain "access" to polls
+                    const pollAdd = {
+                        admin: {
+                            firstName: poll.admin.firstName,
+                            lastName: poll.admin.lastName,
+                            username: poll.admin.username,
+                            id: poll.admin.id
+                        },
+                        name: poll.name,
+                        description: poll.description,
+                        userCount: userCount,
+                        lastUpdated: poll.updated,
+                        type: poll.type as number,
+                        id: poll.id
+                    }
+                    polls.push(pollAdd)
+                }
             }
-            return res.status(200).json({ polls: user.polls ?? [] })
+            return res.status(200).json({ polls: polls })
         } else {
-            const pollID = body.pollID! as string
+            const pollID = (body.pollID! as string) ?? (req.query.pollID as string)
             const poll = user.polls.find((poll) => poll.id == pollID)
             if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
 
-            const userCount = (await getPollManager().getContributedUsers(poll.id)).length
-            let pollOptions = []
+            const constrUsers = await getPollManager().getContributedUsers(poll.id)
+
+            const userCount = constrUsers.length
+            let pollOptions: PollOption[] = []
             switch (poll.type) {
                 case PollType.String:
                     pollOptions = (await getPollManager().getStringPollOptions(poll.id))!
@@ -62,6 +67,32 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                     break
             }
 
+            // sort options by id
+            pollOptions = pollOptions.sort((n1, n2) => n1.id - n2.id)
+
+            const votes: { user: User; votes: { optionID: tOptionId; votedFor?: boolean }[] }[] = []
+            for (const user of constrUsers) {
+                const fullVotes = await getPollManager().getVotes(user.id, poll.id)
+                // simplify vote structure
+                const vs: { optionID: tOptionId; votedFor?: boolean }[] = []
+                for (const v of fullVotes) {
+                    vs.push({
+                        optionID: v.optionID,
+                        votedFor: v.votedFor
+                    })
+                }
+                // order votes by options array and fill not voted with blanks
+                const vsFin: { optionID: tOptionId; votedFor?: boolean }[] = Array(pollOptions.length)
+                for (let i = 0; i < pollOptions.length; i++) {
+                    const optionID = pollOptions[i].id
+                    vsFin[i] = vs.find((v) => v.optionID == optionID) ?? { optionID: optionID }
+                }
+                votes.push({
+                    user: user,
+                    votes: vsFin
+                })
+            }
+
             const returnPoll = {
                 pollID: pollID,
                 admin: {
@@ -69,12 +100,14 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                     lastName: poll.admin.lastName,
                     username: poll.admin.username
                 },
+                name: poll.name,
                 description: poll.description,
                 userCount: userCount,
                 lastUpdated: poll.updated,
                 created: poll.created,
-                type: poll.created,
-                options: pollOptions
+                type: poll.type,
+                options: pollOptions,
+                userVotes: votes
             }
             return res.status(ReturnCode.OK).json(returnPoll)
         }
