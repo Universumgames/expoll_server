@@ -64,13 +64,13 @@ Detailed request list:
 -   HTTP Method `GET`
 -   required data: loginKey (cookie or request body)
 -   returns (JSON):
-    -   `loginKey`
-    -   `id`
-    -   `username`
-    -   `firstName`
-    -   `lastName`
-    -   `mail`
-    -   `active` (indicates wether the account has been deactivated, see [Deactivate user](#deactivate-user))
+    -   `loginKey` (String)
+    -   `id` (Int)
+    -   `username` (String)
+    -   `firstName` (String)
+    -   `lastName` (String)
+    -   `mail` (String)
+    -   `active` (boolean) (indicates wether the account has been deactivated, see [Deactivate user](#deactivate-user))
     -   `admin`(most presumably false)
 
 ### Edit User settings
@@ -109,7 +109,7 @@ Detailed request list:
             -   `type` (0: String, 1: Date, 2: DateTime)
 -   Retrieve detailed information
     -   required JSON fields:
-        -   `pollID` the poll id
+        -   `pollID` the poll id (may be in query string)
         -   returns 401 (Unauthorized) if loginKey is invalid
         -   returns 400 (Bad Request) if poll was not found in users accessible poll list
         -   returns (JSON)
@@ -169,7 +169,27 @@ Detailed request list:
 
 ### Edit a poll
 
-<small>Not going to be implemented in first version</small>
+To edit a poll, being using an invite link, edit description, name, options or to remove and edit user votes you have to be the polls admin (except using the invite link). In the request you have to specify what you want to change, you can either change on thing at a time or summarize all changes in one request.
+
+Detailed request list:
+
+-   Path `/poll`
+-   HTTP Method `PUT`
+-   require JSON field:
+    -   `inviteLink` (String) when you are trying to join a poll to vote, this parameter must be set to the pollID the user wants to join
+    -   `pollID` (String) the poll you want to change (the user must be the admin of that poll) (must always be set, except for an invite)
+    -   `name` (string) the poll name, if you want to change that
+    -   `description`(string) the polls description, if you want to change that
+    -   `userRemove` (array of userID's) the users ids you want to remove from the poll
+    -   `votes` (array of following), if you change any vote
+        -   `userID` (string) the user the vote is from
+        -   `optionID` (number) the option you want to change
+        -   `votedFor` (boolean) the state you want that vote to change to
+    -   `options` (array of following), if you want to add or remove an option
+        -   `optionID` the optionID (if removing an option)
+        -   and the new value (see the needed parameters from the options array at [Creating a poll](#create-a-poll))
+-   returns (HTTP Codes)
+    -   `200` Changes accepted
 
 ## Vote Endpoints
 
