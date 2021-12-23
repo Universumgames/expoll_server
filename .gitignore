@@ -2,5 +2,4 @@ node_modules
 compiled
 .DS_Store
 *.tsbuildinfo
-config.dev.*
-config.pub.*
+config/dev*
