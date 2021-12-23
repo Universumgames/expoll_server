@@ -69,6 +69,7 @@ export class User extends BaseEntity implements IUser {
         this.sessions.push(session)
 
         await this.save()
+        await session.save()
 
         return session
     }
