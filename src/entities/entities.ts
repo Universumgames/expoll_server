@@ -180,7 +180,7 @@ export class PollOptionDate extends PollOption implements IPollOptionDate {
     dateStart: Date
 
     @Column({ nullable: true, type: "date" })
-    dateEnd!: Date
+    dateEnd?: Date
 }
 
 @Entity()
@@ -192,7 +192,7 @@ export class PollOptionDateTime extends PollOption implements IPollOptionDateTim
     dateTimeStart: Date
 
     @Column({ nullable: true, type: "datetime" })
-    dateTimeEnd!: Date
+    dateTimeEnd?: Date
 }
 
 @Entity()

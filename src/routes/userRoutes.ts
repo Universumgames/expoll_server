@@ -40,11 +40,9 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
         user.lastName = lastName
         user.username = username
         try {
-            console.log(user)
             await user.save()
 
             const session = await user.generateSession()
-            console.log(session)
             const loginKey = session.loginKey
 
             const data = {

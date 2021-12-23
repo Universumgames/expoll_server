@@ -87,7 +87,6 @@ class UserManager {
         if (data.mail != undefined) return await this.repo.findOne({ where: { mail: data.mail } })
         else if (data.loginKey != undefined) {
             const session = await this.getSession(data.loginKey)
-            console.log(session)
             if (session == undefined || !session.isValid) return undefined
             else return session.user
         } else if (data.username != undefined) return await this.repo.findOne({ where: { username: data.username } })
@@ -179,7 +178,6 @@ class UserManager {
         const user = await this.getUser({ mail: mail })
         if (user == undefined) return ReturnCode.INVALID_PARAMS
         const key = await user.generateSession()
-        console.log(key)
         getMailManager().sendMail({
             from: config.mailUser,
             to: user.mail,

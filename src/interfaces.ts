@@ -82,7 +82,7 @@ export interface IPollOptionString extends IPollOption {
  */
 export interface IPollOptionDate extends IPollOption {
     dateStart: Date
-    dateEnd: Date
+    dateEnd?: Date
 }
 
 /**
@@ -90,7 +90,7 @@ export interface IPollOptionDate extends IPollOption {
  */
 export interface IPollOptionDateTime extends IPollOption {
     dateTimeStart: Date
-    dateTimeEnd: Date
+    dateTimeEnd?: Date
 }
 
 /**
