@@ -38,12 +38,15 @@ export class User extends BaseEntity implements IUser {
     mail: string
 
     @ManyToMany((type) => Poll, (poll) => poll.id)
+    @JoinTable()
     polls: Poll[]
 
     @OneToMany((type) => Vote, (vote) => vote.user)
+    @JoinTable()
     votes: Vote[]
 
     @OneToMany((type) => Session, (session) => session.user)
+    @JoinTable()
     sessions: Session[]
 
     @Column({ default: true })
@@ -87,6 +90,7 @@ export class Session extends BaseEntity implements ISession {
     expiration: Date
 
     @ManyToOne((type) => User, (user) => user.sessions)
+    @JoinTable()
     user: User
 
     /**
@@ -158,7 +162,7 @@ export abstract class PollOption extends BaseEntity implements IPollOption {
     @ManyToOne((type) => Poll, (poll) => poll.id, { nullable: false })
     poll: Poll
 
-    @PrimaryColumn()
+    @PrimaryGeneratedColumn()
     id: tOptionId
 }
 

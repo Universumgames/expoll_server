@@ -100,9 +100,10 @@ class UserManager {
      * @return {Session} return usersession
      */
     async getSession(loginKey: string): Promise<Session | undefined> {
-        return await this.db.connection
-            .getRepository(Session)
-            .findOne({ where: { loginKey: loginKey }, relations: ["user"] })
+        return await this.db.connection.getRepository(Session).findOne({
+            where: { loginKey: loginKey },
+            relations: ["user", "user.polls", "user.votes"]
+        })
     }
 
     /**

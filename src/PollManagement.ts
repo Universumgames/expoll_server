@@ -175,9 +175,10 @@ class PollManager {
         const poll = await this.getPoll(pollID)
         if (poll == undefined) return []
         const users: User[] = []
-        poll.votes.forEach((vote) => {
-            if (!users.includes(vote.user)) users.push(vote.user)
-        })
+        if (poll.votes != undefined)
+            poll.votes.forEach((vote) => {
+                if (!users.includes(vote.user)) users.push(vote.user)
+            })
         return users
     }
 

@@ -1,5 +1,5 @@
 import { ReturnCode, tDate, tDateTime } from "./../interfaces"
-import { Poll, PollOptionDate, PollOptionDateTime, PollOptionString } from "./../entities/entities"
+import { Poll, PollOption, PollOptionDate, PollOptionDateTime, PollOptionString } from "./../entities/entities"
 import express, { NextFunction, Request, Response } from "express"
 import { getLoginKey } from "../helper"
 import getPollManager from "../PollManagement"
@@ -25,19 +25,21 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
             const polls = []
             if (user.polls != undefined) {
                 await user.polls.forEach(async (poll) => {
-                    const userCount = (await getPollManager().getContributedUsers(poll.id)).length
-                    const pollAdd = {
-                        admin: {
-                            firstName: poll.admin.firstName,
-                            lastName: poll.admin.lastName,
-                            username: poll.admin.username
-                        },
-                        description: poll.description,
-                        userCount: userCount,
-                        lastUpdated: poll.updated,
-                        type: poll.type as number
-                    }
-                    polls.push(pollAdd)
+                    try {
+                        const userCount = (await getPollManager().getContributedUsers(poll.id)).length
+                        const pollAdd = {
+                            admin: {
+                                firstName: poll.admin.firstName,
+                                lastName: poll.admin.lastName,
+                                username: poll.admin.username
+                            },
+                            description: poll.description,
+                            userCount: userCount,
+                            lastUpdated: poll.updated,
+                            type: poll.type as number
+                        }
+                        polls.push(pollAdd)
+                    } catch {}
                 })
             }
             return res.status(200).json({ polls: user.polls ?? [] })
@@ -106,8 +108,9 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
         poll.type = type
         poll.admin = user
         poll.maxPerUserVoteCount = maxPerUserVoteCount
+        poll.votes = []
 
-        const checkedOptions: (PollOptionString | PollOptionDate | PollOptionDateTime)[] = []
+        const checkedOptions: PollOption[] = []
 
         let error = false
 
@@ -136,13 +139,14 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
         })
         if (error) return res.status(ReturnCode.INVALID_TYPE).end()
 
-        poll.save()
-        checkedOptions.forEach((o) => {
-            o.save()
+        await poll.save()
+        await checkedOptions.forEach(async (o) => {
+            await o.save()
+            console.log(o)
         })
         if (user.polls == undefined) user.polls = []
         user.polls.push(poll)
-        user.save()
+        await user.save()
 
         return res.status(ReturnCode.OK).json({
             pollID: poll.id
