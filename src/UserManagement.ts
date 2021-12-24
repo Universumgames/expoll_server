@@ -4,6 +4,7 @@ import { Poll, Session, User, Vote } from "./entities/entities"
 import { ReturnCode, tPollID, tUserID } from "./interfaces"
 import { config } from "./config"
 import getMailManager, { Mail } from "./MailManager"
+import getPollManager from "./PollManagement"
 
 /**
  * Manger class to create delete and change users
@@ -89,8 +90,16 @@ class UserManager {
             const session = await this.getSession(data.loginKey)
             if (session == undefined || !session.isValid) return undefined
             else return session.user
-        } else if (data.username != undefined) return await this.repo.findOne({ where: { username: data.username } })
-        else if (data.userID != undefined) return await this.repo.findOne({ where: { id: data.userID } })
+        } else if (data.username != undefined)
+            return await this.repo.findOne({
+                where: { username: data.username },
+                relations: ["user", "user.polls", "user.votes", "user.polls.admin"]
+            })
+        else if (data.userID != undefined)
+            return await this.repo.findOne({
+                where: { id: data.userID },
+                relations: ["user", "user.polls", "user.votes", "user.polls.admin"]
+            })
         else return undefined
     }
 
@@ -148,6 +157,23 @@ class UserManager {
         const user = await this.getUser({ mail: mail })
         if (user == undefined) return []
         return user.polls
+    }
+
+    /**
+     * Add poll to user access list
+     * @param {string} mail users mail address
+     * @param {tPollID} pollID the poll you want to add
+     * @return {Promise<ReturnCode>} the returncode wether the process was successful or not
+     */
+    async addPoll(mail: string, pollID: tPollID): Promise<ReturnCode> {
+        const user = await this.getUser({ mail: mail })
+        if (user == undefined) return ReturnCode.INVALID_PARAMS
+        const poll = await getPollManager().getPoll(pollID)
+        if (poll == undefined) return ReturnCode.INVALID_PARAMS
+        if (user.polls == undefined) user.polls = []
+        user.polls.push(poll)
+        await user.save()
+        return ReturnCode.OK
     }
 
     /**

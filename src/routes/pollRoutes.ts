@@ -1,5 +1,13 @@
-import { ReturnCode, tDate, tDateTime, tOptionId } from "./../interfaces"
-import { Poll, PollOption, PollOptionDate, PollOptionDateTime, PollOptionString, User } from "./../entities/entities"
+import { ReturnCode, tDate, tDateTime, tOptionId, tUserID } from "./../interfaces"
+import {
+    Poll,
+    PollOption,
+    PollOptionDate,
+    PollOptionDateTime,
+    PollOptionString,
+    User,
+    Vote
+} from "./../entities/entities"
 import express, { NextFunction, Request, Response } from "express"
 import { getLoginKey } from "../helper"
 import getPollManager from "../PollManagement"
@@ -173,10 +181,9 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
         if (error) return res.status(ReturnCode.INVALID_TYPE).end()
 
         await poll.save()
-        await checkedOptions.forEach(async (o) => {
-            await o.save()
-            console.log(o)
-        })
+        for (const opt of checkedOptions) {
+            await opt.save()
+        }
         if (user.polls == undefined) user.polls = []
         user.polls.push(poll)
         await user.save()
@@ -190,8 +197,127 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
+const editPoll = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const loginKey = getLoginKey(req)
+        const user = await getUserManager().getUser({ loginKey: loginKey })
+        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized
+        const body = req.body
+
+        // invite
+        if (body.inviteLink != undefined) {
+            const inviteLink = body.inviteLink as string
+            return res.status(await getUserManager().addPoll(user.mail, inviteLink)).end()
+        } else {
+            const pollID = body.pollID as string
+            const poll = await getPollManager().getPoll(pollID)
+            if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
+            if (poll.admin != user) return res.status(ReturnCode.UNAUTHORIZED).end()
+
+            const name = (body.name as string) ?? undefined
+            const description = (body.description as string) ?? undefined
+            const userRemove = (body.userRemove as number[]) ?? undefined
+            const votes = (body.votes as { userID: tUserID; optionID: tOptionId; votedFor: boolean }[]) ?? undefined
+            const options = body.options as {
+                optionID?: tOptionId
+                value?: string
+                dateStart?: Date
+                dateEnd?: Date
+                dateTimeStart?: Date
+                dateTimeEnd?: Date
+            }[]
+            // updating simple settings
+            if (name != undefined) poll.name = name
+            if (description != undefined) poll.description = description
+
+            // remove user from poll
+            if (userRemove != undefined) {
+                for (const userID of userRemove) {
+                    const user = await getUserManager().getUser({ userID: userID })
+                    if (user == undefined) continue
+                    user.polls = user.polls.filter((poll) => poll.id != pollID)
+                    await user.save()
+                    await Vote.delete({ poll: poll, user: user })
+                }
+            }
+
+            // edit votes
+            if (votes != undefined) {
+                for (const vote of votes) {
+                    const user = await getUserManager().getUser({ userID: vote.userID })
+                    if (user == undefined) continue
+                    const v = user.votes.find((vot) => vot.optionID == vote.optionID)
+                    if (v == undefined) return
+                    v.votedFor = vote.votedFor
+                    await v.save()
+                }
+            }
+
+            // remove or add options to poll
+            if (options != undefined) {
+                for (const option of options) {
+                    // delete option
+                    if (option.optionID != undefined) {
+                        switch (poll.type) {
+                            case PollType.String:
+                                await PollOptionString.delete({ poll: poll, id: option.optionID })
+                                break
+                            case PollType.Date:
+                                await PollOptionDate.delete({ poll: poll, id: option.optionID })
+                                break
+                            case PollType.DateTime:
+                                await PollOptionDateTime.delete({ poll: poll, id: option.optionID })
+                                break
+                        }
+                        continue
+                    }
+                    // add option
+                    const type = poll.type
+                    let error = false
+                    const checkedOptions: PollOption[] = []
+                    options.forEach((option) => {
+                        if (type == PollType.String) {
+                            if (option.value == undefined) error = true
+                            const o = new PollOptionString()
+                            o.value = option.value as string
+                            o.poll = poll
+                            checkedOptions.push(o)
+                        } else if (type == PollType.Date) {
+                            if (option.dateStart == undefined) error = true
+                            const o = new PollOptionDate()
+                            o.dateStart = option.dateStart as tDate
+                            if (option.dateEnd != undefined) o.dateEnd = option.dateEnd as tDate
+                            o.poll = poll
+                            checkedOptions.push(o)
+                        } else if (type == PollType.DateTime) {
+                            if (option.dateTimeStart == undefined) error = true
+                            const o = new PollOptionDateTime()
+                            o.dateTimeStart = option.dateTimeStart as tDateTime
+                            if (option.dateTimeEnd != undefined) o.dateTimeEnd = option.dateTimeEnd as tDateTime
+                            o.poll = poll
+                            checkedOptions.push(o)
+                        }
+                    })
+                    if (!error)
+                        for (const opt of checkedOptions) {
+                            await opt.save()
+                        }
+                }
+            }
+
+            await poll.save()
+
+            return res.status(ReturnCode.OK).end()
+        }
+    } catch (e) {
+        console.error(e)
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
 pollRoutes.get("/", getPolls)
 pollRoutes.post("/", createPoll)
+pollRoutes.put("/", editPoll)
 
 // pollRoutes.all("/metaInfo", metaInfo)
 

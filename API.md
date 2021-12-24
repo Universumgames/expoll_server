@@ -2,7 +2,7 @@
 
 ## Endpoints
 
-Configured on our server, the API is accessible via the `/api`Endpoint
+Configured on our server, the API is accessible via the `/api` Endpoint
 
 | Endpoint      | HTTP Method | Summary                                                                               |
 | :------------ | :---------: | ------------------------------------------------------------------------------------- |
@@ -190,6 +190,8 @@ Detailed request list:
         -   and the new value (see the needed parameters from the options array at [Creating a poll](#create-a-poll))
 -   returns (HTTP Codes)
     -   `200` Changes accepted
+    -   `400` Poll not found
+    -   `401` User not admin of poll, cannot commit changes
 
 ## Vote Endpoints
 
