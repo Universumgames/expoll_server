@@ -12,8 +12,7 @@ import {
     CreateDateColumn,
     UpdateDateColumn,
     OneToMany,
-    JoinTable,
-    JoinColumn
+    JoinTable
 } from "typeorm"
 import { tOptionId, tPollID, tUserID } from "../interfaces"
 

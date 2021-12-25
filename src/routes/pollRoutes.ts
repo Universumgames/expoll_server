@@ -78,7 +78,13 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
             // sort options by id
             pollOptions = pollOptions.sort((n1, n2) => n1.id - n2.id)
 
-            const votes: { user: User; votes: { optionID: tOptionId; votedFor?: boolean }[] }[] = []
+            const votes: {
+                user: { id: number; username: string; mail: string; firstName: string; lastName: string }
+                votes: { optionID: tOptionId; votedFor?: boolean }[]
+            }[] = []
+            // add current user if not constributed yet
+            if (constrUsers.find((u) => u.id == user.id) == undefined) constrUsers.push(user)
+
             for (const user of constrUsers) {
                 const fullVotes = await getPollManager().getVotes(user.id, poll.id)
                 // simplify vote structure
@@ -96,7 +102,13 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                     vsFin[i] = vs.find((v) => v.optionID == optionID) ?? { optionID: optionID }
                 }
                 votes.push({
-                    user: user,
+                    user: {
+                        id: user.id,
+                        username: user.username,
+                        mail: user.mail,
+                        firstName: user.firstName,
+                        lastName: user.lastName
+                    },
                     votes: vsFin
                 })
             }
@@ -106,7 +118,8 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                 admin: {
                     firstName: poll.admin.firstName,
                     lastName: poll.admin.lastName,
-                    username: poll.admin.username
+                    username: poll.admin.username,
+                    id: poll.admin.id
                 },
                 name: poll.name,
                 description: poll.description,
@@ -212,7 +225,7 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             const pollID = body.pollID as string
             const poll = await getPollManager().getPoll(pollID)
             if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
-            if (poll.admin != user) return res.status(ReturnCode.UNAUTHORIZED).end()
+            if (poll.admin.id != user.id) return res.status(ReturnCode.UNAUTHORIZED).end()
 
             const name = (body.name as string) ?? undefined
             const description = (body.description as string) ?? undefined
@@ -269,8 +282,10 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
                                 await PollOptionDateTime.delete({ poll: poll, id: option.optionID })
                                 break
                         }
+                        console.log("deleted " + option.optionID)
                         continue
                     }
+
                     // add option
                     const type = poll.type
                     let error = false

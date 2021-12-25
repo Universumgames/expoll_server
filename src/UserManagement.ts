@@ -93,12 +93,12 @@ class UserManager {
         } else if (data.username != undefined)
             return await this.repo.findOne({
                 where: { username: data.username },
-                relations: ["user", "user.polls", "user.votes", "user.polls.admin"]
+                relations: ["polls", "votes", "polls.admin"]
             })
         else if (data.userID != undefined)
             return await this.repo.findOne({
                 where: { id: data.userID },
-                relations: ["user", "user.polls", "user.votes", "user.polls.admin"]
+                relations: ["polls", "votes", "polls.admin"]
             })
         else return undefined
     }

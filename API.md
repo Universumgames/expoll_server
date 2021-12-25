@@ -185,7 +185,7 @@ Detailed request list:
         -   `userID` (string) the user the vote is from
         -   `optionID` (number) the option you want to change
         -   `votedFor` (boolean) the state you want that vote to change to
-    -   `options` (array of following), if you want to add or remove an option
+    -   `options` (array of following), if you want to add or remove an option (xor: only one of the two can be inside one of the array elements, otherwise only the deletion will be acknowledged)
         -   `optionID` the optionID (if removing an option)
         -   and the new value (see the needed parameters from the options array at [Creating a poll](#create-a-poll))
 -   returns (HTTP Codes)
