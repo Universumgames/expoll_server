@@ -18,7 +18,6 @@ Configured on our server, the API is accessible via the `/api` Endpoint
 | `/poll`       |     PUT     | [Details](#edit-a-poll) - Editing an existing Poll                                    |
 | `/vote`       |      -      | [Link](#vote-endpoints)                                                               |
 | `/vote`       |    POST     | [Details](#vote-or-replace-previous-one) - Vote on a poll                             |
-| `/vote`       |   DELETE    | [Details](#revokedelete-vote) - Revoke vote on poll                                   |
 
 ## Return code overview
 
@@ -119,6 +118,7 @@ Detailed request list:
                 -   `lastName` (String)
                 -   `username` (String)
             -   `description` (String)
+            -   `maxPerUserVoteCount` (Non decimal number) - the number of options each user choose simultaneously (-1 is infinity)
             -   `userCount` (Int) number users voted on this poll
             -   `lastUpdated` (DateTime (specifics not defined yet))
             -   `created` (DateTime (specifics not defined yet))
@@ -150,7 +150,7 @@ Detailed request list:
 -   HTTP Method `POST`
 -   required JSON fields:
     -   `name` (String)
-    -   `maxPerUserVoteCount` (Non decimal number) - the number of options each user choose simultaneously (chose a number <= 0 to set to infinity)
+    -   `maxPerUserVoteCount` (Non decimal number) - the number of options each user choose simultaneously (-1 is infinity)
     -   `description` (String)
     -   `type` (0: String, 1: Date, 2: DateTime)
     -   `options` Array of following type (must correlate to set value above):
@@ -210,7 +210,3 @@ Detailed request list:
 -   returns (HTTP codes)
     -   `200` Vote was accepted
     -   `406` (Not acceptable) Vote is unacceptable
-
-### Revoke/Delete vote
-
-<small>Not going to be implemented in first version</small>

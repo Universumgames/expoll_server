@@ -34,10 +34,9 @@ const createVote = async (req: Request, res: Response, next: NextFunction) => {
 
         let vote = await getPollManager().getVote(user.id, poll.id, optionID)
 
-        if (
-            (await getPollManager().getVoteCountFromUser(user.id, pollID)) <= poll.maxPerUserVoteCount ||
-            vote != undefined
-        ) {
+        const count = await getPollManager().getVoteCountFromUser(user.id, pollID)
+
+        if (count <= poll.maxPerUserVoteCount || vote != undefined || poll.maxPerUserVoteCount == -1) {
             if (vote == undefined) vote = new Vote()
             vote.user = user
             vote.optionID = optionID

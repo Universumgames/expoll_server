@@ -186,11 +186,15 @@ class PollManager {
      * get Vote Count
      * @param {tUserID} userID the id of the user to check
      * @param {tPollID} pollID the poll id
-     * @return {number} returns the number of votes the user already has on that poll
+     * @return {number} returns the number of votes the user already has on that poll (votedFor: true)
      */
     async getVoteCountFromUser(userID: tUserID, pollID: tPollID): Promise<number> {
         const votes = await this.getVotes(userID, pollID)
-        return votes.length
+        let countTrue = 0
+        for (const v of votes) {
+            if (v.votedFor) countTrue++
+        }
+        return countTrue
     }
 
     /**

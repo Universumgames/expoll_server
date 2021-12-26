@@ -123,6 +123,7 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                 },
                 name: poll.name,
                 description: poll.description,
+                maxPerUserVoteCount: poll.maxPerUserVoteCount,
                 userCount: userCount,
                 lastUpdated: poll.updated,
                 created: poll.created,
