@@ -85,7 +85,11 @@ class UserManager {
         username?: string
         userID?: tUserID
     }): Promise<User | undefined> {
-        if (data.mail != undefined) return await this.repo.findOne({ where: { mail: data.mail } })
+        if (data.mail != undefined)
+            return await this.repo.findOne({
+                where: { mail: data.mail },
+                relations: ["polls", "votes", "polls.admin"]
+            })
         else if (data.loginKey != undefined) {
             const session = await this.getSession(data.loginKey)
             if (session == undefined || !session.isValid) return undefined

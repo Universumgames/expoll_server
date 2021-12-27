@@ -1,5 +1,5 @@
 import { checkLoggedIn } from "./routeHelper"
-import { cookieName } from "./../helper"
+import { cookieName, getLoginKey } from "./../helper"
 import { ReturnCode } from "./../interfaces"
 import { Session, User } from "./../entities/entities"
 import express, { CookieOptions, NextFunction, Request, Response } from "express"
@@ -86,13 +86,11 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // @ts-ignore
         const user = req.user as User
-        // @ts-ignore
-        const loginKey = req.loginKey as string
-        /* const loginKey = getLoginKey(req)
+        const loginKey = getLoginKey(req)
         if (loginKey == undefined) {
             return res.status(await getUserManager().sendLoginMail(req.body.mail, req)).end()
         }
-        const user = await getUserManager().getUser({ loginKey: loginKey })
+        /* const user = await getUserManager().getUser({ loginKey: loginKey })
         if (user == undefined)
         return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized */
         const data = {
@@ -121,7 +119,7 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
 
 userRoutes.post("/", createUser)
 userRoutes.get("/", checkLoggedIn, getUserData)
-userRoutes.post("/login", checkLoggedIn, login)
+userRoutes.post("/login", login)
 userRoutes.post("/logout", logout)
 // userRoutes.all("/metaInfo", metaInfo)
 

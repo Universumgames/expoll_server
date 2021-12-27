@@ -257,7 +257,9 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             // updating simple settings
             if (name != undefined) poll.name = name
             if (description != undefined) poll.description = description
-            if (maxPerUserVoteCount != undefined) poll.maxPerUserVoteCount = maxPerUserVoteCount
+            // constrain maxperuservotecount to -1
+            if (maxPerUserVoteCount != undefined)
+                poll.maxPerUserVoteCount = maxPerUserVoteCount <= -1 ? -1 : maxPerUserVoteCount
 
             if (userRemove != undefined) {
                 // remove user from poll

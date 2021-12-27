@@ -41,20 +41,28 @@ const createVote = async (req: Request, res: Response, next: NextFunction) => {
         if (u2 == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
 
         // get old vote to change it when exists
-        let vote = await getPollManager().getVote(userIDToUse, poll.id, optionID)
+        let vote: Vote | undefined = await getPollManager().getVote(userIDToUse, pollID, optionID)
 
         // check if an additional vote could be made
         const count = await getPollManager().getVoteCountFromUser(userIDToUse, pollID)
 
-        if (count <= poll.maxPerUserVoteCount || vote != undefined || poll.maxPerUserVoteCount == -1) {
+        if (
+            count + (votedFor ? 1 : 0) <= poll.maxPerUserVoteCount ||
+            (vote != undefined && !votedFor) ||
+            poll.maxPerUserVoteCount == -1
+        ) {
             if (vote == undefined) vote = new Vote()
             vote.user = userIDToUse == user.id ? user : u2
             vote.optionID = optionID
             vote.poll = poll
             vote.votedFor = votedFor
 
-            vote.save()
-        }
+            await vote.save()
+            poll.updated = new Date()
+            if (poll.votes == undefined) poll.votes = []
+            poll.votes.push(vote)
+            await poll.save()
+        } else return res.status(ReturnCode.NOT_ACCEPTABLE).end()
 
         return res.status(ReturnCode.OK).end()
     } catch (e) {

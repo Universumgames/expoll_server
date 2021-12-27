@@ -8,7 +8,7 @@
 ## Documentation
 
 -   [ ] API
-    -   [ ] User
+    -   [x] User
         -   [x] Create user
         -   [x] Edit user
     -   [ ] Polls
@@ -17,10 +17,11 @@
         -   [x] Create Poll
         -   [ ] Edit Poll
             -   [ ] add/remove user access
-            -   [ ] add/remove options
-            -   [ ] edit description
+            -   [x] add/remove options
+            -   [x] edit description
     -   [x] Vote
         -   [x] create vote
+    -   [ ] Administration
 
 ## Implementation
 
@@ -30,10 +31,11 @@
     -   [ ] Polls
         -   [x] Retrieve Existing Polls
         -   [x] Retrieve detailed Poll data
-        -   [ ] Create Poll
+        -   [x] Create Poll
         -   [ ] Edit Poll
             -   [ ] add/remove user access
-            -   [ ] add/remove options
-            -   [ ] edit description
+            -   [x] add/remove options
+            -   [x] edit description
     -   [ ] Vote
-        -   [ ] create vote
+        -   [x] create vote
+    -   [ ] Administration
