@@ -7,6 +7,8 @@ export const config = {
     mailUser: nodeconfig.get<string>("mailUser"),
     mailPassword: nodeconfig.get<string>("mailPassword"),
     serverPort: nodeconfig.get<number>("serverPort"),
-    frontEndPort: nodeconfig.get<number>("frontEndPort")
+    frontEndPort: nodeconfig.get<number>("frontEndPort"),
+    superAdminMail: nodeconfig.get<string>("superAdminMail")
 }
-console.log(config)
+
+console.log("Running server with config as following:\n", config)

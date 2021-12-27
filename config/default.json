@@ -5,5 +5,6 @@
     "mailUser": "your mail",
     "mailPassword": "password",
     "serverPort": 6060,
-    "frontEndPort": 8080
+    "frontEndPort": 8080,
+    "superAdminMail": "your mail address"
 }
