@@ -18,6 +18,19 @@ Configured on our server, the API is accessible via the `/api` Endpoint
 | `/poll`       |     PUT     | [Details](#edit-a-poll) - Editing an existing Poll                                    |
 | `/vote`       |      -      | [Link](#vote-endpoints)                                                               |
 | `/vote`       |    POST     | [Details](#vote-or-replace-previous-one) - Vote on a poll                             |
+## Config files
+
+The configuration files are in the `./config/` directory with the default configuration being in the `./config/default.json` file. By creating a new file in this directory ending with `.json` these values can be overwritten.
+Inside the config following values can be changed:
+
+-   mailServer (string): the mailserver to login in to to send mail
+-   mailPort (int) the port of the mailserver
+-   mailSecure (boolean) ssl connection to mail server
+-   mailUser (string) the mail user
+-   mailPassword (string) the password to login
+-   serverPort (int) the port the api server listens to
+-   frontEndPort (int) the port the frontend server runs at (important for mail login)
+-   superAdminMail (string) the mail address of the user that, if newly created will be promoted to an admin, can be changed down the line, even though this change will not be saved to the database (automatically)
 
 ## Return code overview
 
