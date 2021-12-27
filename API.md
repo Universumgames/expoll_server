@@ -18,6 +18,8 @@ Configured on our server, the API is accessible via the `/api` Endpoint
 | `/poll`       |     PUT     | [Details](#edit-a-poll) - Editing an existing Poll                                    |
 | `/vote`       |      -      | [Link](#vote-endpoints)                                                               |
 | `/vote`       |    POST     | [Details](#vote-or-replace-previous-one) - Vote on a poll                             |
+| `/admin`      |      -      | [Link](#administration-endpoints)                                                     |
+
 ## Config files
 
 The configuration files are in the `./config/` directory with the default configuration being in the `./config/default.json` file. By creating a new file in this directory ending with `.json` these values can be overwritten.
@@ -223,3 +225,5 @@ Detailed request list:
 -   returns (HTTP codes)
     -   `200` Vote was accepted
     -   `406` (Not acceptable) Vote is unacceptable
+
+## Administration Endpoints
