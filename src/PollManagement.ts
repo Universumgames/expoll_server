@@ -31,7 +31,7 @@ class PollManager {
      * @return {Poll | undefined} returns corresponding poll or undefined if not found
      */
     async getPoll(pollID: tPollID): Promise<Poll | undefined> {
-        return Poll.findOne({ where: { id: pollID }, relations: ["votes", "admin", "votes.user"] })
+        return Poll.findOne({ where: { id: pollID }, relations: ["votes", "admin", "votes.user", "votes.poll"] })
     }
 
     // #region string polls
@@ -177,7 +177,7 @@ class PollManager {
         const users: User[] = []
         if (poll.votes != undefined)
             poll.votes.forEach((vote) => {
-                if (!users.includes(vote.user)) users.push(vote.user)
+                if (users.find((user) => user.id == vote.user.id) == undefined) users.push(vote.user)
             })
         return users
     }
@@ -223,8 +223,8 @@ class PollManager {
     async getVote(userID: tUserID, pollID: tPollID, optionID: tOptionId): Promise<Vote | undefined> {
         const user = await getUserManager().getUser({ userID: userID })
         if (user == undefined) return undefined
-        if (user.votes == undefined) return undefined
-        return user.votes.find((element) => element.optionID == optionID && element.poll.id == pollID)
+        const pollVotes = await this.getVotes(userID, pollID)
+        return pollVotes.find((element) => element.optionID == optionID)
     }
 }
 

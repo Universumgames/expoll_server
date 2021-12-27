@@ -43,7 +43,6 @@ export const metaInfo = async (req: Request, res: Response, next: NextFunction) 
 }
 
 apiRoutes.get("/test", test)
-// apiRoutes.get("/metaInfo", metaInfo)
 apiRoutes.all("/metaInfo", metaInfo)
 
 export default apiRoutes

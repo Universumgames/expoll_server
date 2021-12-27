@@ -43,7 +43,7 @@ export default class Router {
             this.setup()
         }
         this.httpServer.listen(this.port, () => {
-            console.log(`Server is running on https://localhost:${this.port}`)
+            console.log(`Server is running on http://localhost:${this.port}`)
         })
     }
 

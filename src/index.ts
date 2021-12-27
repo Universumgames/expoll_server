@@ -29,11 +29,3 @@ const router = new Router(config.serverPort)
 
 router.addRoutes("/", apiRoutes)
 router.startServer()
-/* const routes = express.Router()
-routes.get("/test", test)
-const router: Express = express()
-router.use("/", routes)
-
-const httpServer = http.createServer(router)
-const PORT: any = 6060
-httpServer.listen(PORT, () => console.log(`Server is running on http://localhost:${PORT}`)) */

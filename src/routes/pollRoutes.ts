@@ -9,10 +9,10 @@ import {
     Vote
 } from "./../entities/entities"
 import express, { NextFunction, Request, Response } from "express"
-import { getLoginKey } from "../helper"
 import getPollManager from "../PollManagement"
 import getUserManager from "../UserManagement"
 import { PollType } from "../interfaces"
+import { checkLoggedIn } from "./routeHelper"
 
 // eslint-disable-next-line new-cap
 const pollRoutes = express.Router()
@@ -25,13 +25,15 @@ const pollRoutes = express.Router()
 
 const getPolls = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const loginKey = getLoginKey(req)
+        // @ts-ignore
+        const user = req.user as User
+        /* const loginKey = getLoginKey(req)
         const user = await getUserManager().getUser({ loginKey: loginKey })
-        if (user == undefined) return res.status(ReturnCode.UNAUTHORIZED).end() // unauthorized
+        if (user == undefined) return res.status(ReturnCode.UNAUTHORIZED).end() // unauthorized */
         const body = req.body
         if (body.pollID == undefined && req.query.pollID == undefined) {
             // return overview for all polls the user has access to
-            const polls: any = []
+            let polls: any[] = []
             if (user.polls != undefined) {
                 for (const poll of user.polls) {
                     const userCount = (await getPollManager().getContributedUsers(poll.id)).length
@@ -53,6 +55,8 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                     polls.push(pollAdd)
                 }
             }
+            // sort by updated
+            polls = polls.sort((ele2, ele1) => ele1.lastUpdated - ele2.lastUpdated)
             return res.status(200).json({ polls: polls })
         } else {
             const pollID = (body.pollID! as string) ?? (req.query.pollID as string)
@@ -141,9 +145,11 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
 
 const createPoll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const loginKey = getLoginKey(req)
+        // @ts-ignore
+        const user = req.user as User
+        /* const loginKey = getLoginKey(req)
         const user = await getUserManager().getUser({ loginKey: loginKey })
-        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized
+        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized */
         const body = req.body
         if (body.name == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const name = body.name as string
@@ -213,9 +219,11 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
 
 const editPoll = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const loginKey = getLoginKey(req)
+        // @ts-ignore
+        const user = req.user as User
+        /* const loginKey = getLoginKey(req)
         const user = await getUserManager().getUser({ loginKey: loginKey })
-        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized
+        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized */
         const body = req.body
 
         // invite
@@ -228,8 +236,14 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
             if (poll.admin.id != user.id) return res.status(ReturnCode.UNAUTHORIZED).end()
 
+            if (body.delete != undefined && (body.delete as boolean) == true) {
+                await Poll.remove(poll)
+                return res.status(ReturnCode.OK).end()
+            }
+
             const name = (body.name as string) ?? undefined
             const description = (body.description as string) ?? undefined
+            const maxPerUserVoteCount = (body.maxPerUserVoteCount as number) ?? undefined
             const userRemove = (body.userRemove as number[]) ?? undefined
             const votes = (body.votes as { userID: tUserID; optionID: tOptionId; votedFor: boolean }[]) ?? undefined
             const options = body.options as {
@@ -243,9 +257,10 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             // updating simple settings
             if (name != undefined) poll.name = name
             if (description != undefined) poll.description = description
+            if (maxPerUserVoteCount != undefined) poll.maxPerUserVoteCount = maxPerUserVoteCount
 
-            // remove user from poll
             if (userRemove != undefined) {
+                // remove user from poll
                 for (const userID of userRemove) {
                     const user = await getUserManager().getUser({ userID: userID })
                     if (user == undefined) continue
@@ -283,7 +298,6 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
                                 await PollOptionDateTime.delete({ poll: poll, id: option.optionID })
                                 break
                         }
-                        console.log("deleted " + option.optionID)
                         continue
                     }
 
@@ -331,9 +345,9 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-pollRoutes.get("/", getPolls)
-pollRoutes.post("/", createPoll)
-pollRoutes.put("/", editPoll)
+pollRoutes.get("/", checkLoggedIn, getPolls)
+pollRoutes.post("/", checkLoggedIn, createPoll)
+pollRoutes.put("/", checkLoggedIn, editPoll)
 
 // pollRoutes.all("/metaInfo", metaInfo)
 

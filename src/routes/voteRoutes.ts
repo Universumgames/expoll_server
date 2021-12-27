@@ -1,9 +1,9 @@
-import { Vote } from "./../entities/entities"
-import { ReturnCode, tOptionId } from "./../interfaces"
+import { checkLoggedIn } from "./routeHelper"
+import { User, Vote } from "./../entities/entities"
+import { ReturnCode, tOptionId, tUserID } from "./../interfaces"
 import express, { NextFunction, Request, Response } from "express"
-import { getLoginKey } from "../helper"
-import getUserManager from "../UserManagement"
 import getPollManager from "../PollManagement"
+import getUserManager from "../UserManagement"
 
 // eslint-disable-next-line new-cap
 const voteRoutes = express.Router()
@@ -18,9 +18,11 @@ const voteRoutes = express.Router()
 
 const createVote = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const loginKey = getLoginKey(req)
+        // @ts-ignore
+        const user = req.user as User
+        /* const loginKey = getLoginKey(req)
         const user = await getUserManager().getUser({ loginKey: loginKey })
-        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized
+        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized */
         const body = req.body
         if (body.pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const pollID = body.pollID as string
@@ -32,13 +34,21 @@ const createVote = async (req: Request, res: Response, next: NextFunction) => {
         const poll = await getPollManager().getPoll(pollID)
         if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
 
-        let vote = await getPollManager().getVote(user.id, poll.id, optionID)
+        // this part is for when an admin want to change a vote
+        let userIDToUse = user.id
+        if (poll.admin.id == user.id && body.userID != undefined) userIDToUse = body.userID as tUserID
+        const u2 = await getUserManager().getUser({ userID: userIDToUse })
+        if (u2 == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
 
-        const count = await getPollManager().getVoteCountFromUser(user.id, pollID)
+        // get old vote to change it when exists
+        let vote = await getPollManager().getVote(userIDToUse, poll.id, optionID)
+
+        // check if an additional vote could be made
+        const count = await getPollManager().getVoteCountFromUser(userIDToUse, pollID)
 
         if (count <= poll.maxPerUserVoteCount || vote != undefined || poll.maxPerUserVoteCount == -1) {
             if (vote == undefined) vote = new Vote()
-            vote.user = user
+            vote.user = userIDToUse == user.id ? user : u2
             vote.optionID = optionID
             vote.poll = poll
             vote.votedFor = votedFor
@@ -53,13 +63,13 @@ const createVote = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-const revokeVote = async (req: Request, res: Response, next: NextFunction) => {
+/* const revokeVote = async (req: Request, res: Response, next: NextFunction) => {
     return res.status(200).json({
         message: "Test successful"
     })
-}
+} */
 
-voteRoutes.post("/vote", createVote)
-voteRoutes.delete("/vote", revokeVote)
+voteRoutes.post("/", checkLoggedIn, createVote)
+// voteRoutes.delete("/vote", revokeVote)
 
 export default voteRoutes
