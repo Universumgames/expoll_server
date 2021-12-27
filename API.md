@@ -195,6 +195,7 @@ Detailed request list:
     -   `pollID` (String) the poll you want to change (the user must be the admin of that poll) (must always be set, except for an invite)
     -   `name` (string) the poll name, if you want to change that
     -   `description`(string) the polls description, if you want to change that
+    -   `maxPerUserVoteCount` (Non decimal number) - the number of options each user choose simultaneously (-1 is infinity)
     -   `userRemove` (array of userID's) the users ids you want to remove from the poll
     -   `votes` (array of following), if you change any vote
         -   `userID` (string) the user the vote is from
@@ -203,6 +204,7 @@ Detailed request list:
     -   `options` (array of following), if you want to add or remove an option (xor: only one of the two can be inside one of the array elements, otherwise only the deletion will be acknowledged)
         -   `optionID` the optionID (if removing an option)
         -   and the new value (see the needed parameters from the options array at [Creating a poll](#create-a-poll))
+    -   `delete` (boolean) this is to delete the poll irreversibly (!!!!!!!!!!!)
 -   returns (HTTP Codes)
     -   `200` Changes accepted
     -   `400` Poll not found
@@ -222,6 +224,7 @@ Detailed request list:
     -   `pollID` (String) the poll this vote is directed to
     -   `optionID` (Int) the id of the option from the selectables from the poll
     -   `votedFor` (boolean) wether or not the user agrees or disagrees
+    -   `userID` (string) if an (poll)admin wants to alter a vote the modified user must be passed, if the user is not an (poll)admin this parameter will be ignored
 -   returns (HTTP codes)
     -   `200` Vote was accepted
     -   `406` (Not acceptable) Vote is unacceptable
