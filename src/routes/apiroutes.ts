@@ -1,4 +1,5 @@
 import express, { NextFunction, Request, Response } from "express"
+import adminRoutes from "./adminRoutes"
 import pollRoutes from "./pollRoutes"
 import userRoutes from "./userRoutes"
 import voteRoutes from "./voteRoutes"
@@ -8,6 +9,7 @@ const apiRoutes = express.Router()
 apiRoutes.use("/user", userRoutes)
 apiRoutes.use("/poll", pollRoutes)
 apiRoutes.use("/vote", voteRoutes)
+apiRoutes.use("/admin", adminRoutes)
 
 const test = async (req: Request, res: Response, next: NextFunction) => {
     return res.status(200).json({

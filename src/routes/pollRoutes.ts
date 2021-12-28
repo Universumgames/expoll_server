@@ -1,4 +1,4 @@
-import { ReturnCode, tDate, tDateTime, tOptionId, tUserID } from "./../interfaces"
+import { ReturnCode, tDate, tDateTime, tOptionId, tPollID, tUserID } from "./../interfaces"
 import {
     Poll,
     PollOption,
@@ -57,10 +57,11 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
             }
             // sort by updated
             polls = polls.sort((ele2, ele1) => ele1.lastUpdated - ele2.lastUpdated)
-            return res.status(200).json({ polls: polls })
+            return res.status(ReturnCode.OK).json({ polls: polls })
         } else {
-            const pollID = (body.pollID! as string) ?? (req.query.pollID as string)
-            const poll = user.polls.find((poll) => poll.id == pollID)
+            const pollID = (body.pollID! as tPollID) ?? (req.query.pollID as tPollID)
+            if (pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
+            const poll = await Poll.findOne({ where: { id: pollID }, relations: ["admin"] })
             if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
 
             const constrUsers = await getPollManager().getContributedUsers(poll.id)
@@ -83,7 +84,14 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
             pollOptions = pollOptions.sort((n1, n2) => n1.id - n2.id)
 
             const votes: {
-                user: { id: number; username: string; mail: string; firstName: string; lastName: string }
+                user: {
+                    id: number
+                    username: string
+                    mail: string
+                    firstName: string
+                    lastName: string
+                    admin: boolean
+                }
                 votes: { optionID: tOptionId; votedFor?: boolean }[]
             }[] = []
             // add current user if not constributed yet
@@ -111,7 +119,8 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                         username: user.username,
                         mail: user.mail,
                         firstName: user.firstName,
-                        lastName: user.lastName
+                        lastName: user.lastName,
+                        admin: await getUserManager().userIsAdminOrSuperAdmin(user.id)
                     },
                     votes: vsFin
                 })
@@ -232,11 +241,45 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             return res.status(await getUserManager().addPoll(user.mail, inviteLink)).end()
         } else {
             const pollID = body.pollID as string
+            if (pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
             const poll = await getPollManager().getPoll(pollID)
+
             if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
-            if (poll.admin.id != user.id) return res.status(ReturnCode.UNAUTHORIZED).end()
+            if (poll.admin.id != user.id && !user.admin) return res.status(ReturnCode.UNAUTHORIZED).end()
 
             if (body.delete != undefined && (body.delete as boolean) == true) {
+                // poll.votes = []
+                // await poll.save()
+
+                const pollVotes = await Vote.find({ where: { poll: poll } })
+                for (const vote of pollVotes) {
+                    await Vote.remove(vote)
+                }
+                let pollOptions: any[] = []
+                switch (poll.type) {
+                    case PollType.String: {
+                        pollOptions = await PollOptionString.find({ where: { poll: poll } })
+                        for (const option of pollOptions) {
+                            await PollOptionString.delete(option)
+                        }
+                        break
+                    }
+                    case PollType.Date: {
+                        pollOptions = await PollOptionDate.find({ where: { poll: poll } })
+                        for (const option of pollOptions) {
+                            await PollOptionDate.delete(option)
+                        }
+                        break
+                    }
+                    case PollType.DateTime: {
+                        pollOptions = await PollOptionDateTime.find({ where: { poll: poll } })
+                        for (const option of pollOptions) {
+                            await PollOptionDateTime.delete(option)
+                        }
+                        break
+                    }
+                }
+
                 await Poll.remove(poll)
                 return res.status(ReturnCode.OK).end()
             }

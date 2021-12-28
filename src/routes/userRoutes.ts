@@ -71,11 +71,15 @@ const getUserData = async (req: Request, res: Response, next: NextFunction) => {
         const user = await getUserManager().getUser({ loginKey: loginKey })
         if (user == undefined)
         return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized */
+
+        const easyUser = user
+        easyUser.admin = await getUserManager().userIsAdminOrSuperAdmin(user.id)
+
         const data = {
             loginKey: loginKey
         }
         const session = await getUserManager().getSession(loginKey)
-        return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(session!)).json(user)
+        return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(session!)).json(easyUser)
     } catch (e) {
         console.error(e)
         res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()

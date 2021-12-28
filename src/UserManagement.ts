@@ -77,7 +77,7 @@ class UserManager {
      * Get User with given mail address
      * @param {{}} data the mail address of the user to be searched for
      * @param {string?} loginKey the loginKey of the user to be searched for
-     * @return {Promise<User | undefined>} returns found User or undefined if not existant
+     * @return {Promise<User | undefined>} returns found User or undefined if not existant (excluding sessions)
      */
     async getUser(data: {
         mail?: string
@@ -117,6 +117,27 @@ class UserManager {
             where: { loginKey: loginKey },
             relations: ["user", "user.polls", "user.votes", "user.polls.admin"]
         })
+    }
+
+    /**
+     * get all users
+     * @return {User[]} get all users and their polls (excluding votes and sessions)
+     */
+    async getUsers(): Promise<User[]> {
+        return await User.find({ relations: ["polls"] })
+    }
+
+    /**
+     * Check if an user is system admin
+     * @param {tUserID} userID the user id
+     * @return {boolean} return true if user is system admin false otherwise
+     */
+    async userIsAdminOrSuperAdmin(userID: tUserID): Promise<boolean> {
+        const user = await this.getUser({ userID: userID })
+        if (user == undefined) return false
+        if (user.admin) return true
+        if (config.superAdminMail == user.mail) return true
+        return false
     }
 
     /**

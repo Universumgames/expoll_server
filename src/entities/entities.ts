@@ -144,7 +144,7 @@ export class Poll extends BaseEntity implements IPoll {
     @Column()
     type: PollType = PollType.String
 
-    @OneToMany((type) => Vote, (vote) => vote.poll)
+    @OneToMany((type) => Vote, (vote) => vote.poll, { onDelete: "CASCADE" })
     @JoinTable()
     votes: Vote[]
 
@@ -160,7 +160,7 @@ export class Poll extends BaseEntity implements IPoll {
  * Base class for a poll option to vote for
  */
 export abstract class PollOption extends BaseEntity implements IPollOption {
-    @ManyToOne((type) => Poll, (poll) => poll.id, { nullable: false })
+    @ManyToOne((type) => Poll, (poll) => poll.id, { nullable: false, onDelete: "CASCADE" })
     poll: Poll
 
     @PrimaryGeneratedColumn()

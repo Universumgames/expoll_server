@@ -34,6 +34,13 @@ class PollManager {
         return Poll.findOne({ where: { id: pollID }, relations: ["votes", "admin", "votes.user", "votes.poll"] })
     }
 
+    /**
+     * Get all polls on Network
+     */
+    async getPolls(): Promise<Poll[]> {
+        return await Poll.find({ relations: ["admin"] })
+    }
+
     // #region string polls
     /**
      * Creates new Poll with strings as select options
@@ -225,6 +232,19 @@ class PollManager {
         if (user == undefined) return undefined
         const pollVotes = await this.getVotes(userID, pollID)
         return pollVotes.find((element) => element.optionID == optionID)
+    }
+
+    /**
+     * Check wether a user is eligible to edit a poll
+     * @param {tPollID} pollID the poll to check
+     * @param {tUserID} userID the to check for
+     * @return {boolean} return true if user is allowed to edit poll
+     */
+    async userIsAdmin(pollID: tPollID, userID: tUserID): Promise<boolean> {
+        if (await getUserManager().userIsAdminOrSuperAdmin(userID)) return true
+        const poll = await this.getPoll(pollID)
+        if (poll == undefined) return false
+        return poll.admin.id == userID
     }
 }
 

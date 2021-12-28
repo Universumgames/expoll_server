@@ -4,21 +4,23 @@
 
 Configured on our server, the API is accessible via the `/api` Endpoint
 
-| Endpoint      | HTTP Method | Summary                                                                               |
-| :------------ | :---------: | ------------------------------------------------------------------------------------- |
-| `/user`       |      -      | [Link](#user-endpoints)                                                               |
-| `/user`       |    POST     | [Details](#create-a-user) - Creating a user                                           |
-| `/user`       |     GET     | [Details](#get-user-data) - Get user data                                             |
-| `/user`       |     PUT     | [Details](#edit-user-settings) - Edit own user                                        |
-| `/user/login` |    POST     | [Details]() - Login via loginKey or request login mail                                |
-| `user`        |   DELETE    | Deactivate a useraccount - serves no purpose so far                                   |
-| `/poll`       |      -      | [Link](#poll-endpoints)                                                               |
-| `/poll`       |     GET     | [Details](#retrieve-polls) - Get all/specific polls the user created or has access to |
-| `/poll`       |    POST     | [Details](#create-a-poll) - Creating a new Poll                                       |
-| `/poll`       |     PUT     | [Details](#edit-a-poll) - Editing an existing Poll                                    |
-| `/vote`       |      -      | [Link](#vote-endpoints)                                                               |
-| `/vote`       |    POST     | [Details](#vote-or-replace-previous-one) - Vote on a poll                             |
-| `/admin`      |      -      | [Link](#administration-endpoints)                                                     |
+| Endpoint       | HTTP Method | Summary                                                                               |
+| :------------- | :---------: | ------------------------------------------------------------------------------------- |
+| `/user`        |      -      | [Link](#user-endpoints)                                                               |
+| `/user`        |    POST     | [Details](#create-a-user) - Creating a user                                           |
+| `/user`        |     GET     | [Details](#get-user-data) - Get user data                                             |
+| `/user`        |     PUT     | [Details](#edit-user-settings) - Edit own user                                        |
+| `/user/login`  |    POST     | [Details]() - Login via loginKey or request login mail                                |
+| `user`         |   DELETE    | Deactivate a useraccount - serves no purpose so far                                   |
+| `/poll`        |      -      | [Link](#poll-endpoints)                                                               |
+| `/poll`        |     GET     | [Details](#retrieve-polls) - Get all/specific polls the user created or has access to |
+| `/poll`        |    POST     | [Details](#create-a-poll) - Creating a new Poll                                       |
+| `/poll`        |     PUT     | [Details](#edit-a-poll) - Editing an existing Poll                                    |
+| `/vote`        |      -      | [Link](#vote-endpoints)                                                               |
+| `/vote`        |    POST     | [Details](#vote-or-replace-previous-one) - Vote on a poll                             |
+| `/admin`       |      -      | [Link](#administration-endpoints)                                                     |
+| `/admin/users` |      -      | [Link](#user-management)                                                              |
+| `/admin/users` |     GET     | [Details](#retrieve-user-list) - retrieving all registered users                      |
 
 ## Config files
 
@@ -154,6 +156,7 @@ Detailed request list:
                 -   `lastName` (String)
                 -   `username` (String)
                 -   `id` (String)
+                -   `admin`(boolean) if user is any kind of admin
 
 ### Create a Poll
 
@@ -230,3 +233,28 @@ Detailed request list:
     -   `406` (Not acceptable) Vote is unacceptable
 
 ## Administration Endpoints
+
+All Routes beginning with `/admin` can only be performed as an admin. Either by being promoted to one or by setting the `superAdminMail` to the needed user's mail address. If a non-admin user performs a request to such endpoints the HTTP Code 401 (Unauthorized) will be returned.
+
+### User management
+
+#### Retrieve User List
+
+Retrieving a list of all registered users.
+
+Detailed request list:
+
+-   Path `/admin/users`
+-   HTTP Method `GET`
+-   required JSON fields: as always, the loginkey in some form
+-   returns JSON:
+    -   `users`an array of userdata
+        -   `id` (number) userid
+        -   `username` (string)
+        -   `firstName` (string)
+        -   `lastName` (string)
+        -   `mail` (string)
+        -   `admin` (boolean) user is any kind of admin
+-   returns HTTP Codes
+    -   200 OK
+    -   401 (Unauthorized) User is not an admin

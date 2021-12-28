@@ -36,7 +36,7 @@ const createVote = async (req: Request, res: Response, next: NextFunction) => {
 
         // this part is for when an admin want to change a vote
         let userIDToUse = user.id
-        if (poll.admin.id == user.id && body.userID != undefined) userIDToUse = body.userID as tUserID
+        if ((poll.admin.id == user.id || user.admin) && body.userID != undefined) userIDToUse = body.userID as tUserID
         const u2 = await getUserManager().getUser({ userID: userIDToUse })
         if (u2 == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
 
