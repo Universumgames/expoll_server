@@ -1,4 +1,5 @@
 import { Connection, createConnection } from "typeorm"
+import { config } from "./config"
 
 /**
  * Database class to manage access to database
@@ -16,11 +17,11 @@ export default class Database {
     async init() {
         try {
             this.dbConnection = await createConnection({
-                type: "mariadb",
-                host: "localhost",
-                port: 3306,
+                type: config.database.type as any,
+                host: config.database.host,
+                port: config.database.port,
                 username: "root",
-                password: "password",
+                password: config.database.rootPW,
                 database: "expoll",
                 // eslint-disable-next-line no-undef
                 entities: [__dirname + "/entities/entities.js"],

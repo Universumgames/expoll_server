@@ -8,7 +8,13 @@ export const config = {
     mailPassword: nodeconfig.get<string>("mailPassword"),
     serverPort: nodeconfig.get<number>("serverPort"),
     frontEndPort: nodeconfig.get<number>("frontEndPort"),
-    superAdminMail: nodeconfig.get<string>("superAdminMail")
+    superAdminMail: nodeconfig.get<string>("superAdminMail"),
+    database: {
+        type: nodeconfig.get<string>("database.type"),
+        host: nodeconfig.get<string>("database.host"),
+        port: nodeconfig.get<number>("database.port"),
+        rootPW: nodeconfig.get<string>("database.rootPW")
+    }
 }
 
 console.log("Running server with config as following:\n", config)

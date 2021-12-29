@@ -3,3 +3,4 @@ compiled
 .DS_Store
 *.tsbuildinfo
 config/dev*
+config/prod*

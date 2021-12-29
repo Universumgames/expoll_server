@@ -10,9 +10,22 @@ services:
         environment:
             MYSQL_ROOT_PASSWORD: password
             MYSQL_DATABASE: expoll
+        hostname: db
         volumes:
             - mysqlDB:/var/lib/mysql
         container_name: database
+    api:
+        build: .
+        ports:
+            - "6060:6060"
+        volumes:
+            - ./config:/expoll/api_server/config
+        environment:
+            - NODE_ENV=production
+        container_name: apiServer
+        hostname: api
+        depends_on:
+            - "db"
 
 volumes:
     mysqlDB:
