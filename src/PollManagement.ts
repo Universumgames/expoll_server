@@ -1,6 +1,6 @@
 import Database from "./database"
 import { Poll, PollOptionDate, PollOptionDateTime, PollOptionString, User, Vote } from "./entities/entities"
-import { PollType, tDate, tDateTime, tOptionId, tPollID, tUserID } from "./interfaces"
+import { PollType, tDate, tDateTime, tOptionId, tPollID, tUserID } from "expoll-lib/interfaces"
 import getUserManager from "./UserManagement"
 
 type basicPollOptions = { admin: User; name: string; description: string }

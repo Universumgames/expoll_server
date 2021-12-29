@@ -1,4 +1,12 @@
-import { IPoll, IPollOption, IPollOptionDate, IPollOptionDateTime, IUser, ISession, PollType } from "./../interfaces"
+import {
+    IPoll,
+    IPollOption,
+    IPollOptionDate,
+    IPollOptionDateTime,
+    IUser,
+    ISession,
+    PollType
+} from "expoll-lib/interfaces"
 /* eslint-disable new-cap */
 import { v4 as uuidv4 } from "uuid"
 import {
@@ -14,7 +22,7 @@ import {
     OneToMany,
     JoinTable
 } from "typeorm"
-import { tOptionId, tPollID, tUserID } from "../interfaces"
+import { tOptionId, tPollID, tUserID } from "expoll-lib/interfaces"
 
 @Entity()
 /**

@@ -1,4 +1,4 @@
-import { ReturnCode, tDate, tDateTime, tOptionId, tPollID, tUserID } from "./../interfaces"
+import { ReturnCode, tDate, tDateTime, tOptionId, tPollID, tUserID } from "expoll-lib/interfaces"
 import {
     Poll,
     PollOption,
@@ -11,8 +11,10 @@ import {
 import express, { NextFunction, Request, Response } from "express"
 import getPollManager from "../PollManagement"
 import getUserManager from "../UserManagement"
-import { PollType } from "../interfaces"
+import { PollType } from "expoll-lib/interfaces"
 import { checkLoggedIn } from "./routeHelper"
+import { SimplePoll, SimpleUserVotes } from "expoll-lib/extraInterfaces"
+import { DetailedPollResponse, PollOverview } from "expoll-lib/requestInterfaces"
 
 // eslint-disable-next-line new-cap
 const pollRoutes = express.Router()
@@ -33,12 +35,12 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
         const body = req.body
         if (body.pollID == undefined && req.query.pollID == undefined) {
             // return overview for all polls the user has access to
-            let polls: any[] = []
+            let polls: SimplePoll[] = []
             if (user.polls != undefined) {
                 for (const poll of user.polls) {
                     const userCount = (await getPollManager().getContributedUsers(poll.id)).length
                     // simplify and constrain "access" to polls
-                    const pollAdd = {
+                    const pollAdd: SimplePoll = {
                         admin: {
                             firstName: poll.admin.firstName,
                             lastName: poll.admin.lastName,
@@ -50,14 +52,14 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                         userCount: userCount,
                         lastUpdated: poll.updated,
                         type: poll.type as number,
-                        id: poll.id
+                        pollID: poll.id
                     }
                     polls.push(pollAdd)
                 }
             }
             // sort by updated
-            polls = polls.sort((ele2, ele1) => ele1.lastUpdated - ele2.lastUpdated)
-            return res.status(ReturnCode.OK).json({ polls: polls })
+            polls = polls.sort((ele2, ele1) => ele1.lastUpdated.getTime() - ele2.lastUpdated.getTime())
+            return res.status(ReturnCode.OK).json({ polls: polls } as PollOverview)
         } else {
             const pollID = (body.pollID! as tPollID) ?? (req.query.pollID as tPollID)
             if (pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
@@ -83,17 +85,7 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
             // sort options by id
             pollOptions = pollOptions.sort((n1, n2) => n1.id - n2.id)
 
-            const votes: {
-                user: {
-                    id: number
-                    username: string
-                    mail: string
-                    firstName: string
-                    lastName: string
-                    admin: boolean
-                }
-                votes: { optionID: tOptionId; votedFor?: boolean }[]
-            }[] = []
+            const votes: SimpleUserVotes[] = []
             // add current user if not constributed yet
             if (constrUsers.find((u) => u.id == user.id) == undefined) constrUsers.push(user)
 
@@ -117,16 +109,14 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                     user: {
                         id: user.id,
                         username: user.username,
-                        mail: user.mail,
                         firstName: user.firstName,
-                        lastName: user.lastName,
-                        admin: await getUserManager().userIsAdminOrSuperAdmin(user.id)
+                        lastName: user.lastName
                     },
                     votes: vsFin
                 })
             }
 
-            const returnPoll = {
+            const returnPoll: DetailedPollResponse = {
                 pollID: pollID,
                 admin: {
                     firstName: poll.admin.firstName,

@@ -5,7 +5,7 @@
     "main": "compiled/index.js",
     "scripts": {
         "build": "npm run compile; npm run lint",
-        "compile": ": rm -rf compiled/ && \n npx tsc",
+        "compile": ": rm -rf compiled/ && \n npx tsc --build",
         "serve": "node compiled/index.js",
         "dev": "npm run build; export NODE_ENV=development; npm run serve",
         "lint": "npx eslint ./src --ext .ts"
@@ -32,11 +32,13 @@
         "cookie-parser": "^1.4.6",
         "express": "^4.17.1",
         "mariadb": "^2.5.5",
+        "module-alias": "^2.2.2",
         "mysql": "^2.18.1",
         "node-config": "^0.0.2",
         "nodemailer": "^6.7.2",
         "reflect-metadata": "^0.1.13",
         "typeorm": "^0.2.41",
-        "uuid": "^8.3.2"
+        "uuid": "^8.3.2",
+        "expoll-lib": "../lib/compiled/"
     }
 }

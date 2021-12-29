@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express"
 import { config } from "../config"
 import { User } from "../entities/entities"
 import { cookieName, getLoginKey } from "../helper"
-import { ReturnCode } from "../interfaces"
+import { ReturnCode } from "expoll-lib/interfaces"
 import getUserManager from "../UserManagement"
 
 export const checkLoggedIn = async (req: Request, res: Response, next: NextFunction) => {

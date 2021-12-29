@@ -1,9 +1,10 @@
 import { checkLoggedIn } from "./routeHelper"
 import { User, Vote } from "./../entities/entities"
-import { ReturnCode, tOptionId, tUserID } from "./../interfaces"
+import { ReturnCode, tOptionId, tUserID } from "expoll-lib/interfaces"
 import express, { NextFunction, Request, Response } from "express"
 import getPollManager from "../PollManagement"
 import getUserManager from "../UserManagement"
+import { VoteRequest } from "expoll-lib/requestInterfaces"
 
 // eslint-disable-next-line new-cap
 const voteRoutes = express.Router()
@@ -23,7 +24,7 @@ const createVote = async (req: Request, res: Response, next: NextFunction) => {
         /* const loginKey = getLoginKey(req)
         const user = await getUserManager().getUser({ loginKey: loginKey })
         if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized */
-        const body = req.body
+        const body = req.body as VoteRequest
         if (body.pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const pollID = body.pollID as string
         if (body.optionID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()

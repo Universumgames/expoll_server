@@ -1,3 +1,4 @@
+import "module-alias/register"
 /* eslint-disable no-unused-vars */
 import Database from "./database"
 // import http from "http"

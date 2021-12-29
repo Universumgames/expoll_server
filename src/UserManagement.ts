@@ -1,10 +1,10 @@
 import { Request } from "express"
 import Database from "./database"
 import { Poll, Session, User, Vote } from "./entities/entities"
-import { ReturnCode, tPollID, tUserID } from "./interfaces"
 import { config } from "./config"
 import getMailManager, { Mail } from "./MailManager"
 import getPollManager from "./PollManagement"
+import { ReturnCode, tPollID, tUserID } from "expoll-lib/interfaces"
 
 /**
  * Manger class to create delete and change users

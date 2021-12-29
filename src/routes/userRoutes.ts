@@ -1,9 +1,10 @@
 import { checkLoggedIn } from "./routeHelper"
 import { cookieName, getLoginKey } from "./../helper"
-import { ReturnCode } from "./../interfaces"
+import { ReturnCode } from "expoll-lib/interfaces"
 import { Session, User } from "./../entities/entities"
 import express, { CookieOptions, NextFunction, Request, Response } from "express"
 import getUserManager from "../UserManagement"
+import { CreateUserRequest, CreateUserResponse } from "expoll-lib/requestInterfaces"
 
 // eslint-disable-next-line new-cap
 const userRoutes = express.Router()
@@ -18,7 +19,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // check valid request body
         if (req.body == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
-        const body = req.body
+        const body = req.body as CreateUserRequest
         const mail = body.mail as string
         if (mail == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const firstName = body.firstName as string
@@ -45,7 +46,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
             const session = await user.generateSession()
             const loginKey = session.loginKey
 
-            const data = {
+            const data: CreateUserResponse = {
                 loginKey: loginKey
             }
             return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(session)).json(data)

@@ -80,7 +80,6 @@ Detailed request list:
 -   HTTP Method `GET`
 -   required data: loginKey (cookie or request body)
 -   returns (JSON):
-    -   `loginKey` (String)
     -   `id` (Int)
     -   `username` (String)
     -   `firstName` (String)
@@ -115,10 +114,12 @@ Detailed request list:
     -   returns (JSON)
         -   `polls`: List of Polls
             -   `pollID` (String) unique id
+            -   `name` (string)
             -   `admin` the poll creator
                 -   `firstName` (String)
                 -   `lastName` (String)
                 -   `username` (String)
+                -   `id` (number)
             -   `description` (String)
             -   `userCount` (Int) number users voted on this poll
             -   `lastUpdated` (DateTime (specifics not defined yet))
@@ -130,6 +131,7 @@ Detailed request list:
         -   returns 400 (Bad Request) if poll was not found in users accessible poll list
         -   returns (JSON)
             -   `pollID` (String) unique id
+            -   `name`(string)
             -   `admin` the poll creator
                 -   `firstName` (String)
                 -   `lastName` (String)
@@ -254,6 +256,7 @@ Detailed request list:
         -   `firstName` (string)
         -   `lastName` (string)
         -   `mail` (string)
+        -   `active` (boolean)
         -   `admin` (boolean) user is any kind of admin
 -   returns HTTP Codes
     -   200 OK
