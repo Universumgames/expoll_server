@@ -1,6 +1,5 @@
 import express, { NextFunction, Request, Response } from "express"
 import { config } from "../config"
-import { User } from "../entities/entities"
 import { ReturnCode } from "expoll-lib/interfaces"
 import getPollManager from "../PollManagement"
 import getUserManager from "../UserManagement"
@@ -20,7 +19,7 @@ const authorizedAdminRoutes = express.Router()
 const getUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // @ts-ignore
-        const adminUser = req.user as User
+        // const adminUser = req.user as User
 
         const users = await getUserManager().getUsers()
 
