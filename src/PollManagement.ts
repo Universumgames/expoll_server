@@ -41,6 +41,18 @@ class PollManager {
         return await Poll.find({ relations: ["admin"] })
     }
 
+    /**
+     * Get the number of polls the user owns currently
+     * @param {tUserID} userID the users id
+     * @return {number} the number of polls owned by the user
+     */
+    async getPollCountCreatedByUser(userID: tUserID): Promise<number> {
+        const user = await getUserManager().getUser({ userID: userID })
+        if (user == undefined) return 0
+        const n = await Poll.findAndCount({ where: { admin: user }, relations: ["admin"] })
+        return n[1]
+    }
+
     // #region string polls
     /**
      * Creates new Poll with strings as select options

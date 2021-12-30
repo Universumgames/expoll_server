@@ -10,7 +10,7 @@ Configured on our server, the API is accessible via the `/api` Endpoint
 | `/user`        |    POST     | [Details](#create-a-user) - Creating a user                                           |
 | `/user`        |     GET     | [Details](#get-user-data) - Get user data                                             |
 | `/user`        |     PUT     | [Details](#edit-user-settings) - Edit own user                                        |
-| `/user/login`  |    POST     | [Details]() - Login via loginKey or request login mail                                |
+| `/user/login`  |    POST     | [Details](#login) - Login via loginKey or request login mail                          |
 | `user`         |   DELETE    | Deactivate a useraccount - serves no purpose so far                                   |
 | `/poll`        |      -      | [Link](#poll-endpoints)                                                               |
 | `/poll`        |     GET     | [Details](#retrieve-polls) - Get all/specific polls the user created or has access to |
@@ -43,6 +43,7 @@ Inside the config following values can be changed:
 -   `401` (Unauthorized) LoginKey is invalid
 -   `406` (Not acceptable) Vote is not acceptable / user already exists (mail or username)
 -   `409` (Conflict) wrong parameter type
+-   `413` (Payload too large) maximum number of polls created by the user is exceeded
 
 ## Login Method
 
@@ -87,6 +88,22 @@ Detailed request list:
     -   `mail` (String)
     -   `active` (boolean) (indicates wether the account has been deactivated, see [Deactivate user](#deactivate-user))
     -   `admin`(most presumably false)
+
+### Login
+
+Endpoint to either request a login mail or to retrieve a cookie with the loginKey provided.
+This endpoint is designed for webclients wanting to send the loginkey in the future over a cookie. The cookie will be provided over this endpoint.
+
+Detailed request list:
+
+-   Path `/user/login`
+-   HTTP Method `POST`
+-   optional data (JSON body): `loginKey` if already recieved
+-   returns (not key provided):
+    -   200 (OK)
+    -   An EMail will be sent to the user (if he is registered)
+-   returns (loginKey provided):
+    -   a cookie
 
 ### Edit User settings
 
@@ -186,6 +203,7 @@ Detailed request list:
     -   `pollID` the polls uuid
 -   return 400 if parameters are missing
 -   returns 409 if parameters are wrong type
+-   returns 413 if the user has "owns"/maintains/created too many polls at the same time
 
 ### Edit a poll
 

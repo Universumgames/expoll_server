@@ -1,5 +1,5 @@
 {
-    "name": "expoll_server",
+    "name": "expoll-server",
     "version": "1.0.0",
     "description": "",
     "main": "compiled/index.js",

@@ -5,12 +5,14 @@
     "mailUser": "your mail",
     "mailPassword": "password",
     "serverPort": 6060,
-    "frontEndPort": 8080,
+    "frontEndPort": 80,
+    "loginLinkURL": "localhost",
     "superAdminMail": "your mail address",
     "database": {
         "host": "localhost",
         "port": 3306,
         "type": "mariadb",
         "rootPW": "password"
-    }
+    },
+    "maxPollCountPerUser": 10
 }

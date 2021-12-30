@@ -15,7 +15,9 @@ services:
             - mysqlDB:/var/lib/mysql
         container_name: database
     api:
-        build: .
+        build:
+            context: ../
+            dockerfile: ./server/dockerfile
         restart: unless-stopped
         ports:
             - "6060:6060"
@@ -29,28 +31,19 @@ services:
             - "db"
         links:
             - "db"
-    apache:
-        build: ../client
-        restart: unless-stopped
-        ports:
-            - "8080:80"
-            - "8081:443"
-        container_name: frontendServer
-        depends_on:
-            - "api"
-        hostname: apache
     nginx:
-        build: ./nginx
+        build:
+            context: ../
+            dockerfile: ./server/nginx/dockerfile
         restart: unless-stopped
         ports:
             - "80:80"
-        container_name: proxy
+        container_name: nginx
         depends_on:
-            - "apache"
             - "api"
             - "db"
+        hostname: nginx
         links:
-            - "apache"
             - "api"
 
 volumes:

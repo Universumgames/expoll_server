@@ -1,3 +1,4 @@
+import { config } from "./../config"
 import { ReturnCode, tDate, tDateTime, tOptionId, tPollID, tUserID } from "expoll-lib/interfaces"
 import {
     Poll,
@@ -161,6 +162,9 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
         if (body.options == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const options = body.options as any[]
 
+        const pollCount = await getPollManager().getPollCountCreatedByUser(user.id)
+        if (pollCount >= config.maxPollCountPerUser && !user.admin) return res.status(ReturnCode.TOO_MANY_POLLS)
+
         // save to poll
         const poll = new Poll()
         poll.name = name
@@ -169,6 +173,8 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
         poll.admin = user
         poll.maxPerUserVoteCount = maxPerUserVoteCount
         poll.votes = []
+
+        console.log(await getPollManager().getPollCountCreatedByUser(user.id))
 
         const checkedOptions: PollOption[] = []
 

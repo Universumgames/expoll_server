@@ -5,6 +5,8 @@ import { ReturnCode } from "expoll-lib/interfaces"
 import getPollManager from "../PollManagement"
 import getUserManager from "../UserManagement"
 import { checkAdmin, checkLoggedIn } from "./routeHelper"
+import { AdminPollListResponse, AdminUserListResponse } from "expoll-lib/requestInterfaces"
+import { SimplePoll } from "expoll-lib/extraInterfaces"
 
 // eslint-disable-next-line new-cap
 const authorizedAdminRoutes = express.Router()
@@ -35,9 +37,11 @@ const getUsers = async (req: Request, res: Response, next: NextFunction) => {
             })
         }
 
-        return res.status(ReturnCode.OK).json({
-            users: cleanedUsers
-        })
+        const data: AdminUserListResponse = {
+            users: cleanedUsers,
+            totalCount: cleanedUsers.length
+        }
+        return res.status(ReturnCode.OK).json(data)
     } catch (e) {
         console.error(e)
         return res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
@@ -47,11 +51,11 @@ const getUsers = async (req: Request, res: Response, next: NextFunction) => {
 const getPolls = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const allPolls = await getPollManager().getPolls()
-        let polls: any[] = []
+        let polls: SimplePoll[] = []
         for (const poll of allPolls) {
             const userCount = (await getPollManager().getContributedUsers(poll.id)).length
             // simplify and constrain "access" to polls
-            const pollAdd = {
+            const pollAdd: SimplePoll = {
                 admin: {
                     firstName: poll.admin.firstName,
                     lastName: poll.admin.lastName,
@@ -63,13 +67,14 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                 userCount: userCount,
                 lastUpdated: poll.updated,
                 type: poll.type as number,
-                id: poll.id
+                pollID: poll.id
             }
             polls.push(pollAdd)
         }
         // sort by updated
-        polls = polls.sort((ele2, ele1) => ele1.lastUpdated - ele2.lastUpdated)
-        return res.status(ReturnCode.OK).json({ polls: polls })
+        polls = polls.sort((ele2, ele1) => ele1.lastUpdated.getTime() - ele2.lastUpdated.getTime())
+        const data: AdminPollListResponse = { polls: polls, totalCount: polls.length }
+        return res.status(ReturnCode.OK).json(data)
     } catch (e) {
         console.error(e)
         return res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()

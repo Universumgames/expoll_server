@@ -255,7 +255,7 @@ function urlBuilder(req: Request, loginKey: string): string {
     return (
         req.protocol +
         "://" +
-        req.hostname +
+        config.loginLinkURL +
         (port == 80 || port == 443 ? "" : ":" + port) +
         "/#/login/" +
         encodeURIComponent(loginKey)

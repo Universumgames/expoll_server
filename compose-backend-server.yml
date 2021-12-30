@@ -15,7 +15,9 @@ services:
             - mysqlDB:/var/lib/mysql
         container_name: database
     api:
-        build: .
+        build:
+            context: ../
+            dockerfile: ./client/dockerfile
         ports:
             - "6060:6060"
         volumes:
