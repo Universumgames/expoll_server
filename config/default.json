@@ -14,5 +14,6 @@
         "type": "mariadb",
         "rootPW": "password"
     },
-    "maxPollCountPerUser": 10
+    "maxPollCountPerUser": 10,
+    "recaptchaAPIKey": "your google recaptcha api key goes here"
 }

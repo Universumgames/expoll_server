@@ -4,3 +4,4 @@ compiled
 *.tsbuildinfo
 config/dev*
 config/prod*
+**/keys*

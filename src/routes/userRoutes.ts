@@ -1,3 +1,5 @@
+import { config } from "./../config"
+import axios from "axios"
 import { checkLoggedIn } from "./routeHelper"
 import { cookieName, getLoginKey } from "./../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
@@ -15,6 +17,23 @@ const userRoutes = express.Router()
     })
 } */
 
+/**
+ * Verify received captcha token
+ * @param {string} token the token received by the client
+ * @return {boolean} true if token is valid false otherwise
+ */
+async function verifyCaptcha(token: string): Promise<boolean> {
+    const googleReturn = (
+        await axios.post("https://www.google.com/recaptcha/api/siteverify", undefined, {
+            params: {
+                secret: config.recaptchaAPIKey,
+                response: token
+            }
+        })
+    ).data
+    return googleReturn.score > 0.5 ?? 0
+}
+
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // check valid request body
@@ -28,6 +47,11 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
         if (lastName == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const username = body.username as string
         if (username == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
+        if (body.captcha == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
+        const captchaToken = body.captcha
+
+        if (!(await verifyCaptcha(captchaToken))) return res.status(ReturnCode.CAPTCHA_INVALID).end()
+
         // check user not exist
         if (
             (await getUserManager().checkUserExists({ mail: mail })) ||

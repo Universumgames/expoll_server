@@ -27,14 +27,21 @@ Configured on our server, the API is accessible via the `/api` Endpoint
 The configuration files are in the `./config/` directory with the default configuration being in the `./config/default.json` file. By creating a new file in this directory ending with `.json` these values can be overwritten.
 Inside the config following values can be changed:
 
--   mailServer (string): the mailserver to login in to to send mail
--   mailPort (int) the port of the mailserver
--   mailSecure (boolean) ssl connection to mail server
--   mailUser (string) the mail user
--   mailPassword (string) the password to login
--   serverPort (int) the port the api server listens to
--   frontEndPort (int) the port the frontend server runs at (important for mail login)
--   superAdminMail (string) the mail address of the user that, if newly created will be promoted to an admin, can be changed down the line, even though this change will not be saved to the database (automatically)
+-   `mailServer` (string): the mailserver to login in to to send mail
+-   `mailPort` (int) the port of the mailserver
+-   `mailSecure` (boolean) ssl connection to mail server
+-   `mailUser` (string) the mail user
+-   `mailPassword` (string) the password to login
+-   `serverPort` (int) the port the api server listens to
+-   `frontEndPort` (int) the port the frontend server runs at (important for mail login)
+-   `superAdminMail` (string) the mail address of the user that, if newly created will be promoted to an admin, can be changed down the line, even though this change will not be saved to the database (automatically)
+-   `database`
+    -   `type` (string) the database type
+    -   `host` (string) the ip/hostname of the database
+    -   `port` (number) the port the database is accessible through
+    -   `rootPW` (string) the root password to the database
+-   `maxPollCountPerUser` (number) restrict the number of polls each user can create
+-   `recaptchaAPIKey` the api key to use google recaptcha
 
 ## Return code overview
 
@@ -66,10 +73,12 @@ Detailed request list:
     -   `lastName` (String)
     -   `mail` (String)
     -   `username` (String)
+    -   `captcha` (string) the google recaptcha token
 -   returns on ok (JSON) 200
     -   `loginKey` (String) the loginKey have to be set as a cookie, it is checked for every request
 -   return on missing request elements 400 (Bad Request)
 -   return on user exists (mail address is key) 406 (Not acceptable)
+-   return on invalid captcha 401 (Unauthorized)
 
 ### Get user data
 

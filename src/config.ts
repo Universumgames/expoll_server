@@ -16,7 +16,8 @@ export const config = {
         port: nodeconfig.get<number>("database.port"),
         rootPW: nodeconfig.get<string>("database.rootPW")
     },
-    maxPollCountPerUser: nodeconfig.get<number>("maxPollCountPerUser")
+    maxPollCountPerUser: nodeconfig.get<number>("maxPollCountPerUser"),
+    recaptchaAPIKey: nodeconfig.get<string>("recaptchaAPIKey")
 }
 
 console.log("Running server with config as following:\n", config)
