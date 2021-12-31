@@ -47,7 +47,7 @@ Inside the config following values can be changed:
 
 -   `200` OK
 -   `400` (Bad request) parameters missing/invalid
--   `401` (Unauthorized) LoginKey is invalid
+-   `401` (Unauthorized) LoginKey invalid, Captcha not accepted
 -   `406` (Not acceptable) Vote is not acceptable / user already exists (mail or username)
 -   `409` (Conflict) wrong parameter type
 -   `413` (Payload too large) maximum number of polls created by the user is exceeded

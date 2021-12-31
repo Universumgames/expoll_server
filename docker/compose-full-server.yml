@@ -13,38 +13,48 @@ services:
         hostname: db
         volumes:
             - mysqlDB:/var/lib/mysql
-        container_name: database
+        container_name: expoll_database
+        networks:
+            - expoll_net
     api:
         build:
-            context: ../
+            context: ../../
             dockerfile: ./server/dockerfile
         restart: unless-stopped
         ports:
             - "6060:6060"
         volumes:
-            - ./config:/expoll/api_server/config
+            - ../config:/expoll/api_server/config
         environment:
             - NODE_ENV=production
-        container_name: apiServer
+        container_name: expoll_apiServer
         hostname: api
         depends_on:
             - "db"
         links:
             - "db"
+        networks:
+            - expoll_net
     nginx:
         build:
-            context: ../
+            context: ../../
             dockerfile: ./server/nginx/dockerfile
         restart: unless-stopped
         ports:
-            - "80:80"
-        container_name: nginx
+            - "81:80"
+        container_name: expoll_nginx
         depends_on:
             - "api"
             - "db"
         hostname: nginx
         links:
             - "api"
+        networks:
+            - expoll_net
 
 volumes:
     mysqlDB:
+networks:
+    expoll_net:
+        name: expoll_net
+        attachable: true

@@ -31,7 +31,8 @@ async function verifyCaptcha(token: string): Promise<boolean> {
             }
         })
     ).data
-    return googleReturn.score > 0.5 ?? 0
+    console.log(googleReturn)
+    return googleReturn.score >= 0.5 ?? false
 }
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
@@ -57,7 +58,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
             (await getUserManager().checkUserExists({ mail: mail })) ||
             (await getUserManager().checkUserExists({ username: username }))
         )
-            return res.status(406).end()
+            return res.status(ReturnCode.USER_EXISTS).end()
         // create user
         const user = new User()
         user.mail = mail

@@ -1,3 +1,4 @@
+import { ReturnCode } from "./../../../lib/interfaces"
 import express, { NextFunction, Request, Response } from "express"
 import adminRoutes from "./adminRoutes"
 import pollRoutes from "./pollRoutes"
@@ -34,14 +35,9 @@ export const metaInfo = async (req: Request, res: Response, next: NextFunction) 
         httpVersion: req.httpVersion,
         secure: req.secure,
         subdomains: req.subdomains,
-        xhr: req.xhr,
-        test: "test message"
+        xhr: req.xhr
     }
-    return res
-        .status(200)
-        .cookie("test-cookie-name", "test-cookie-value", { sameSite: true })
-        .cookie("test2", "testval", { sameSite: true })
-        .json(returnData)
+    return res.status(ReturnCode.OK).json(returnData)
 }
 
 apiRoutes.get("/test", test)

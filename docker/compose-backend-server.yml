@@ -16,7 +16,7 @@ services:
         container_name: database
     api:
         build:
-            context: ../
+            context: ../../
             dockerfile: ./client/dockerfile
         ports:
             - "6060:6060"

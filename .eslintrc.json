@@ -46,6 +46,7 @@
         ],
         "comma-dangle": ["error", "never"],
         "no-empty": ["warn", { "allowEmptyCatch": true }],
-        "curly": "off"
+        "curly": "off",
+        "no-async-promise-executor": ["warn"]
     }
 }

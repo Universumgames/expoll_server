@@ -17,8 +17,8 @@
         "declaration": true,
         "declarationMap": true,
         "removeComments": true,
-        "resolveJsonModule": true,
-        "composite": true
+        "resolveJsonModule": true
+        //"composite": true
     }
     // "include": ["./src", "../lib/"]
     // "references": [{ "lib": "../lib/" }]

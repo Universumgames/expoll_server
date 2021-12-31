@@ -1,1 +1,1 @@
-docker compose -f ./compose-full-server.yml up --detach  --build --force-recreate
+docker compose -f ./docker/compose-full-server.yml up --detach --build  --force-recreate

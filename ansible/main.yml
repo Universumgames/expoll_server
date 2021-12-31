@@ -1,0 +1,44 @@
+---
+- name: Deploy docker containers on server
+  hosts: all
+  become: true
+  become_method: sudo
+
+  vars:
+      expoll_directories:
+          - src: ../../server/
+            dest: server
+          - src: ../../lib/
+            dest: lib
+          - src: ../../client/
+            dest: client
+      install_dir: "/opt/expoll/"
+
+  pre_tasks:
+      - name: Push repositories to server
+        synchronize:
+            src: "{{ item.src }}"
+            dest: "{{  install_dir }}{{ item.dest }}"
+            recursive: true
+            owner: false
+            group: false
+            mode: push
+            delete: true
+            rsync_opts:
+                - "--exclude=.git"
+                #- "--exclude=**/node_modules"
+                - "--exclude=compiled"
+                - "--exclude=dist"
+                - "--exclude=*.tsbuildinfo"
+            private_key: "~/.ssh/mt32"
+        with_items: "{{ expoll_directories }}"
+
+  tasks:
+      - name: copy nginx config file
+        copy:
+            src: ./expoll.nginx.conf
+            dest: /etc/nginx/sites-enabled/expoll
+#- name: dockerize
+#  script:
+#      chdir: "{{  install_dir }}server/"
+#      cmd: "../run-full-server.sh"
