@@ -67,9 +67,8 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
             const poll = await Poll.findOne({ where: { id: pollID }, relations: ["admin"] })
             if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
 
-            const constrUsers = await getPollManager().getContributedUsers(poll.id)
+            const constrUsersPromise = getPollManager().getContributedUsers(poll.id)
 
-            const userCount = constrUsers.length
             let pollOptions: PollOption[] = []
             switch (poll.type) {
                 case PollType.String:
@@ -87,6 +86,9 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
             pollOptions = pollOptions.sort((n1, n2) => n1.id - n2.id)
 
             const votes: SimpleUserVotes[] = []
+            const constrUsers = await constrUsersPromise
+            const userCount = constrUsers.length
+
             // add current user if not constributed yet
             if (constrUsers.find((u) => u.id == user.id) == undefined) constrUsers.push(user)
 
@@ -173,8 +175,6 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
         poll.admin = user
         poll.maxPerUserVoteCount = maxPerUserVoteCount
         poll.votes = []
-
-        console.log(await getPollManager().getPollCountCreatedByUser(user.id))
 
         const checkedOptions: PollOption[] = []
 
@@ -313,13 +313,26 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
 
             // edit votes
             if (votes != undefined) {
+                // async vote saving
+                const votePromiseArray: Promise<void>[] = []
                 for (const vote of votes) {
-                    const user = await getUserManager().getUser({ userID: vote.userID })
-                    if (user == undefined) continue
-                    const v = user.votes.find((vot) => vot.optionID == vote.optionID)
-                    if (v == undefined) return
-                    v.votedFor = vote.votedFor
-                    await v.save()
+                    votePromiseArray.push(
+                        new Promise(async (resolve, reject) => {
+                            const user = await getUserManager().getUser({ userID: vote.userID })
+                            if (user == undefined) {
+                                resolve()
+                                return
+                            }
+                            const v = user.votes.find((vot) => vot.optionID == vote.optionID)
+                            if (v == undefined) return
+                            v.votedFor = vote.votedFor
+                            await v.save()
+                            resolve()
+                        })
+                    )
+                }
+                for (const prom of votePromiseArray) {
+                    await prom
                 }
             }
 
@@ -369,10 +382,16 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
                             checkedOptions.push(o)
                         }
                     })
-                    if (!error)
+                    if (!error) {
+                        // async option saving
+                        const saveOptionPromises: Promise<any>[] = []
                         for (const opt of checkedOptions) {
-                            await opt.save()
+                            saveOptionPromises.push(opt.save())
                         }
+                        for (const prom of saveOptionPromises) {
+                            await prom
+                        }
+                    }
                 }
             }
 
