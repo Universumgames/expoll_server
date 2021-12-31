@@ -18,6 +18,6 @@ export function getLoginKey(req: Request): string | undefined {
     if (req.body != undefined) {
         if (req.body.loginKey != undefined) return req.body.loginKey as string
     }
-
+    if (req.query != undefined) return req.query.loginKey as string
     return undefined
 }

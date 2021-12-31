@@ -47,6 +47,14 @@
         "comma-dangle": ["error", "never"],
         "no-empty": ["warn", { "allowEmptyCatch": true }],
         "curly": "off",
-        "no-async-promise-executor": ["warn"]
+        "no-async-promise-executor": ["warn"],
+        "space-before-function-paren": [
+            "error",
+            {
+                "anonymous": "always",
+                "named": "never",
+                "asyncArrow": "always"
+            }
+        ]
     }
 }

@@ -115,18 +115,19 @@ const getUserData = async (req: Request, res: Response, next: NextFunction) => {
 const login = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // @ts-ignore
-        const user = req.user as User
         const loginKey = getLoginKey(req)
         if (loginKey == undefined) {
             return res.status(await getUserManager().sendLoginMail(req.body.mail, req)).end()
         }
-        /* const user = await getUserManager().getUser({ loginKey: loginKey })
-        if (user == undefined)
-        return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized */
+        const user = await getUserManager().getUser({ loginKey: loginKey })
+        if (user == undefined) {
+            return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized
+        }
         const data = {
             loginKey: loginKey
         }
         const session = await getUserManager().getSession(loginKey)
+        if (session == undefined || !session.isValid()) return res.status(ReturnCode.INVALID_LOGIN_KEY).end()
         return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(session!)).json(user)
     } catch (e) {
         console.error(e)

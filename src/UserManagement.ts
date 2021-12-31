@@ -45,8 +45,6 @@ class UserManager {
         u.lastName = lastName
         u.active = true
 
-        console.log(u)
-
         u.save()
 
         return u
@@ -76,19 +74,22 @@ class UserManager {
     /**
      * Get User with given mail address
      * @param {{}} data the mail address of the user to be searched for
-     * @param {string?} loginKey the loginKey of the user to be searched for
+     * @param {string[]} additionalRelations additional relations
      * @return {Promise<User | undefined>} returns found User or undefined if not existant (excluding sessions)
      */
-    async getUser(data: {
-        mail?: string
-        loginKey?: string
-        username?: string
-        userID?: tUserID
-    }): Promise<User | undefined> {
+    async getUser(
+        data: {
+            mail?: string
+            loginKey?: string
+            username?: string
+            userID?: tUserID
+        },
+        additionalRelations?: string[]
+    ): Promise<User | undefined> {
         if (data.mail != undefined)
             return await this.repo.findOne({
                 where: { mail: data.mail },
-                relations: ["polls", "votes", "polls.admin"]
+                relations: [...["polls", "votes", "polls.admin"], ...(additionalRelations ?? [])]
             })
         else if (data.loginKey != undefined) {
             const session = await this.getSession(data.loginKey)
@@ -97,12 +98,12 @@ class UserManager {
         } else if (data.username != undefined)
             return await this.repo.findOne({
                 where: { username: data.username },
-                relations: ["polls", "votes", "polls.admin"]
+                relations: [...["polls", "votes", "polls.admin"], ...(additionalRelations ?? [])]
             })
         else if (data.userID != undefined)
             return await this.repo.findOne({
                 where: { id: data.userID },
-                relations: ["polls", "votes", "polls.admin"]
+                relations: [...["polls", "votes", "polls.admin"], ...(additionalRelations ?? [])]
             })
         else return undefined
     }
@@ -110,13 +111,16 @@ class UserManager {
     /**
      * Get session by loginKey
      * @param {string} loginKey the login key
+     * @param {string[]} additionalRelations additional relations
      * @return {Session} return usersession
      */
-    async getSession(loginKey: string): Promise<Session | undefined> {
-        return await Session.findOne({
+    async getSession(loginKey: string, additionalRelations?: string[]): Promise<Session | undefined> {
+        const relations = [...["user", "user.polls", "user.votes", "user.polls.admin"], ...(additionalRelations ?? [])]
+        const session = await Session.findOne({
             where: { loginKey: loginKey },
-            relations: ["user", "user.polls", "user.votes", "user.polls.admin"]
+            relations: relations
         })
+        return session
     }
 
     /**
@@ -227,7 +231,7 @@ class UserManager {
      */
     async sendLoginMail(mail: string, req: Request): Promise<ReturnCode> {
         if (mail == undefined) return ReturnCode.MISSING_PARAMS
-        const user = await this.getUser({ mail: mail })
+        const user = await this.getUser({ mail: mail }, ["sessions"])
         if (user == undefined) return ReturnCode.INVALID_PARAMS
         const key = await user.generateSession()
         getMailManager().sendMail({

@@ -73,7 +73,7 @@ export class User extends BaseEntity implements IUser {
         ex.setMonth(ex.getMonth() + 3)
         session.expiration = ex
 
-        if (this.sessions == undefined) {
+        if (this.sessions == undefined && (await Session.find({ where: { user: this } })) == []) {
             this.sessions = []
         }
         this.sessions.push(session)
@@ -93,7 +93,7 @@ export class Session extends BaseEntity implements ISession {
     @PrimaryColumn()
     loginKey: string = Session.generateLoginKey()
 
-    @Column()
+    @Column({ type: "datetime" })
     expiration: Date
 
     @ManyToOne((type) => User, (user) => user.sessions)

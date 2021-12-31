@@ -47,7 +47,7 @@ Inside the config following values can be changed:
 
 -   `200` OK
 -   `400` (Bad request) parameters missing/invalid
--   `401` (Unauthorized) LoginKey invalid, Captcha not accepted
+-   `401` (Unauthorized) LoginKey invalid/expired, Captcha not accepted
 -   `406` (Not acceptable) Vote is not acceptable / user already exists (mail or username)
 -   `409` (Conflict) wrong parameter type
 -   `413` (Payload too large) maximum number of polls created by the user is exceeded
@@ -56,6 +56,18 @@ Inside the config following values can be changed:
 
 Login is handled not with password but with a login key which is received at signup and sent per mail when requested via username or the users mail address.
 This loginKey is required to either be send in the request body or as cookie.
+
+Detailed request list:
+
+-   Path `/user/login`
+-   HTTP Method `POST`
+-   required fields (JSON)
+    -   `mail` (string) the users mail address if a login-mail/loginKey is needed
+    -   `loginKey` (string) the received loginKey
+-   returns
+    -   200 (OK) and userdata
+    -   400 (Bad Request) missing loginKey/mail or invalid mail
+    -   401 (Unauthorized) passed loginKey invalid
 
 ## User-Endpoints
 
@@ -153,38 +165,38 @@ Detailed request list:
 -   Retrieve detailed information
     -   required JSON fields:
         -   `pollID` the poll id (may be in query string)
-        -   returns 401 (Unauthorized) if loginKey is invalid
-        -   returns 400 (Bad Request) if poll was not found in users accessible poll list
-        -   returns (JSON)
-            -   `pollID` (String) unique id
-            -   `name`(string)
-            -   `admin` the poll creator
-                -   `firstName` (String)
-                -   `lastName` (String)
-                -   `username` (String)
-            -   `description` (String)
-            -   `maxPerUserVoteCount` (Non decimal number) - the number of options each user choose simultaneously (-1 is infinity)
-            -   `userCount` (Int) number users voted on this poll
-            -   `lastUpdated` (DateTime (specifics not defined yet))
-            -   `created` (DateTime (specifics not defined yet))
-            -   `type` (0: String, 1: Date, 2: DateTime)
-            -   `options`: List of options
-                -   `optionID` (Int)
-                -   `value` (String) when type is String
-                -   `dateStart`(Date) when type is Date
-                -   `dateEnd`(Date | null) when type is Date
-                -   `dateTimeStart` (DateTime) when type is Datetime
-                -   `dateTimeEnd` (DateTime) when type is Datetime
-            -   List of votes
-                -   `optionID` (Int) the id of the option from the selectables from the poll
-                -   `votedFor` (boolean) wether or not the user agrees or disagrees
-                -   `userID`
-            -   List of participating users
-                -   `firstName`(String)
-                -   `lastName` (String)
-                -   `username` (String)
-                -   `id` (String)
-                -   `admin`(boolean) if user is any kind of admin
+    -   returns 401 (Unauthorized) if loginKey is invalid
+    -   returns 400 (Bad Request) if poll was not found in users accessible poll list
+    -   returns (JSON)
+        -   `pollID` (String) unique id
+        -   `name`(string)
+        -   `admin` the poll creator
+            -   `firstName` (String)
+            -   `lastName` (String)
+            -   `username` (String)
+        -   `description` (String)
+        -   `maxPerUserVoteCount` (Non decimal number) - the number of options each user choose simultaneously (-1 is infinity)
+        -   `userCount` (Int) number users voted on this poll
+        -   `lastUpdated` (DateTime (specifics not defined yet))
+        -   `created` (DateTime (specifics not defined yet))
+        -   `type` (0: String, 1: Date, 2: DateTime)
+        -   `options`: List of options
+            -   `optionID` (Int)
+            -   `value` (String) when type is String
+            -   `dateStart`(Date) when type is Date
+            -   `dateEnd`(Date | null) when type is Date
+            -   `dateTimeStart` (DateTime) when type is Datetime
+            -   `dateTimeEnd` (DateTime) when type is Datetime
+        -   List of votes
+            -   `optionID` (Int) the id of the option from the selectables from the poll
+            -   `votedFor` (boolean) wether or not the user agrees or disagrees
+            -   `userID`
+        -   List of participating users
+            -   `firstName`(String)
+            -   `lastName` (String)
+            -   `username` (String)
+            -   `id` (String)
+            -   `admin`(boolean) if user is any kind of admin
 
 ### Create a Poll
 
