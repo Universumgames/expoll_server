@@ -1,4 +1,4 @@
-import { ReturnCode } from "./../../../lib/interfaces"
+import { ReturnCode } from "expoll-lib/interfaces"
 import express, { NextFunction, Request, Response } from "express"
 import adminRoutes from "./adminRoutes"
 import pollRoutes from "./pollRoutes"
