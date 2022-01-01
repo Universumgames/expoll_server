@@ -11,6 +11,7 @@ import { key } from "./test-config"
 
 const baseURL = "http://localhost:6060"
 
+// this users mail address should not be an admin
 const loginUserMail = "programming@universegame.de"
 const predefinedKey = key
 
@@ -128,6 +129,22 @@ describe("API test", function () {
             }
         })
 
+        it("Check against not-logged-in poll access", async () => {
+            try {
+                const data = (await axios.get(baseURL + "/poll", { params: { pollID: originPollID } }))
+                    .data as DetailedPollResponse
+                assert.fail("Retrieving poll information without being logged in succeeded, should not be possible")
+            } catch (e) {
+                assert.ok(true)
+            }
+        })
+
+        describe("Test Vote Endpoint", () => {
+            // TODO implement voting checks
+        })
+
+        // TODO implement editing checks
+
         it("Delete created poll", async () => {
             try {
                 const reqData: EditPollRequest = { pollID: originPollID, delete: true }
@@ -139,5 +156,23 @@ describe("API test", function () {
         })
     })
 
-    describe("Test Vote Endpoint", () => {})
+    describe("Test administration endpoints", () => {
+        it("Get userlist, not logged in", async () => {
+            try {
+                const data = (await axios.get("/admin/users")).data
+                assert.fail("admin endpoint was 'gettable' with no authorization: " + data)
+            } catch {
+                assert.ok(true)
+            }
+        })
+
+        it("Get userlist as normal user", async () => {
+            try {
+                const data = (await axios.get("/admin/users", { params: { loginKey: key } })).data
+                assert.fail("admin endpoint was 'gettable' with no authorization: " + data)
+            } catch {
+                assert.ok(true)
+            }
+        })
+    })
 })
