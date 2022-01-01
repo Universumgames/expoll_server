@@ -4,23 +4,25 @@
 
 Configured on our server, the API is accessible via the `/api` Endpoint
 
-| Endpoint       | HTTP Method | Summary                                                                               |
-| :------------- | :---------: | ------------------------------------------------------------------------------------- |
-| `/user`        |      -      | [Link](#user-endpoints)                                                               |
-| `/user`        |    POST     | [Details](#create-a-user) - Creating a user                                           |
-| `/user`        |     GET     | [Details](#get-user-data) - Get user data                                             |
-| `/user`        |     PUT     | [Details](#edit-user-settings) - Edit own user                                        |
-| `/user/login`  |    POST     | [Details](#login) - Login via loginKey or request login mail                          |
-| `user`         |   DELETE    | Deactivate a useraccount - serves no purpose so far                                   |
-| `/poll`        |      -      | [Link](#poll-endpoints)                                                               |
-| `/poll`        |     GET     | [Details](#retrieve-polls) - Get all/specific polls the user created or has access to |
-| `/poll`        |    POST     | [Details](#create-a-poll) - Creating a new Poll                                       |
-| `/poll`        |     PUT     | [Details](#edit-a-poll) - Editing an existing Poll                                    |
-| `/vote`        |      -      | [Link](#vote-endpoints)                                                               |
-| `/vote`        |    POST     | [Details](#vote-or-replace-previous-one) - Vote on a poll                             |
-| `/admin`       |      -      | [Link](#administration-endpoints)                                                     |
-| `/admin/users` |      -      | [Link](#user-management)                                                              |
-| `/admin/users` |     GET     | [Details](#retrieve-user-list) - retrieving all registered users                      |
+| Endpoint       | HTTP Method | Summary                                                                |
+| :------------- | :---------: | ---------------------------------------------------------------------- |
+| `/user`        |      -      | [Link](#user-endpoints)                                                |
+| `/user`        |    POST     | [Details](#create-a-user) - Creating a user                            |
+| `/user`        |     GET     | [Details](#get-user-data) - Get user data                              |
+| `/user`        |     PUT     | [Details](#edit-user-settings) - Edit own user (Coming soon)           |
+| `/user/login`  |    POST     | [Details](#login) - Login via loginKey or request login mail           |
+| `user`         |   DELETE    | Deactivate a user account (Coming soon)                                |
+| `/poll`        |      -      | [Link](#poll-endpoints)                                                |
+| `/poll`        |     GET     | [Details](#retrieve-polls) - Get poll overview or detailed information |
+| `/poll`        |    POST     | [Details](#create-a-poll) - Creating a new Poll                        |
+| `/poll`        |     PUT     | [Details](#edit-a-poll) - Editing an existing Poll                     |
+| `/vote`        |      -      | [Link](#vote-endpoints)                                                |
+| `/vote`        |    POST     | [Details](#vote-or-replace-previous-one) - Vote on a poll              |
+| `/admin`       |      -      | [Link](#administration-endpoints)                                      |
+| `/admin/users` |      -      | [Link](#user-management)                                               |
+| `/admin/users` |     GET     | [Details](#retrieve-user-list) - retrieving all registered users       |
+| `/admin/users` |     PUT     | Edit user account - Coming soon                                        |
+| `/admin/polls` |     GET     | Retrieve all existing polls - Documentation coming soon                |
 
 ## Config files
 
