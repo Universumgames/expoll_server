@@ -5,3 +5,4 @@ compiled
 config/dev*
 config/prod*
 **/keys*
+package-lock.json
