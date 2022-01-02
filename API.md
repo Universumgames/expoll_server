@@ -45,6 +45,10 @@ Inside the config following values can be changed:
 -   `maxPollCountPerUser` (number) restrict the number of polls each user can create
 -   `recaptchaAPIKey` the api key to use google recaptcha
 
+## Detailed information about object structure
+
+Detailed information about inner object structure, request and response objects can be found in the [lib](https://git.mt32.net/mt32/expoll_lib) repository.
+
 ## Return code overview
 
 -   `200` OK
@@ -152,7 +156,7 @@ Detailed request list:
     -   required JSON fields: none (besides `loginKey` when not sent as cookie)
     -   returns 401 (Unauthorized) if loginKey is invalid
     -   returns (JSON)
-        -   `polls`: List of Polls
+        -   `polls`: List of Poll overviews
             -   `pollID` (String) unique id
             -   `name` (string)
             -   `admin` the poll creator
@@ -302,3 +306,18 @@ Detailed request list:
 -   returns HTTP Codes
     -   200 OK
     -   401 (Unauthorized) User is not an admin
+
+### Poll management
+
+#### Retrieve Poll list
+
+Retrieve a list of all created polls:
+
+Detailed request list:
+
+-   Path `/admin/polls`
+-   HTTP Method `GET`
+-   required JSON fields: as always, the loginKey
+-   returns JSON:
+-   `polls`:
+    -   See [Retrieve Poll overview](#retrieve-polls)
