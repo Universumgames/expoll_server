@@ -206,6 +206,31 @@ class UserManager {
     }
 
     /**
+     * Remove user from poll by deleting all his votes and removing poll from his access list
+     * @param {tUserID} userID the user the poll is deleted from
+     * @param {tPollID} pollID the poll to remove
+     * @return {ReturnCode} the ReturnCode of the operation
+     */
+    async removeFromPoll(userID: tUserID, pollID: tPollID): Promise<ReturnCode> {
+        // TODO implement
+        const user = await this.getUser({ userID: userID })
+        if (user == undefined) return ReturnCode.INVALID_PARAMS
+        const poll = await getPollManager().getPoll(pollID)
+        if (poll == undefined) return ReturnCode.INVALID_PARAMS
+
+        console.log(user)
+
+        if (user.polls == undefined) return ReturnCode.BAD_REQUEST
+        user.polls = user.polls.filter((poll) => poll.id != pollID)
+        await user.save()
+        await Vote.delete({ poll: poll, user: user })
+
+        user.polls = user.polls.filter((ele) => ele.id != pollID)
+        await user.save()
+        return ReturnCode.OK
+    }
+
+    /**
      * Get Votes from a User for s specific Poll
      * @param {string} mail user mail address
      * @param {tPollID} pollID the poll referring to

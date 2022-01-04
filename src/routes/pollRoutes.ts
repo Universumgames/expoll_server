@@ -1,5 +1,5 @@
 import { config } from "./../config"
-import { ReturnCode, tDate, tDateTime, tOptionId, tPollID, tUserID } from "expoll-lib/interfaces"
+import { ReturnCode, tDate, tDateTime, tOptionId, tPollID } from "expoll-lib/interfaces"
 import {
     Poll,
     PollOption,
@@ -15,7 +15,7 @@ import getUserManager from "../UserManagement"
 import { PollType } from "expoll-lib/interfaces"
 import { checkLoggedIn } from "./routeHelper"
 import { SimplePoll, SimpleUserVotes } from "expoll-lib/extraInterfaces"
-import { DetailedPollResponse, PollOverview } from "expoll-lib/requestInterfaces"
+import { DetailedPollResponse, EditPollRequest, PollOverview } from "expoll-lib/requestInterfaces"
 
 // eslint-disable-next-line new-cap
 const pollRoutes = express.Router()
@@ -229,12 +229,16 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
         /* const loginKey = getLoginKey(req)
         const user = await getUserManager().getUser({ loginKey: loginKey })
         if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized */
-        const body = req.body
+        const body = req.body as EditPollRequest
 
         // invite
         if (body.inviteLink != undefined) {
             const inviteLink = body.inviteLink as string
             return res.status(await getUserManager().addPoll(user.mail, inviteLink)).end()
+        } else if (body.leave != undefined && body.leave) {
+            const pollID = body.pollID as string
+            if (pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
+            return res.status(await getUserManager().removeFromPoll(user.id, pollID)).end()
         } else {
             const pollID = body.pollID as string
             if (pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
@@ -283,8 +287,8 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             const name = (body.name as string) ?? undefined
             const description = (body.description as string) ?? undefined
             const maxPerUserVoteCount = (body.maxPerUserVoteCount as number) ?? undefined
-            const userRemove = (body.userRemove as number[]) ?? undefined
-            const votes = (body.votes as { userID: tUserID; optionID: tOptionId; votedFor: boolean }[]) ?? undefined
+            const userRemove = body.userRemove ?? undefined
+            const votes = body.votes ?? undefined
             const options = body.options as {
                 optionID?: tOptionId
                 value?: string
@@ -303,11 +307,13 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             if (userRemove != undefined) {
                 // remove user from poll
                 for (const userID of userRemove) {
+                    /* if (userID == undefined) continue
                     const user = await getUserManager().getUser({ userID: userID })
                     if (user == undefined) continue
                     user.polls = user.polls.filter((poll) => poll.id != pollID)
                     await user.save()
-                    await Vote.delete({ poll: poll, user: user })
+                    await Vote.delete({ poll: poll, user: user }) */
+                    await getUserManager().removeFromPoll(userID, pollID)
                 }
             }
 
@@ -316,6 +322,7 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
                 // async vote saving
                 const votePromiseArray: Promise<void>[] = []
                 for (const vote of votes) {
+                    if (vote == undefined || vote.userID == undefined) continue
                     votePromiseArray.push(
                         new Promise(async (resolve, reject) => {
                             const user = await getUserManager().getUser({ userID: vote.userID })

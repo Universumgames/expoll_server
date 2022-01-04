@@ -55,6 +55,7 @@
                 "named": "never",
                 "asyncArrow": "always"
             }
-        ]
+        ],
+        "operator-linebreak": ["off", "before", { "overrides": { "||": "after" } }]
     }
 }

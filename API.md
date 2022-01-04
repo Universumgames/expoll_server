@@ -11,7 +11,7 @@ Configured on our server, the API is accessible via the `/api` Endpoint
 | `/user`        |     GET     | [Details](#get-user-data) - Get user data                              |
 | `/user`        |     PUT     | [Details](#edit-user-settings) - Edit own user (Coming soon)           |
 | `/user/login`  |    POST     | [Details](#login) - Login via loginKey or request login mail           |
-| `user`         |   DELETE    | Deactivate a user account (Coming soon)                                |
+| `/user`        |   DELETE    | Deactivate a user account (Coming soon)                                |
 | `/poll`        |      -      | [Link](#poll-endpoints)                                                |
 | `/poll`        |     GET     | [Details](#retrieve-polls) - Get poll overview or detailed information |
 | `/poll`        |    POST     | [Details](#create-a-poll) - Creating a new Poll                        |
@@ -242,6 +242,7 @@ Detailed request list:
 -   HTTP Method `PUT`
 -   require JSON field:
     -   `inviteLink` (String) when you are trying to join a poll to vote, this parameter must be set to the pollID the user wants to join
+    -   `leave`(boolean) the inverse to the former (`inviteLink`), if the user wants to leave the poll
     -   `pollID` (String) the poll you want to change (the user must be the admin of that poll) (must always be set, except for an invite)
     -   `name` (string) the poll name, if you want to change that
     -   `description`(string) the polls description, if you want to change that
