@@ -36,7 +36,7 @@
         "axios": "^0.24.0",
         "config": "^3.3.6",
         "cookie-parser": "^1.4.6",
-        "expoll-lib": "../lib/compiled/",
+        "expoll-lib": "git+https://git.mt32.net/universum/expoll_lib.git",
         "express": "^4.17.1",
         "mariadb": "^2.5.5",
         "module-alias": "^2.2.2",

@@ -8,8 +8,8 @@
       expoll_directories:
           - src: ../../server/
             dest: server
-          - src: ../../lib/
-            dest: lib
+          #- src: ../../lib/
+          #  dest: lib
           - src: ../../client/
             dest: client
       install_dir: "/opt/expoll/"
