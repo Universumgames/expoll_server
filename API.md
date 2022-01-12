@@ -22,7 +22,7 @@ Configured on our server, the API is accessible via the `/api` Endpoint
 | `/admin/users` |      -      | [Link](#user-management)                                               |
 | `/admin/users` |     GET     | [Details](#retrieve-user-list) - retrieving all registered users       |
 | `/admin/users` |     PUT     | Edit user account - Coming soon                                        |
-| `/admin/polls` |     GET     | Retrieve all existing polls - Documentation coming soon                |
+| `/admin/polls` |     GET     | [Details](#retrieve-poll-list) - Retrieve all existing polls           |
 
 ## Config files
 
@@ -307,6 +307,27 @@ Detailed request list:
 -   returns HTTP Codes
     -   200 OK
     -   401 (Unauthorized) User is not an admin
+
+### Edit user
+
+Edit any user as an admin. Edit name, mail, promote to admin and delete the user. Deleting a user deletes al votes and polls the user created.
+
+Detailed request list:
+
+-   Path `/admin/users`
+-   HTTP Method `PUT`
+-   required JSON field (besides an admin loginKey):
+    -   `userID`(number) the user to edit
+    -   `delete`(boolean) - optional, when the user should be deleted, all other values are ignored
+    -   `mail` (string) - optional, only pass value if mail address should be changed
+    -   `admin` (boolean) - optional, pass true when user should be promoted, false if demoted (demoting works only if user is superAdmin (configurable in config file))
+    -   `firstName` (string) - optional, only pass value if first name should be changed
+    -   `lastName` (string) - optional, only pass value if last name should be changed
+    -   `username` (string) - optional, only pass value if username should be changed
+-   returns
+    -   Success:
+        -   HTTP Status: 200
+    -   or default error codes, see [Error codes](#return-code-overview)
 
 ### Poll management
 
