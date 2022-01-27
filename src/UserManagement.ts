@@ -1,7 +1,7 @@
 import { Request } from "express"
 import Database from "./database"
 import { Poll, Session, User, Vote } from "./entities/entities"
-import { config } from "./config"
+import { config } from "./expoll_config"
 import getMailManager, { Mail } from "./MailManager"
 import getPollManager from "./PollManagement"
 import { ReturnCode, tPollID, tUserID } from "expoll-lib/interfaces"
@@ -86,10 +86,11 @@ class UserManager {
         },
         additionalRelations?: string[]
     ): Promise<User | undefined> {
+        const defaultRelations = ["polls", "votes", "polls.admin"]
         if (data.mail != undefined)
             return await this.repo.findOne({
                 where: { mail: data.mail },
-                relations: [...["polls", "votes", "polls.admin"], ...(additionalRelations ?? [])]
+                relations: [...defaultRelations, ...(additionalRelations ?? [])]
             })
         else if (data.loginKey != undefined) {
             const session = await this.getSession(data.loginKey)
@@ -98,12 +99,12 @@ class UserManager {
         } else if (data.username != undefined)
             return await this.repo.findOne({
                 where: { username: data.username },
-                relations: [...["polls", "votes", "polls.admin"], ...(additionalRelations ?? [])]
+                relations: [...defaultRelations, ...(additionalRelations ?? [])]
             })
         else if (data.userID != undefined)
             return await this.repo.findOne({
                 where: { id: data.userID },
-                relations: [...["polls", "votes", "polls.admin"], ...(additionalRelations ?? [])]
+                relations: [...defaultRelations, ...(additionalRelations ?? [])]
             })
         else return undefined
     }

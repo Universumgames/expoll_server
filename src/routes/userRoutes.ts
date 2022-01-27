@@ -1,4 +1,4 @@
-import { config } from "./../config"
+import { config } from "../expoll_config"
 import axios from "axios"
 import { checkLoggedIn } from "./routeHelper"
 import { cookieName, getLoginKey } from "./../helper"

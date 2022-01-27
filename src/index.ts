@@ -7,7 +7,7 @@ import apiRoutes from "./routes/apiroutes"
 import { createUserManager } from "./UserManagement"
 import { createPollManager } from "./PollManagement"
 import { createMailManager } from "./MailManager"
-import { config } from "./config"
+import { config } from "./expoll_config"
 
 const db = new Database()
 db.init()

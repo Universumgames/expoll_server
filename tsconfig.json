@@ -6,7 +6,7 @@
         "module": "commonjs",
         "esModuleInterop": true,
         "outDir": "./compiled",
-        "baseUrl": "./",
+        "baseUrl": "./src",
         "rootDir": "./src",
         "target": "esnext",
         "skipLibCheck": true,

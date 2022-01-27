@@ -1,4 +1,4 @@
-import { config } from "./../config"
+import { config } from "../expoll_config"
 import { ReturnCode, tDate, tDateTime, tOptionId, tPollID } from "expoll-lib/interfaces"
 import {
     Poll,

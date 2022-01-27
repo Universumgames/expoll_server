@@ -1,4 +1,6 @@
+import { IUser } from "expoll-lib/interfaces"
 import { Request } from "express"
+import { config } from "./expoll_config"
 
 export const cookieName = "expoll_dat"
 
@@ -20,4 +22,22 @@ export function getLoginKey(req: Request): string | undefined {
     }
     if (req.query != undefined) return req.query.loginKey as string
     return undefined
+}
+
+/**
+ * Check if an user is any kind of admin
+ * @param {IUser} user the user to check
+ * @return {boolean} returns true if user is admin or super admin, false otherwise
+ */
+export function isAdmin(user: IUser): boolean {
+    return user.admin || isSuperAdmin(user)
+}
+
+/**
+ * Check if user is superadmin
+ * @param {IUser} user the user to check
+ * @return {boolean} return true if user is super admin (config file), false otherwise
+ */
+export function isSuperAdmin(user: IUser): boolean {
+    return config.superAdminMail == user.mail
 }

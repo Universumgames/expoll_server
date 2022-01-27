@@ -1,5 +1,5 @@
 import { Connection, createConnection } from "typeorm"
-import { config } from "./config"
+import { config } from "./expoll_config"
 
 /**
  * Database class to manage access to database

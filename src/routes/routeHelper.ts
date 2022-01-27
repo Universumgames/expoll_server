@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express"
-import { config } from "../config"
+import { config } from "../expoll_config"
 import { User } from "../entities/entities"
-import { cookieName, getLoginKey } from "../helper"
+import { cookieName, getLoginKey, isAdmin } from "../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
 import getUserManager from "../UserManagement"
 
@@ -37,7 +37,7 @@ export const checkAdmin = async (req: Request, res: Response, next: NextFunction
             if (loginKey == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
             user = await getUserManager().getUser({ loginKey: loginKey })
             if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end()
-            user.admin = user.admin || config.superAdminMail == user?.mail
+            user.admin = isAdmin(user)
         }
         // check for "normal" admin or superadmin
         if (user == undefined || !user.admin) return res.status(ReturnCode.INVALID_LOGIN_KEY).end()
