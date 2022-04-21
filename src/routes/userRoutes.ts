@@ -1,4 +1,3 @@
-import { SimpleUser } from "./../../../lib/compiled/extraInterfaces.d"
 import { config } from "../expoll_config"
 import axios from "axios"
 import { checkLoggedIn } from "./routeHelper"

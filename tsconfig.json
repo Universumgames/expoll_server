@@ -20,14 +20,4 @@
         "resolveJsonModule": true
         //"composite": true
     }
-    // "include": ["./src", "../lib/"]
-    // "references": [{ "lib": "../lib/" }]
-    /* "references": [
-        {
-            "path": "../lib/"
-        }
-    ],
-    "paths": {
-        "@lib/*": ["../lib/*"]
-    } */
 }

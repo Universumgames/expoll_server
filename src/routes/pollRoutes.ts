@@ -1,4 +1,4 @@
-import { ComplexOption } from "./../../../lib/compiled/extraInterfaces.d"
+import { ComplexOption } from "expoll-lib/extraInterfaces.d"
 import { config } from "../expoll_config"
 import { ReturnCode, tDate, tDateTime, tOptionId, tPollID } from "expoll-lib/interfaces"
 import {

@@ -1,1 +1,1 @@
-docker compose -f ./docker/compose-backed-server.yml up --detach --no-deps --build --force-recreate
+docker compose -v -f ./docker/compose-backend-server.yml up --detach --no-deps --build --force-recreate
