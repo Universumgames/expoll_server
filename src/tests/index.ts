@@ -54,7 +54,6 @@ describe("API test", function () {
         it("Login with key", async () => {
             try {
                 user = (await axios.post(baseURL + "/user/login", { loginKey: key })).data
-                // console.log("Login userData: ", user)
                 assert.ok(true)
             } catch (e) {
                 assert.fail("Login failed " + e)
@@ -64,7 +63,6 @@ describe("API test", function () {
         it("Get userData", async () => {
             try {
                 const u2: IUser = (await axios.get(baseURL + "/user", { params: { loginKey: key } })).data
-                // console.log(u2)
                 assert.ok(user != undefined || user == u2, "UserData does not match original value")
                 if (user == undefined) user = u2
             } catch (e) {
@@ -89,7 +87,6 @@ describe("API test", function () {
             try {
                 const data = (await axios.get(baseURL + "/poll", { params: { loginKey: key } })).data as PollOverview
                 polls = data.polls
-                // console.log("Starting polls: " + (polls == [] ? "[]" : polls))
                 assert.ok(data.polls != undefined)
             } catch (e) {
                 assert.fail("Retrieving polls failed " + e)

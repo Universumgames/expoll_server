@@ -1,3 +1,4 @@
+import { ComplexOption } from "./../../../lib/compiled/extraInterfaces.d"
 import { config } from "../expoll_config"
 import { ReturnCode, tDate, tDateTime, tOptionId, tPollID } from "expoll-lib/interfaces"
 import {
@@ -84,6 +85,8 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
 
             // sort options by id
             pollOptions = pollOptions.sort((n1, n2) => n1.id - n2.id)
+
+            console.log(pollOptions)
 
             const votes: SimpleUserVotes[] = []
             const constrUsers = await constrUsersPromise
@@ -236,6 +239,7 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             const inviteLink = body.inviteLink as string
             return res.status(await getUserManager().addPoll(user.mail, inviteLink)).end()
         } else if (body.leave != undefined && body.leave) {
+            // leave
             const pollID = body.pollID as string
             if (pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
             return res.status(await getUserManager().removeFromPoll(user.id, pollID)).end()
@@ -247,6 +251,7 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
             if (poll.admin.id != user.id && !user.admin) return res.status(ReturnCode.UNAUTHORIZED).end()
 
+            // delete poll
             if (body.delete != undefined && (body.delete as boolean) == true) {
                 // poll.votes = []
                 // await poll.save()
@@ -289,14 +294,7 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             const maxPerUserVoteCount = (body.maxPerUserVoteCount as number) ?? undefined
             const userRemove = body.userRemove ?? undefined
             const votes = body.votes ?? undefined
-            const options = body.options as {
-                optionID?: tOptionId
-                value?: string
-                dateStart?: Date
-                dateEnd?: Date
-                dateTimeStart?: Date
-                dateTimeEnd?: Date
-            }[]
+            const options = body.options as ComplexOption[]
             // updating simple settings
             if (name != undefined) poll.name = name
             if (description != undefined) poll.description = description
@@ -347,16 +345,16 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             if (options != undefined) {
                 for (const option of options) {
                     // delete option
-                    if (option.optionID != undefined) {
+                    if (option.id != undefined) {
                         switch (poll.type) {
                             case PollType.String:
-                                await PollOptionString.delete({ poll: poll, id: option.optionID })
+                                await PollOptionString.delete({ poll: poll, id: option.id })
                                 break
                             case PollType.Date:
-                                await PollOptionDate.delete({ poll: poll, id: option.optionID })
+                                await PollOptionDate.delete({ poll: poll, id: option.id })
                                 break
                             case PollType.DateTime:
-                                await PollOptionDateTime.delete({ poll: poll, id: option.optionID })
+                                await PollOptionDateTime.delete({ poll: poll, id: option.id })
                                 break
                         }
                         continue

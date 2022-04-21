@@ -6,7 +6,6 @@ import getUserManager from "../UserManagement"
 import { checkAdmin, checkLoggedIn } from "./routeHelper"
 import { AdminPollListResponse, AdminUserListResponse, AdminEditUserRequest } from "expoll-lib/requestInterfaces"
 import { SimplePoll } from "expoll-lib/extraInterfaces"
-import { userInfo } from "os"
 import { User } from "../entities/entities"
 import { isSuperAdmin } from "../helper"
 

@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from "express"
-import { config } from "../expoll_config"
 import { User } from "../entities/entities"
 import { cookieName, getLoginKey, isAdmin } from "../helper"
 import { ReturnCode } from "expoll-lib/interfaces"

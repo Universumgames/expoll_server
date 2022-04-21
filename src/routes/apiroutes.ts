@@ -1,3 +1,4 @@
+import { config } from "./../expoll_config"
 import { ReturnCode } from "expoll-lib/interfaces"
 import express, { NextFunction, Request, Response } from "express"
 import adminRoutes from "./adminRoutes"
@@ -35,7 +36,13 @@ export const metaInfo = async (req: Request, res: Response, next: NextFunction) 
         httpVersion: req.httpVersion,
         secure: req.secure,
         subdomains: req.subdomains,
-        xhr: req.xhr
+        xhr: req.xhr,
+        serverInfo: {
+            server: config.serverVersion,
+            serverPort: config.serverPort,
+            frontendPort: config.frontEndPort,
+            loginLinkBase: config.loginLinkURL
+        }
     }
     return res.status(ReturnCode.OK).json(returnData)
 }

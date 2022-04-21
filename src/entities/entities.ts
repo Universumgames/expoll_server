@@ -73,11 +73,6 @@ export class User extends BaseEntity implements IUser {
         ex.setMonth(ex.getMonth() + 3)
         session.expiration = ex
 
-        if (this.sessions == undefined && (await Session.find({ where: { user: this } })) == []) {
-            this.sessions = []
-        }
-        this.sessions.push(session)
-
         await this.save()
         await session.save()
 

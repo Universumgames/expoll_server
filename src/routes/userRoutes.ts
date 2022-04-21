@@ -1,3 +1,4 @@
+import { SimpleUser } from "./../../../lib/compiled/extraInterfaces.d"
 import { config } from "../expoll_config"
 import axios from "axios"
 import { checkLoggedIn } from "./routeHelper"
@@ -31,7 +32,6 @@ async function verifyCaptcha(token: string): Promise<boolean> {
             }
         })
     ).data
-    console.log(googleReturn)
     return googleReturn.score >= 0.5 ?? false
 }
 
