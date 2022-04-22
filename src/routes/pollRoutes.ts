@@ -86,8 +86,6 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
             // sort options by id
             pollOptions = pollOptions.sort((n1, n2) => n1.id - n2.id)
 
-            console.log(pollOptions)
-
             const votes: SimpleUserVotes[] = []
             const constrUsers = await constrUsersPromise
             const userCount = constrUsers.length

@@ -1,3 +1,4 @@
+import getMailManager, { Mail } from "./../MailManager"
 import { config } from "../expoll_config"
 import axios from "axios"
 import { checkLoggedIn } from "./routeHelper"
@@ -73,6 +74,21 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
             const data: CreateUserResponse = {
                 loginKey: loginKey
             }
+
+            const port = req.app.settings.port || config.frontEndPort
+            getMailManager().sendMail({
+                from: config.mailUser,
+                to: user.mail,
+                subject: "Thank you for registering in expoll",
+                text:
+                    "Thank you for creating an account at over at expoll (" +
+                    req.protocol +
+                    "://" +
+                    config.loginLinkURL +
+                    (port == 80 || port == 443 ? "" : ":" + port) +
+                    ")"
+            } as Mail)
+
             return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(session)).json(data)
         } catch (e) {
             console.error(e)

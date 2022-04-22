@@ -38,10 +38,11 @@ export const metaInfo = async (req: Request, res: Response, next: NextFunction) 
         subdomains: req.subdomains,
         xhr: req.xhr,
         serverInfo: {
-            server: config.serverVersion,
+            version: config.serverVersion,
             serverPort: config.serverPort,
             frontendPort: config.frontEndPort,
-            loginLinkBase: config.loginLinkURL
+            loginLinkBase: config.loginLinkURL,
+            mailSender: config.mailUser
         }
     }
     return res.status(ReturnCode.OK).json(returnData)

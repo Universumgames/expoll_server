@@ -219,8 +219,6 @@ class UserManager {
         const poll = await getPollManager().getPoll(pollID)
         if (poll == undefined) return ReturnCode.INVALID_PARAMS
 
-        console.log(user)
-
         if (user.polls == undefined) return ReturnCode.BAD_REQUEST
         user.polls = user.polls.filter((poll) => poll.id != pollID)
         await user.save()
@@ -263,11 +261,11 @@ class UserManager {
         getMailManager().sendMail({
             from: config.mailUser,
             to: user.mail,
-            subject: "Loginkey for loggin into expoll",
+            subject: "Login to expoll",
             text:
-                "Here is you login key for logging in on the expoll website: " +
+                "Here is you login key for logging in on the expoll website: \n\t" +
                 key.loginKey +
-                "\n alternatively you can click this link " +
+                "\n alternatively you can click this link \n" +
                 urlBuilder(req, key.loginKey)
         } as Mail)
         return ReturnCode.OK
