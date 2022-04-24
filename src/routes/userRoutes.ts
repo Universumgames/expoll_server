@@ -2,7 +2,7 @@ import getMailManager, { Mail } from "./../MailManager"
 import { config } from "../expoll_config"
 import axios from "axios"
 import { checkLoggedIn } from "./routeHelper"
-import { cookieName, getLoginKey } from "./../helper"
+import { addServerTimingsMetrics, cookieName, getLoginKey } from "./../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
 import { Session, User } from "./../entities/entities"
 import express, { CookieOptions, NextFunction, Request, Response } from "express"
@@ -37,6 +37,7 @@ async function verifyCaptcha(token: string): Promise<boolean> {
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const t1 = new Date()
         // check valid request body
         if (req.body == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const body = req.body as CreateUserRequest
@@ -51,7 +52,11 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
         if (body.captcha == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const captchaToken = body.captcha
 
+        const t2 = new Date()
+
         if (!(await verifyCaptcha(captchaToken))) return res.status(ReturnCode.CAPTCHA_INVALID).end()
+
+        const t3 = new Date()
 
         // check user not exist
         if (
@@ -66,8 +71,10 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
         user.lastName = lastName
         user.username = username
         try {
+            const t4 = new Date()
             await user.save()
 
+            const t5 = new Date()
             const session = await user.generateSession()
             const loginKey = session.loginKey
 
@@ -89,7 +96,27 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
                     ")"
             } as Mail)
 
-            return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(session)).json(data)
+            const t6 = new Date()
+
+            // @ts-ignore
+            let metrics = req.metrics
+            metrics = addServerTimingsMetrics(
+                metrics,
+                "paramsCheck",
+                "Check Required Parameters for user creation",
+                t2.getTime() - t1.getTime()
+            )
+            metrics = addServerTimingsMetrics(metrics, "captcha", "Verify captcha", t3.getTime() - t2.getTime())
+            // TODO add metrics
+
+            return (
+                res
+                    // @ts-ignore
+                    .set("Server-Timing", metrics)
+                    .status(ReturnCode.OK)
+                    .cookie(cookieName, data, cookieConfig(session))
+                    .json(data)
+            )
         } catch (e) {
             console.error(e)
             return res.status(500).end()
@@ -113,14 +140,35 @@ const getUserData = async (req: Request, res: Response, next: NextFunction) => {
         if (user == undefined)
         return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized */
 
+        const t1 = new Date()
         const easyUser = user
-        easyUser.admin = await getUserManager().userIsAdminOrSuperAdmin(user.id)
+        const cookieSessionReq = getUserManager().getSession(loginKey)
+
+        easyUser.admin = getUserManager().userIsAdminOrSuperAdminSync(user)
 
         const data = {
             loginKey: loginKey
         }
-        const session = await getUserManager().getSession(loginKey)
-        return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(session!)).json(easyUser)
+        const session = await cookieSessionReq
+        const t2 = new Date()
+
+        return (
+            res
+                // @ts-ignore
+                .set(
+                    "Server-Timing",
+                    addServerTimingsMetrics(
+                        // @ts-ignore
+                        req.metrics,
+                        "cookieSet",
+                        "Transform userdata and set cookie",
+                        t2.getTime() - t1.getTime()
+                    )
+                )
+                .status(ReturnCode.OK)
+                .cookie(cookieName, data, cookieConfig(session!))
+                .json(easyUser)
+        )
     } catch (e) {
         console.error(e)
         res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()

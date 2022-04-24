@@ -41,3 +41,14 @@ export function isAdmin(user: IUser): boolean {
 export function isSuperAdmin(user: IUser): boolean {
     return config.superAdminMail == user.mail
 }
+
+/**
+ * @param {String} currentMetrics current metrics data
+ * @param {String} key key of metric
+ * @param {String} name name of metric
+ * @param {String} duration duration of measured component
+ * @return {String} Server_timings header string
+ */
+export function addServerTimingsMetrics(currentMetrics: string, key: string, name: string, duration: number): string {
+    return currentMetrics + key + ';desc="' + name + '";dur=' + duration + ","
+}

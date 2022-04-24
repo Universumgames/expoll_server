@@ -1,14 +1,17 @@
 import { NextFunction, Request, Response } from "express"
 import { User } from "../entities/entities"
-import { cookieName, getLoginKey, isAdmin } from "../helper"
+import { addServerTimingsMetrics, cookieName, getLoginKey, isAdmin } from "../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
 import getUserManager from "../UserManagement"
 
 export const checkLoggedIn = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const t1 = new Date()
         const loginKey = getLoginKey(req)
+        const t2 = new Date()
         if (loginKey == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const user = await getUserManager().getUser({ loginKey: loginKey })
+        const t3 = new Date()
         if (user == undefined) {
             return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized
         }
@@ -20,6 +23,16 @@ export const checkLoggedIn = async (req: Request, res: Response, next: NextFunct
         req.user = user
         // @ts-ignore
         req.loginKey = loginKey
+
+        let metrics = addServerTimingsMetrics("", "loginKey", "Check login key", t2.getTime() - t1.getTime())
+        metrics = addServerTimingsMetrics(
+            metrics,
+            "userData",
+            "Get user data from Database",
+            t3.getTime() - t2.getTime()
+        )
+        // @ts-ignore
+        req.metrics = metrics
 
         next()
     } catch (e) {

@@ -146,6 +146,18 @@ class UserManager {
     }
 
     /**
+     * Check if an user is system admin
+     * @param {User} user the user
+     * @return {boolean} return true if user is system admin false otherwise
+     */
+    userIsAdminOrSuperAdminSync(user?: User): boolean {
+        if (user == undefined) return false
+        if (user.admin) return true
+        if (config.superAdminMail == user.mail) return true
+        return false
+    }
+
+    /**
      * Check if user with mail address exists
      * @param {{string, string}} option the mail address of the user to search
      * @return {Promise<Boolean>} true when User exist, false otherwise
