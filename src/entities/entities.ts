@@ -22,7 +22,7 @@ import {
     OneToMany,
     JoinTable
 } from "typeorm"
-import { tOptionId, tPollID, tUserID } from "expoll-lib/interfaces"
+import { tOptionId, tPollID, tUserID, VoteValue } from "expoll-lib/interfaces"
 
 @Entity()
 /**
@@ -157,6 +157,9 @@ export class Poll extends BaseEntity implements IPoll {
      * use a number <= 0 to set it to infinity
      */
     maxPerUserVoteCount: number = -1
+
+    @Column()
+    allowsMaybe: boolean = true
 }
 
 /**
@@ -221,5 +224,5 @@ export class Vote extends BaseEntity {
     optionID: tOptionId
 
     @Column()
-    votedFor: boolean = false
+    votedFor: VoteValue = VoteValue.no
 }

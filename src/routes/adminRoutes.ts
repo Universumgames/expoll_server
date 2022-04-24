@@ -1,3 +1,4 @@
+import { UserInfo } from "expoll-lib/adminInterfaces"
 import express, { NextFunction, Request, Response } from "express"
 import { config } from "../expoll_config"
 import { ReturnCode } from "expoll-lib/interfaces"
@@ -25,7 +26,7 @@ const getUsers = async (req: Request, res: Response, next: NextFunction) => {
 
         const users = await getUserManager().getUsers()
 
-        const cleanedUsers: any[] = []
+        const cleanedUsers: UserInfo[] = []
 
         for (const user of users) {
             cleanedUsers.push({
@@ -34,7 +35,9 @@ const getUsers = async (req: Request, res: Response, next: NextFunction) => {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 mail: user.mail,
-                admin: user.admin || user.mail == config.superAdminMail
+                admin: user.admin || user.mail == config.superAdminMail,
+                superAdmin: user.mail == config.superAdminMail,
+                active: user.active
             })
         }
 

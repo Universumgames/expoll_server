@@ -98,7 +98,8 @@ describe("API test", function () {
             maxPerUserVoteCount: -1,
             description: "testdescription",
             type: PollType.String,
-            options: []
+            options: [],
+            allowsMaybe: true
         }
         let originPollID: tPollID = ""
 

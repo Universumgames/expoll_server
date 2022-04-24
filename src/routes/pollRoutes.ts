@@ -13,7 +13,7 @@ import {
 import express, { NextFunction, Request, Response } from "express"
 import getPollManager from "../PollManagement"
 import getUserManager from "../UserManagement"
-import { PollType } from "expoll-lib/interfaces"
+import { PollType, VoteValue } from "expoll-lib/interfaces"
 import { checkLoggedIn } from "./routeHelper"
 import { SimplePoll, SimpleUserVotes } from "expoll-lib/extraInterfaces"
 import { DetailedPollResponse, EditPollRequest, PollOverview } from "expoll-lib/requestInterfaces"
@@ -96,7 +96,7 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
             for (const user of constrUsers) {
                 const fullVotes = await getPollManager().getVotes(user.id, poll.id)
                 // simplify vote structure
-                const vs: { optionID: tOptionId; votedFor?: boolean }[] = []
+                const vs: { optionID: tOptionId; votedFor?: VoteValue }[] = []
                 for (const v of fullVotes) {
                     vs.push({
                         optionID: v.optionID,
@@ -104,7 +104,7 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                     })
                 }
                 // order votes by options array and fill not voted with blanks
-                const vsFin: { optionID: tOptionId; votedFor?: boolean }[] = Array(pollOptions.length)
+                const vsFin: { optionID: tOptionId; votedFor?: VoteValue }[] = Array(pollOptions.length)
                 for (let i = 0; i < pollOptions.length; i++) {
                     const optionID = pollOptions[i].id
                     vsFin[i] = vs.find((v) => v.optionID == optionID) ?? { optionID: optionID }
@@ -136,7 +136,8 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                 created: poll.created,
                 type: poll.type,
                 options: pollOptions,
-                userVotes: votes
+                userVotes: votes,
+                allowsMaybe: poll.allowsMaybe
             }
             return res.status(ReturnCode.OK).json(returnPoll)
         }
@@ -164,6 +165,8 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
         const description = body.description as string
         if (body.options == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const options = body.options as any[]
+        if (body.allowsMaybe == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
+        const allowsMaybe = body.allowsMaybe as boolean
 
         const pollCount = await getPollManager().getPollCountCreatedByUser(user.id)
         if (pollCount >= config.maxPollCountPerUser && !user.admin) return res.status(ReturnCode.TOO_MANY_POLLS)
@@ -175,6 +178,7 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
         poll.type = type
         poll.admin = user
         poll.maxPerUserVoteCount = maxPerUserVoteCount
+        poll.allowsMaybe = allowsMaybe
         poll.votes = []
 
         const checkedOptions: PollOption[] = []
@@ -290,6 +294,7 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             const name = (body.name as string) ?? undefined
             const description = (body.description as string) ?? undefined
             const maxPerUserVoteCount = (body.maxPerUserVoteCount as number) ?? undefined
+            const allowsMaybe = (body.allowsMaybe as boolean) ?? undefined
             const userRemove = body.userRemove ?? undefined
             const votes = body.votes ?? undefined
             const options = body.options as ComplexOption[]
@@ -299,6 +304,7 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             // constrain maxperuservotecount to -1
             if (maxPerUserVoteCount != undefined)
                 poll.maxPerUserVoteCount = maxPerUserVoteCount <= -1 ? -1 : maxPerUserVoteCount
+            if (allowsMaybe != undefined) poll.allowsMaybe = allowsMaybe
 
             if (userRemove != undefined) {
                 // remove user from poll

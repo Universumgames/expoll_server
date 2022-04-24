@@ -1,6 +1,6 @@
 import { checkLoggedIn } from "./routeHelper"
 import { User, Vote } from "./../entities/entities"
-import { ReturnCode, tOptionId, tUserID } from "expoll-lib/interfaces"
+import { ReturnCode, tOptionId, tUserID, VoteValue } from "expoll-lib/interfaces"
 import express, { NextFunction, Request, Response } from "express"
 import getPollManager from "../PollManagement"
 import getUserManager from "../UserManagement"
@@ -30,7 +30,7 @@ const createVote = async (req: Request, res: Response, next: NextFunction) => {
         if (body.optionID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const optionID = body.optionID as tOptionId
         if (body.votedFor == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
-        const votedFor = body.votedFor as boolean
+        const votedFor = body.votedFor as VoteValue
 
         const poll = await getPollManager().getPoll(pollID)
         if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
@@ -56,7 +56,8 @@ const createVote = async (req: Request, res: Response, next: NextFunction) => {
             vote.user = userIDToUse == user.id ? user : u2
             vote.optionID = optionID
             vote.poll = poll
-            vote.votedFor = votedFor
+            // check that not maybe can be written to table if it's not allowed
+            vote.votedFor = !poll.allowsMaybe && votedFor == VoteValue.maybe ? VoteValue.no : votedFor
 
             await vote.save()
             poll.updated = new Date()
