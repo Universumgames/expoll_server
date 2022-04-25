@@ -7,7 +7,7 @@
         "build": "npm run compile; npm run lint",
         "compile": ": rm -rf compiled/ && \n npx tsc --build",
         "serve": "node compiled/index.js",
-        "dev": "npm run build; export NODE_ENV=development; npm run serve",
+        "dev": "npm run build; export NODE_ENV=development; npm run serve --trace-warnings",
         "lint": "npx eslint ./src --ext .ts",
         "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'src/tests/**/*.ts'"
     },

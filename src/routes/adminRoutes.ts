@@ -7,8 +7,9 @@ import getUserManager from "../UserManagement"
 import { checkAdmin, checkLoggedIn } from "./routeHelper"
 import { AdminPollListResponse, AdminUserListResponse, AdminEditUserRequest } from "expoll-lib/requestInterfaces"
 import { SimplePoll } from "expoll-lib/extraInterfaces"
-import { User } from "../entities/entities"
+import { Session, User } from "../entities/entities"
 import { isSuperAdmin } from "../helper"
+import { visitEachChild } from "typescript"
 
 // eslint-disable-next-line new-cap
 const authorizedAdminRoutes = express.Router()
@@ -120,9 +121,49 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
+const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const userID = req.body.userID
+
+        const user = await getUserManager().getUser({ userID: userID })
+
+        if (user == undefined) {
+            res.status(ReturnCode.INVALID_PARAMS).end()
+            return
+        }
+
+        user.lastName = "Deleted User " + user.id
+        user.firstName = ""
+        user.mail = user.id.toString() + "@deleteduser"
+        user.username = "Deleted User " + user.id
+        user.sessions?.forEach(async (session) => {
+            await session.remove()
+        })
+
+        await user.save()
+
+        if (user.votes.length == 0 || !user.active) {
+            user.votes?.forEach(async (vote) => {
+                await vote.remove()
+            })
+            await user.save()
+            await User.delete({ id: user.id })
+        } else {
+            user.active = false
+            await user.save()
+        }
+
+        res.status(ReturnCode.OK).end()
+    } catch (e) {
+        console.error(e)
+        res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
 authorizedAdminRoutes.get("/users", getUsers)
 authorizedAdminRoutes.put("/users", editUser)
 authorizedAdminRoutes.get("/polls", getPolls)
+authorizedAdminRoutes.delete("/user", deleteUser)
 
 // eslint-disable-next-line new-cap
 const adminRoutes = express.Router()

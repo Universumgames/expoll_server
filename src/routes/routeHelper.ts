@@ -42,6 +42,7 @@ export const checkLoggedIn = async (req: Request, res: Response, next: NextFunct
 
 export const checkAdmin = async (req: Request, res: Response, next: NextFunction) => {
     try {
+        const t1 = new Date()
         // @ts-ignore
         let user: User | undefined = req.user as User
         if (user == undefined) {
@@ -53,6 +54,16 @@ export const checkAdmin = async (req: Request, res: Response, next: NextFunction
         }
         // check for "normal" admin or superadmin
         if (user == undefined || !user.admin) return res.status(ReturnCode.INVALID_LOGIN_KEY).end()
+
+        const t2 = new Date()
+        // @ts-ignore
+        req.metrics = addServerTimingsMetrics(
+            // @ts-ignore
+            req.metrics != undefined ? req.metrics : "",
+            "checkAdmin",
+            "Check if user is an Admin",
+            t2.getTime() - t1.getTime()
+        )
 
         next()
     } catch (e) {

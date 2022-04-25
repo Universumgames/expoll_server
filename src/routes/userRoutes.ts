@@ -107,7 +107,14 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
                 t2.getTime() - t1.getTime()
             )
             metrics = addServerTimingsMetrics(metrics, "captcha", "Verify captcha", t3.getTime() - t2.getTime())
-            // TODO add metrics
+            metrics = addServerTimingsMetrics(
+                metrics,
+                "checkExisting",
+                "Check if Mail and username is unique",
+                t4.getTime() - t3.getTime()
+            )
+            metrics = addServerTimingsMetrics(metrics, "saveUser", "Create User in DB", t5.getTime() - t4.getTime())
+            metrics = addServerTimingsMetrics(metrics, "mailSend", "Send mail to user", t6.getTime() - t5.getTime())
 
             return (
                 res
@@ -211,10 +218,28 @@ const logout = async (req: Request, res: Response, next: NextFunction) => {
     return res.status(ReturnCode.OK).cookie(cookieName, "", { httpOnly: true, sameSite: "strict" }).end()
 }
 
+const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // @ts-ignore
+        const user = req.user as User
+
+        user.lastName = "Deleted User"
+        user.firstName = ""
+        user.mail = user.id.toString() + "@deleteduser"
+        user.username = "Deleted User " + user.id
+        user.active = false
+
+        await user.save()
+    } catch (e) {
+        console.error(e)
+        res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
 userRoutes.post("/", createUser)
 userRoutes.get("/", checkLoggedIn, getUserData)
 userRoutes.post("/login", login)
 userRoutes.post("/logout", logout)
-// userRoutes.all("/metaInfo", metaInfo)
+// userRoutes.delete("/", checkLoggedIn, deleteUser)
 
 export default userRoutes
