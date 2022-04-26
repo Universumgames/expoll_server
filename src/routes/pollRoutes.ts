@@ -1,12 +1,13 @@
-import { ComplexOption } from "expoll-lib/extraInterfaces.d"
+import { ComplexOption, SimpleUserNote } from "expoll-lib/extraInterfaces"
 import { config } from "../expoll_config"
-import { ReturnCode, tDate, tDateTime, tOptionId, tPollID } from "expoll-lib/interfaces"
+import { ReturnCode, tDate, tDateTime, tOptionId, tPollID, tUserID } from "expoll-lib/interfaces"
 import {
     Poll,
     PollOption,
     PollOptionDate,
     PollOptionDateTime,
     PollOptionString,
+    PollUserNote,
     User,
     Vote
 } from "./../entities/entities"
@@ -89,6 +90,8 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
             const votes: SimpleUserVotes[] = []
             const constrUsers = await constrUsersPromise
             const userCount = constrUsers.length
+            const notes = await getPollManager().getNotes(pollID)
+            const easyNotes: SimpleUserNote[] = []
 
             // add current user if not constributed yet
             if (constrUsers.find((u) => u.id == user.id) == undefined) constrUsers.push(user)
@@ -118,6 +121,19 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                     },
                     votes: vsFin
                 })
+
+                const n = notes.find((note) => note.user.id == user.id)
+                if (n != undefined) {
+                    easyNotes.push({
+                        user: {
+                            id: user.id,
+                            username: user.username,
+                            firstName: user.firstName,
+                            lastName: user.lastName
+                        },
+                        note: n.note
+                    })
+                }
             }
 
             const returnPoll: DetailedPollResponse = {
@@ -137,8 +153,10 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                 type: poll.type,
                 options: pollOptions,
                 userVotes: votes,
-                allowsMaybe: poll.allowsMaybe
+                allowsMaybe: poll.allowsMaybe,
+                userNotes: easyNotes
             }
+
             return res.status(ReturnCode.OK).json(returnPoll)
         }
     } catch (e) {
@@ -298,6 +316,7 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             const userRemove = body.userRemove ?? undefined
             const votes = body.votes ?? undefined
             const options = body.options as ComplexOption[]
+            const notes = (body.notes as { userID: tUserID; note: string }[]) ?? []
             // updating simple settings
             if (name != undefined) poll.name = name
             if (description != undefined) poll.description = description
@@ -405,6 +424,27 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             }
 
             await poll.save()
+
+            if (notes != undefined) {
+                for (const note of notes) {
+                    const user = await getUserManager().getUser({ userID: note.userID })
+                    if (user == undefined) continue
+                    const oldNote = await PollUserNote.findOne({
+                        where: { user: user, poll: poll }
+                    })
+                    if (oldNote != undefined) {
+                        oldNote.note = note.note
+                        await oldNote.save()
+                    } else {
+                        const n = new PollUserNote()
+                        n.note = note.note
+                        n.user = user
+                        n.poll = poll
+
+                        await n.save()
+                    }
+                }
+            }
 
             return res.status(ReturnCode.OK).end()
         }

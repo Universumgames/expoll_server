@@ -5,7 +5,8 @@ import {
     IPollOptionDateTime,
     IUser,
     ISession,
-    PollType
+    PollType,
+    IPollUserNote
 } from "expoll-lib/interfaces"
 /* eslint-disable new-cap */
 import { v4 as uuidv4 } from "uuid"
@@ -55,6 +56,10 @@ export class User extends BaseEntity implements IUser {
     @OneToMany((type) => Session, (session) => session.user)
     @JoinTable()
     sessions: Session[]
+
+    @OneToMany((type) => PollUserNote, (note) => note.user)
+    @JoinTable()
+    notes: PollUserNote[]
 
     @Column({ default: true })
     active: boolean
@@ -151,6 +156,10 @@ export class Poll extends BaseEntity implements IPoll {
     @JoinTable()
     votes: Vote[]
 
+    @OneToMany((type) => PollUserNote, (note) => note.poll, { onDelete: "CASCADE" })
+    @JoinTable()
+    notes: PollUserNote[]
+
     @Column()
     /**
      * sets the number votes each user can send for this poll
@@ -225,4 +234,22 @@ export class Vote extends BaseEntity {
 
     @Column()
     votedFor: VoteValue = VoteValue.no
+}
+
+@Entity()
+/**
+ * Store Notes for a user
+ */
+export class PollUserNote extends BaseEntity implements IPollUserNote {
+    @PrimaryGeneratedColumn()
+    id: number
+
+    @ManyToOne((type) => User, (user) => user.notes, { nullable: false })
+    user: User
+
+    @ManyToOne((type) => Poll, (poll) => poll.notes, { nullable: false, onDelete: "CASCADE" })
+    poll: Poll
+
+    @Column()
+    note: string
 }

@@ -1,5 +1,13 @@
 import Database from "./database"
-import { Poll, PollOptionDate, PollOptionDateTime, PollOptionString, User, Vote } from "./entities/entities"
+import {
+    Poll,
+    PollOptionDate,
+    PollOptionDateTime,
+    PollOptionString,
+    PollUserNote,
+    User,
+    Vote
+} from "./entities/entities"
 import { PollType, tDate, tDateTime, tOptionId, tPollID, tUserID } from "expoll-lib/interfaces"
 import getUserManager from "./UserManagement"
 
@@ -31,7 +39,10 @@ class PollManager {
      * @return {Poll | undefined} returns corresponding poll or undefined if not found
      */
     async getPoll(pollID: tPollID): Promise<Poll | undefined> {
-        return Poll.findOne({ where: { id: pollID }, relations: ["votes", "admin", "votes.user", "votes.poll"] })
+        return Poll.findOne({
+            where: { id: pollID },
+            relations: ["votes", "admin", "votes.user", "votes.poll", "notes", "notes.user"]
+        })
     }
 
     /**
@@ -257,6 +268,18 @@ class PollManager {
         const poll = await this.getPoll(pollID)
         if (poll == undefined) return false
         return poll.admin.id == userID
+    }
+
+    /**
+     * get notes
+     * @param {tPollID} pollID the poll id
+     * @return {number} returns the number of votes the user already has on that poll
+     */
+    async getNotes(pollID: tPollID): Promise<PollUserNote[]> {
+        const poll = await this.getPoll(pollID)
+        if (poll == undefined) return []
+        if (poll.notes == undefined) return []
+        return poll.notes
     }
 }
 

@@ -53,7 +53,7 @@ export const checkAdmin = async (req: Request, res: Response, next: NextFunction
             user.admin = isAdmin(user)
         }
         // check for "normal" admin or superadmin
-        if (user == undefined || !user.admin) return res.status(ReturnCode.INVALID_LOGIN_KEY).end()
+        if (user == undefined || !user.admin) return res.status(ReturnCode.NOT_ACCEPTABLE).end()
 
         const t2 = new Date()
         // @ts-ignore
