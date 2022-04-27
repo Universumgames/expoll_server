@@ -8,8 +8,9 @@ services:
         ports:
             - "3306:3306"
         environment:
-            MYSQL_ROOT_PASSWORD: password
             MYSQL_DATABASE: expoll
+        env_file:
+            - db.env
         hostname: db
         volumes:
             - mysqlDB:/var/lib/mysql

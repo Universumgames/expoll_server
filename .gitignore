@@ -6,3 +6,4 @@ config/dev*
 config/prod*
 **/keys*
 package-lock.json
+docker/db.env
