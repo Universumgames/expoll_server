@@ -64,8 +64,8 @@ const editUser = async (req: Request, res: Response, next: NextFunction) => {
         if (editUser == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
 
         if (editReq.delete != undefined && editReq.delete) {
-            // TODO implement deleting user
-            return res.status(ReturnCode.NOT_IMPLEMENTED).end()
+            const deleteRes = await getUserManager().deleteUser(editUser.id)
+            return res.status(deleteRes).end()
         }
 
         if (editReq.firstName != undefined) editUser.firstName = editReq.firstName
@@ -125,35 +125,9 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const userID = req.body.userID
 
-        const user = await getUserManager().getUser({ userID: userID })
+        const deleteRes = await getUserManager().deleteUser(userID)
 
-        if (user == undefined) {
-            res.status(ReturnCode.INVALID_PARAMS).end()
-            return
-        }
-
-        user.lastName = "Deleted User " + user.id
-        user.firstName = ""
-        user.mail = user.id.toString() + "@deleteduser"
-        user.username = "Deleted User " + user.id
-        user.sessions?.forEach(async (session) => {
-            await session.remove()
-        })
-
-        await user.save()
-
-        if (user.votes.length == 0 || !user.active) {
-            user.votes?.forEach(async (vote) => {
-                await vote.remove()
-            })
-            await user.save()
-            await User.delete({ id: user.id })
-        } else {
-            user.active = false
-            await user.save()
-        }
-
-        res.status(ReturnCode.OK).end()
+        res.status(deleteRes).end()
     } catch (e) {
         console.error(e)
         res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
