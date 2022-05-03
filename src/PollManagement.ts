@@ -1,3 +1,4 @@
+import { SimplePoll } from "expoll-lib/extraInterfaces"
 import Database from "./database"
 import {
     Poll,
@@ -280,6 +281,33 @@ class PollManager {
         if (poll == undefined) return []
         if (poll.notes == undefined) return []
         return poll.notes
+    }
+
+    /**
+     *
+     * @param {tPollID} pollID the id of the poll you want to get an overview of
+     * @return {SimplePoll} polloverview
+     */
+    async getSimplePoll(pollID: tPollID): Promise<SimplePoll | undefined> {
+        const userCountReq = getPollManager().getContributedUsers(pollID)
+        const poll = await getPollManager().getPoll(pollID)
+        if (poll == undefined) return undefined
+
+        // simplify and constrain "access" to polls
+        return {
+            admin: {
+                firstName: poll.admin.firstName,
+                lastName: poll.admin.lastName,
+                username: poll.admin.username,
+                id: poll.admin.id
+            },
+            name: poll.name,
+            description: poll.description,
+            userCount: (await userCountReq).length,
+            lastUpdated: poll.updated,
+            type: poll.type as number,
+            pollID: poll.id
+        } as SimplePoll
     }
 }
 

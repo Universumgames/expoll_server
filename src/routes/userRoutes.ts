@@ -141,12 +141,6 @@ const getUserData = async (req: Request, res: Response, next: NextFunction) => {
         // @ts-ignore
         const loginKey = req.loginKey as string
 
-        /* const loginKey = getLoginKey(req)
-        if (loginKey == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
-        const user = await getUserManager().getUser({ loginKey: loginKey })
-        if (user == undefined)
-        return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized */
-
         const t1 = new Date()
         const easyUser = user
         const cookieSessionReq = getUserManager().getSession(loginKey)

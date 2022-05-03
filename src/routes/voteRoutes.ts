@@ -21,9 +21,6 @@ const createVote = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // @ts-ignore
         const user = req.user as User
-        /* const loginKey = getLoginKey(req)
-        const user = await getUserManager().getUser({ loginKey: loginKey })
-        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized */
         const body = req.body as VoteRequest
         if (body.pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const pollID = body.pollID as string

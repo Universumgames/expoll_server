@@ -282,6 +282,42 @@ class UserManager {
         } as Mail)
         return ReturnCode.OK
     }
+
+    /**
+     * Delete user, on first deletion username and mail is changed, votes stay online,
+     * on second delete, all user activity is deleted
+     * @param {string} userID user to delete
+     * @return {ReturnCode} the returncode of the operation
+     */
+    async deleteUser(userID: tUserID): Promise<ReturnCode> {
+        const user = await this.getUser({ userID: userID })
+
+        if (user == undefined) {
+            return ReturnCode.INVALID_PARAMS
+        }
+
+        user.lastName = "Deleted User " + user.id
+        user.firstName = ""
+        user.mail = user.id.toString() + "@deleteduser"
+        user.username = "Deleted User " + user.id
+        user.sessions?.forEach(async (session) => {
+            await session.remove()
+        })
+
+        await user.save()
+
+        if (user.votes.length == 0 || !user.active) {
+            user.votes?.forEach(async (vote) => {
+                await vote.remove()
+            })
+            await user.save()
+            await User.delete({ id: user.id })
+        } else {
+            user.active = false
+            await user.save()
+        }
+        return ReturnCode.OK
+    }
 }
 
 /**

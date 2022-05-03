@@ -74,9 +74,12 @@ const editUser = async (req: Request, res: Response, next: NextFunction) => {
 
         if (editReq.mail != undefined) editUser.mail = editReq.mail
 
+        // promote to admin, demote only if current user is super admin
         if (editReq.admin != undefined) {
-            // promote to admin, demote only if current user is super admin
-            editUser.admin = isSuperAdmin(admin) || editReq.admin ? editReq.admin : editUser.admin
+            if (!isSuperAdmin(admin) && !editReq.admin) {
+                return res.status(ReturnCode.UNAUTHORIZED).end()
+            }
+            editUser.admin = editReq.admin || isSuperAdmin(editUser)
         }
 
         await editUser.save()

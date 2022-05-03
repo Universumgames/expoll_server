@@ -8,21 +8,22 @@ export const checkLoggedIn = async (req: Request, res: Response, next: NextFunct
     try {
         const t1 = new Date()
         const loginKey = getLoginKey(req)
-        const t2 = new Date()
         if (loginKey == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
-        const user = await getUserManager().getUser({ loginKey: loginKey })
+        const t2 = new Date()
+        // @ts-ignore
+        req.loginKey = loginKey
+        const userReq = getUserManager().getUser({ loginKey: loginKey })
+        const user = await userReq
         const t3 = new Date()
         if (user == undefined) {
             return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized
         }
 
-        user.admin = await getUserManager().userIsAdminOrSuperAdmin(user.id)
+        user.admin = getUserManager().userIsAdminOrSuperAdminSync(user)
 
         // setting user and loginkey for methods down the line
         // @ts-ignore
         req.user = user
-        // @ts-ignore
-        req.loginKey = loginKey
 
         let metrics = addServerTimingsMetrics("", "loginKey", "Check login key", t2.getTime() - t1.getTime())
         metrics = addServerTimingsMetrics(

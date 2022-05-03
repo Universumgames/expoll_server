@@ -1,3 +1,4 @@
+import { addServerTimingsMetrics } from "../helper"
 import { ComplexOption, SimpleUserNote } from "expoll-lib/extraInterfaces"
 import { config } from "../expoll_config"
 import { ReturnCode, tDate, tDateTime, tOptionId, tPollID, tUserID } from "expoll-lib/interfaces"
@@ -32,42 +33,58 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // @ts-ignore
         const user = req.user as User
-        /* const loginKey = getLoginKey(req)
-        const user = await getUserManager().getUser({ loginKey: loginKey })
-        if (user == undefined) return res.status(ReturnCode.UNAUTHORIZED).end() // unauthorized */
+
+        // @ts-ignore
+        let metrics = req.metrics
+
         const body = req.body
         if (body.pollID == undefined && req.query.pollID == undefined) {
             // return overview for all polls the user has access to
             let polls: SimplePoll[] = []
             if (user.polls != undefined) {
+                const t1 = new Date()
+                const pollQueue: Promise<SimplePoll | undefined>[] = []
                 for (const poll of user.polls) {
-                    const userCount = (await getPollManager().getContributedUsers(poll.id)).length
-                    // simplify and constrain "access" to polls
-                    const pollAdd: SimplePoll = {
-                        admin: {
-                            firstName: poll.admin.firstName,
-                            lastName: poll.admin.lastName,
-                            username: poll.admin.username,
-                            id: poll.admin.id
-                        },
-                        name: poll.name,
-                        description: poll.description,
-                        userCount: userCount,
-                        lastUpdated: poll.updated,
-                        type: poll.type as number,
-                        pollID: poll.id
-                    }
-                    polls.push(pollAdd)
+                    pollQueue.push(getPollManager().getSimplePoll(poll.id))
                 }
+                for (const pollWait of pollQueue) {
+                    const poll = await pollWait
+                    if (poll != undefined) {
+                        polls.push(poll)
+                    }
+                }
+                const t2 = new Date()
+                metrics = addServerTimingsMetrics(
+                    metrics,
+                    "pollSummary",
+                    "Collect poll summaries",
+                    t2.getTime() - t1.getTime()
+                )
             }
+            const t3 = new Date()
             // sort by updated
             polls = polls.sort((ele2, ele1) => ele1.lastUpdated.getTime() - ele2.lastUpdated.getTime())
-            return res.status(ReturnCode.OK).json({ polls: polls } as PollOverview)
+            const t4 = new Date()
+            return res
+                .set(
+                    "Server-Timing",
+                    addServerTimingsMetrics(
+                        metrics,
+                        "sortSummaries",
+                        "Sort polls by last updated",
+                        t4.getTime() - t3.getTime()
+                    )
+                )
+                .status(ReturnCode.OK)
+                .json({ polls: polls } as PollOverview)
         } else {
+            const t1 = new Date()
             const pollID = (body.pollID! as tPollID) ?? (req.query.pollID as tPollID)
             if (pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
             const poll = await Poll.findOne({ where: { id: pollID }, relations: ["admin"] })
             if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
+
+            const t2 = new Date()
 
             const constrUsersPromise = getPollManager().getContributedUsers(poll.id)
 
@@ -87,11 +104,15 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
             // sort options by id
             pollOptions = pollOptions.sort((n1, n2) => n1.id - n2.id)
 
+            const t3 = new Date()
+
             const votes: SimpleUserVotes[] = []
             const constrUsers = await constrUsersPromise
             const userCount = constrUsers.length
             const notes = await getPollManager().getNotes(pollID)
             const easyNotes: SimpleUserNote[] = []
+
+            const t4 = new Date()
 
             // add current user if not constributed yet
             if (constrUsers.find((u) => u.id == user.id) == undefined) constrUsers.push(user)
@@ -136,6 +157,8 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                 }
             }
 
+            const t5 = new Date()
+
             const returnPoll: DetailedPollResponse = {
                 pollID: pollID,
                 admin: {
@@ -157,7 +180,22 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                 userNotes: easyNotes
             }
 
-            return res.status(ReturnCode.OK).json(returnPoll)
+            metrics = addServerTimingsMetrics(metrics, "getPoll", "Retrieve Poll Details", t2.getTime() - t1.getTime())
+            metrics = addServerTimingsMetrics(metrics, "optionsList", "Get Poll options", t3.getTime() - t2.getTime())
+            metrics = addServerTimingsMetrics(
+                metrics,
+                "various",
+                "Get contributed Users and Notes",
+                t4.getTime() - t3.getTime()
+            )
+            metrics = addServerTimingsMetrics(
+                metrics,
+                "votes",
+                "Collect votes and reorganize",
+                t5.getTime() - t4.getTime()
+            )
+
+            return res.set("Server-Timing", metrics).status(ReturnCode.OK).json(returnPoll)
         }
     } catch (e) {
         console.error(e)
@@ -169,9 +207,7 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // @ts-ignore
         const user = req.user as User
-        /* const loginKey = getLoginKey(req)
-        const user = await getUserManager().getUser({ loginKey: loginKey })
-        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized */
+
         const body = req.body
         if (body.name == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const name = body.name as string
@@ -249,9 +285,7 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // @ts-ignore
         const user = req.user as User
-        /* const loginKey = getLoginKey(req)
-        const user = await getUserManager().getUser({ loginKey: loginKey })
-        if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end() // unauthorized */
+
         const body = req.body as EditPollRequest
 
         // invite

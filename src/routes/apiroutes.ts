@@ -48,7 +48,19 @@ export const metaInfo = async (req: Request, res: Response, next: NextFunction) 
     return res.status(ReturnCode.OK).json(returnData)
 }
 
+export const serverInfo = async (req: Request, res: Response, next: NextFunction) => {
+    const returnData = {
+        version: config.serverVersion,
+        serverPort: config.serverPort,
+        frontendPort: config.frontEndPort,
+        loginLinkBase: config.loginLinkURL,
+        mailSender: config.mailUser
+    }
+    return res.status(ReturnCode.OK).json(returnData)
+}
+
 apiRoutes.get("/test", test)
 apiRoutes.all("/metaInfo", metaInfo)
+apiRoutes.all("/serverInfo", serverInfo)
 
 export default apiRoutes
