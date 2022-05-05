@@ -7,9 +7,8 @@ import getUserManager from "../UserManagement"
 import { checkAdmin, checkLoggedIn } from "./routeHelper"
 import { AdminPollListResponse, AdminUserListResponse, AdminEditUserRequest } from "expoll-lib/requestInterfaces"
 import { SimplePoll } from "expoll-lib/extraInterfaces"
-import { Session, User } from "../entities/entities"
-import { isSuperAdmin } from "../helper"
-import { visitEachChild } from "typescript"
+import { User } from "../entities/entities"
+import { isSuperAdmin, addServerTimingsMetrics } from "../helper"
 
 // eslint-disable-next-line new-cap
 const authorizedAdminRoutes = express.Router()
@@ -25,7 +24,9 @@ const getUsers = async (req: Request, res: Response, next: NextFunction) => {
         // @ts-ignore
         // const adminUser = req.user as User
 
+        const t1 = new Date()
         const users = await getUserManager().getUsers()
+        const t2 = new Date()
 
         const cleanedUsers: UserInfo[] = []
 
@@ -41,12 +42,18 @@ const getUsers = async (req: Request, res: Response, next: NextFunction) => {
                 active: user.active
             })
         }
+        const t3 = new Date()
+
+        // @ts-ignore
+        let metrics = req.metrics
+        metrics = addServerTimingsMetrics(metrics, "userlist", "Retrieve Userlist from DB", t2.getTime() - t1.getTime())
+        metrics = addServerTimingsMetrics(metrics, "simplifyUsers", "Simplify userlist", t3.getTime() - t2.getTime())
 
         const data: AdminUserListResponse = {
             users: cleanedUsers,
             totalCount: cleanedUsers.length
         }
-        return res.status(ReturnCode.OK).json(data)
+        return res.set("Server-Timing", metrics).status(ReturnCode.OK).json(data)
     } catch (e) {
         console.error(e)
         return res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
