@@ -23,7 +23,7 @@ image: node
 compiling: # This job runs in the build stage, which runs first.
     stage: build
     script:
-        - npm install typescript
+        - npm install
         - npm run build
 
 linting:

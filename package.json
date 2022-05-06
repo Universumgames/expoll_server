@@ -4,7 +4,7 @@
     "description": "",
     "main": "compiled/index.js",
     "scripts": {
-        "build": "npm run compile; npm run lint",
+        "build": "npm run lint; npm run compile",
         "compile": ": rm -rf compiled/ && \n npx tsc --build",
         "serve": "node compiled/index.js",
         "dev": "npm run build; export NODE_ENV=development; npm run serve --trace-warnings",
