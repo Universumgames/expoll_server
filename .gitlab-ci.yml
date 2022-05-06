@@ -37,6 +37,6 @@ deploy:
     tags:
         - vps
     script:
-        - npm install
-        - git clone http://git.mt32.net/universum/expoll_client ../client
+        - git clone git@git.mt32.net/universum/expoll_client ../client
+        - git clone git@git.mt32.net/universum/expoll_server ../server
         - ls ..
