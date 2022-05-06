@@ -40,3 +40,5 @@ deploy:
         GIT_SUBMODULE_STRATEGY: recursive
     script:
         - ls ..
+        - ls
+        - ls ../..
