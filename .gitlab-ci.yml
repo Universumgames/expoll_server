@@ -18,16 +18,25 @@ stages: # List of stages for jobs, and their order of execution
     - test
     - deploy
 
-image: node
-
 compiling: # This job runs in the build stage, which runs first.
+    image: node
     stage: build
     script:
         - npm install
         - npm run build
 
 linting:
+    image: node
     stage: test
     script:
         - npm install
         - npm run lint
+
+deploy:
+    stage: deploy
+    tags:
+        - vps
+    script:
+        - npm install
+        - git clone http://git.mt32.net/universum/expoll_client ../client
+        - ls ..
