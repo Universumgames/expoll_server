@@ -112,36 +112,44 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
             const notes = await getPollManager().getNotes(pollID)
             const easyNotes: SimpleUserNote[] = []
 
-            const t4 = new Date()
-
-            // add current user if not constributed yet
+            // add current user if not contributed yet
             if (constrUsers.find((u) => u.id == user.id) == undefined) constrUsers.push(user)
 
+            const t4 = new Date()
+
+            const votePromises: Promise<SimpleUserVotes>[] = []
+
+            const fullPoll = await getPollManager().getPoll(poll.id)
+
             for (const user of constrUsers) {
-                const fullVotes = await getPollManager().getVotes(user.id, poll.id)
-                // simplify vote structure
-                const vs: { optionID: tOptionId; votedFor?: VoteValue }[] = []
-                for (const v of fullVotes) {
-                    vs.push({
-                        optionID: v.optionID,
-                        votedFor: v.votedFor
+                votePromises.push(
+                    new Promise(async (resolve, reject) => {
+                        const fullVotes = getPollManager().getVotesSync(user.id, fullPoll)
+                        // simplify vote structure
+                        const vs: { optionID: tOptionId; votedFor?: VoteValue }[] = []
+                        for (const v of fullVotes) {
+                            vs.push({
+                                optionID: v.optionID,
+                                votedFor: v.votedFor
+                            })
+                        }
+                        // order votes by options array and fill not voted with blanks
+                        const vsFin: { optionID: tOptionId; votedFor?: VoteValue }[] = Array(pollOptions.length)
+                        for (let i = 0; i < pollOptions.length; i++) {
+                            const optionID = pollOptions[i].id
+                            vsFin[i] = vs.find((v) => v.optionID == optionID) ?? { optionID: optionID }
+                        }
+                        resolve({
+                            user: {
+                                id: user.id,
+                                username: user.username,
+                                firstName: user.firstName,
+                                lastName: user.lastName
+                            },
+                            votes: vsFin
+                        } as SimpleUserVotes)
                     })
-                }
-                // order votes by options array and fill not voted with blanks
-                const vsFin: { optionID: tOptionId; votedFor?: VoteValue }[] = Array(pollOptions.length)
-                for (let i = 0; i < pollOptions.length; i++) {
-                    const optionID = pollOptions[i].id
-                    vsFin[i] = vs.find((v) => v.optionID == optionID) ?? { optionID: optionID }
-                }
-                votes.push({
-                    user: {
-                        id: user.id,
-                        username: user.username,
-                        firstName: user.firstName,
-                        lastName: user.lastName
-                    },
-                    votes: vsFin
-                })
+                )
 
                 const n = notes.find((note) => note.user.id == user.id)
                 if (n != undefined) {
@@ -155,6 +163,10 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                         note: n.note
                     })
                 }
+            }
+
+            for (const prom of votePromises) {
+                votes.push(await prom)
             }
 
             const t5 = new Date()

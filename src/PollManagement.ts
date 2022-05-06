@@ -235,12 +235,23 @@ class PollManager {
      * @return {number} returns the number of votes the user already has on that poll
      */
     async getVotes(userID: tUserID, pollID: tPollID): Promise<Vote[]> {
-        const user = await getUserManager().getUser({ userID: userID })
-        if (user == undefined) return []
         const poll = await this.getPoll(pollID)
         if (poll == undefined) return []
         if (poll.votes == undefined) return []
-        const votes = poll.votes.filter((element) => element.poll.id == poll.id && element.user.id == user.id)
+        const votes = poll.votes.filter((element) => element.poll.id == poll.id && element.user.id == userID)
+        return votes
+    }
+
+    /**
+     * get Votes
+     * @param {tUserID} userID the id of the user to check
+     * @param {Poll} poll the poll id
+     * @return {number} returns the number of votes the user already has on that poll
+     */
+    getVotesSync(userID: tUserID, poll?: Poll): Vote[] {
+        if (poll == undefined) return []
+        if (poll.votes == undefined) return []
+        const votes = poll.votes.filter((element) => element.poll.id == poll.id && element.user.id == userID)
         return votes
     }
 
