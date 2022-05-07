@@ -10,7 +10,7 @@ services:
         environment:
             MYSQL_DATABASE: expoll
         env_file:
-            - /opt/expoll/server/docker/db.env
+            - db.env
         hostname: db
         volumes:
             - mysqlDB:/var/lib/mysql
