@@ -16,29 +16,17 @@
 stages: # List of stages for jobs, and their order of execution
     - build
     - test
-    - deploy
 
-# compiling: # This job runs in the build stage, which runs first.
-#     image: node
-#     stage: build
-#     script:
-#         - npm install
-#         - npm run build
-
-# linting:
-#     image: node
-#     stage: test
-#     script:
-#         - npm install
-#         - npm run lint
-
-deploy:
-    stage: deploy
-    tags:
-        - vps
-    variables:
-        GIT_SUBMODULE_STRATEGY: recursive
+compiling: # This job runs in the build stage, which runs first.
+    image: node
+    stage: build
     script:
-        - ls ..
-        - ls
-        - ls ../..
+        - npm install
+        - npm run build
+
+linting:
+    image: node
+    stage: test
+    script:
+        - npm install
+        - npm run lint

@@ -1,3 +1,0 @@
-[submodule "Client"]
-    path = ../client
-    url = https://git.mt32.net/universum/expoll_server
