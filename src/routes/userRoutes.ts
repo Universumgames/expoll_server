@@ -230,8 +230,26 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
+const getPersonalizedData = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // @ts-ignore
+        const user = req.user as User
+
+        return (
+            res
+                // @ts-ignore
+                .status(ReturnCode.OK)
+                .json(user)
+        )
+    } catch (e) {
+        console.error(e)
+        res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
 userRoutes.post("/", createUser)
 userRoutes.get("/", checkLoggedIn, getUserData)
+userRoutes.get("/personalizeddata", checkLoggedIn, getPersonalizedData)
 userRoutes.post("/login", login)
 userRoutes.post("/logout", logout)
 // userRoutes.delete("/", checkLoggedIn, deleteUser)
