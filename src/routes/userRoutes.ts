@@ -217,13 +217,9 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
         // @ts-ignore
         const user = req.user as User
 
-        user.lastName = "Deleted User"
-        user.firstName = ""
-        user.mail = user.id.toString() + "@deleteduser"
-        user.username = "Deleted User " + user.id
-        user.active = false
+        const deleteRes = await getUserManager().deleteUser(user.id)
 
-        await user.save()
+        res.status(deleteRes).end()
     } catch (e) {
         console.error(e)
         res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
@@ -252,6 +248,6 @@ userRoutes.get("/", checkLoggedIn, getUserData)
 userRoutes.get("/personalizeddata", checkLoggedIn, getPersonalizedData)
 userRoutes.post("/login", login)
 userRoutes.post("/logout", logout)
-// userRoutes.delete("/", checkLoggedIn, deleteUser)
+userRoutes.delete("/", checkLoggedIn, deleteUser)
 
 export default userRoutes

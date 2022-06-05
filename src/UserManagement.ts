@@ -125,6 +125,21 @@ class UserManager {
     }
 
     /**
+     * Get sessions
+     * @param {tUserID} userID the user id
+     * @param {string[]} additionalRelations additional relations
+     * @return {Session} return usersession
+     */
+    async getSessions(userID: tUserID, additionalRelations?: string[]): Promise<Session[]> {
+        const relations = [...["user", "user.polls", "user.votes", "user.polls.admin"], ...(additionalRelations ?? [])]
+        const sessions = await Session.find({
+            where: { user: await this.getUser({ userID: userID }) },
+            relations: relations
+        })
+        return sessions
+    }
+
+    /**
      * get all users
      * @return {User[]} get all users and their polls (excluding votes and sessions)
      */
@@ -300,7 +315,9 @@ class UserManager {
         user.firstName = ""
         user.mail = user.id.toString() + "@deleteduser"
         user.username = "Deleted User " + user.id
-        user.sessions?.forEach(async (session) => {
+
+        const sessions = await this.getSessions(userID)
+        sessions.forEach(async (session) => {
             await session.remove()
         })
 
