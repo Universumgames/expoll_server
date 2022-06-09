@@ -1,3 +1,4 @@
+import { Authenticator, Challenge } from "./webauth"
 import { IUser } from "expoll-lib/interfaces"
 /* eslint-disable new-cap */
 import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, ManyToMany, OneToMany, JoinTable } from "typeorm"
@@ -48,6 +49,12 @@ export class User extends BaseEntity implements IUser {
 
     @Column({ default: false })
     admin: boolean
+
+    @OneToMany((type) => Challenge, (challenge) => challenge.user)
+    challenges: Challenge[]
+
+    @OneToMany((type) => Authenticator, (auth) => auth.user)
+    authenticators: Authenticator[]
 
     /**
      * Generate new Session that will be saved automatically
