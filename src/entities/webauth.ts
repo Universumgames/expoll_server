@@ -39,6 +39,12 @@ export class Authenticator extends BaseEntity {
     @Column()
     transports: string
 
+    @Column()
+    name: string
+
+    @Column()
+    initiatorPlatform: string
+
     /**
      * decode from sql stored format
      * @return {any}

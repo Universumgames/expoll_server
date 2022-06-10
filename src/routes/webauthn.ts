@@ -53,8 +53,8 @@ const registerInit = async (req: Request, res: Response, next: NextFunction) => 
         await getUserManager().setCurrentUserChallenge(user, options.challenge)
 
         return res.status(ReturnCode.OK).json(options)
-    } catch {
-        return res.status(ReturnCode.INTERNAL_SERVER_ERROR)
+    } catch (error: any) {
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).json({ error })
     }
 }
 
@@ -93,15 +93,19 @@ const registerRes = async (req: Request, res: Response, next: NextFunction) => {
             auth.setCredentialID(credentialID)
             auth.counter = counter
             auth.setCredentialPublicKey(credentialPublicKey)
-            auth.setAuthenticatorTransports(req.body.transports)
+            auth.setAuthenticatorTransports(req.body.transports ?? [])
             auth.user = user
+            // @ts-ignore
+            auth.name = req.headers["user-agent"]
+            // @ts-ignore
+            auth.initiatorPlatform = req.headers["user-agent"]
             await auth.save()
         }
         return res.status(ReturnCode.OK).json({
             verified
         })
-    } catch {
-        return res.status(ReturnCode.INTERNAL_SERVER_ERROR)
+    } catch (error: any) {
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).json({ error })
     }
 }
 
@@ -130,8 +134,8 @@ const authenticateInit = async (req: Request, res: Response, next: NextFunction)
         await getUserManager().setCurrentUserChallenge(user, options.challenge)
 
         return res.status(ReturnCode.OK).json(options)
-    } catch {
-        return res.status(ReturnCode.INTERNAL_SERVER_ERROR)
+    } catch (error: any) {
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).json({ error })
     }
 }
 
@@ -201,8 +205,8 @@ const authenticateRes = async (req: Request, res: Response, next: NextFunction) 
             }
             return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(loginKey)).json({ verified })
         } else return res.status(ReturnCode.INVALID_CHALLENGE_RESPONSE).json({ verified })
-    } catch {
-        return res.status(ReturnCode.INTERNAL_SERVER_ERROR)
+    } catch (error: any) {
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).json({ error })
     }
 }
 
@@ -216,8 +220,45 @@ const list = async (req: Request, res: Response, next: NextFunction) => {
         return res.status(ReturnCode.OK).json({
             authenticators
         })
-    } catch {
-        return res.status(ReturnCode.INTERNAL_SERVER_ERROR)
+    } catch (error: any) {
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).json({ error })
+    }
+}
+
+const rename = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // @ts-ignore
+        const user = req.user as User
+
+        const credID = req.body.credentialID
+        const newName = req.body.newName
+        const authenticator = await Authenticator.findOne({ where: { user: user, credentialID: credID } })
+
+        if (!authenticator) return res.status(ReturnCode.BAD_REQUEST).end()
+
+        authenticator.name = newName
+        await authenticator.save()
+
+        return res.status(ReturnCode.OK).end()
+    } catch (error: any) {
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).json({ error })
+    }
+}
+
+const deleteAuth = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // @ts-ignore
+        const user = req.user as User
+        const credID = req.body.credentialID
+        const authenticator = await Authenticator.findOne({ where: { user: user, credentialID: credID } })
+
+        if (!authenticator) return res.status(ReturnCode.BAD_REQUEST).end()
+
+        await Authenticator.delete({ credentialID: credID, user: user })
+
+        return res.status(ReturnCode.OK).end()
+    } catch (error: any) {
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).json({ error })
     }
 }
 
@@ -226,5 +267,7 @@ webauthnRoutes.post("/register", checkLoggedIn, registerRes)
 webauthnRoutes.get("/authenticate", authenticateInit)
 webauthnRoutes.post("/authenticate", authenticateRes)
 webauthnRoutes.get("/list", checkLoggedIn, list)
+webauthnRoutes.post("/edit", checkLoggedIn, rename)
+webauthnRoutes.delete("/", checkLoggedIn, deleteAuth)
 
 export default webauthnRoutes
