@@ -52,6 +52,9 @@ const registerInit = async (req: Request, res: Response, next: NextFunction) => 
         })
         await getUserManager().setCurrentUserChallenge(user, options.challenge)
 
+        // @ts-ignore
+        options.userVerification = "preferred"
+
         return res.status(ReturnCode.OK).json(options)
     } catch (error: any) {
         return res.status(ReturnCode.INTERNAL_SERVER_ERROR).json({ error })
@@ -99,6 +102,7 @@ const registerRes = async (req: Request, res: Response, next: NextFunction) => {
             auth.name = req.headers["user-agent"]
             // @ts-ignore
             auth.initiatorPlatform = req.headers["user-agent"]
+            auth.created = new Date()
             await auth.save()
         }
         return res.status(ReturnCode.OK).json({
@@ -132,6 +136,9 @@ const authenticateInit = async (req: Request, res: Response, next: NextFunction)
         })
 
         await getUserManager().setCurrentUserChallenge(user, options.challenge)
+
+        // @ts-ignore
+        options.userVerification = "preferred"
 
         return res.status(ReturnCode.OK).json(options)
     } catch (error: any) {
