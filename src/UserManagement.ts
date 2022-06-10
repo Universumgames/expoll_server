@@ -1,6 +1,6 @@
 import { Request } from "express"
 import Database from "./database"
-import { Poll, Session, User, Vote } from "./entities/entities"
+import { Challenge, Poll, Session, User, Vote } from "./entities/entities"
 import { config } from "./expoll_config"
 import getMailManager, { Mail } from "./MailManager"
 import getPollManager from "./PollManagement"
@@ -334,6 +334,32 @@ class UserManager {
             await user.save()
         }
         return ReturnCode.OK
+    }
+
+    /**
+     *
+     * @param {User} user the user the challenge should be retrieved from
+     * @return {Challenge | undefined} return current Challenge
+     */
+    async getCurrentUserChallenge(user: User): Promise<Challenge | undefined> {
+        return Challenge.findOne({ where: { user: user } })
+    }
+
+    /**
+     *
+     * @param {User} user the user the challenge should be retrieved from
+     * @param {string} challenge the challenge string
+     * @return {Challenge | undefined} return current Challenge
+     */
+    async setCurrentUserChallenge(user: User, challenge: string): Promise<Challenge | undefined> {
+        // delete old challenges
+        await Challenge.delete({ user: user })
+
+        const challengeObj = new Challenge()
+        challengeObj.challenge = challenge
+        challengeObj.user = user
+        await challengeObj.save()
+        return challengeObj
     }
 }
 

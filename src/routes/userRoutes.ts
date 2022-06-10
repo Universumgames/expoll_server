@@ -2,10 +2,10 @@ import getMailManager, { Mail } from "./../MailManager"
 import { config } from "../expoll_config"
 import axios from "axios"
 import { checkLoggedIn } from "./routeHelper"
-import { addServerTimingsMetrics, cookieName, getLoginKey } from "./../helper"
+import { addServerTimingsMetrics, cookieConfig, cookieName, getLoginKey } from "./../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
-import { Session, User } from "./../entities/entities"
-import express, { CookieOptions, NextFunction, Request, Response } from "express"
+import { User } from "./../entities/entities"
+import express, { NextFunction, Request, Response } from "express"
 import getUserManager from "../UserManagement"
 import { CreateUserRequest, CreateUserResponse } from "expoll-lib/requestInterfaces"
 
@@ -197,15 +197,6 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
         console.error(e)
         res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
     }
-}
-
-/**
- * create cookie config with expiration date
- * @param {ISession} session the user session
- * @return {CookieConfig} necessary cookie config for express
- */
-function cookieConfig(session: Session): CookieOptions {
-    return { httpOnly: true, sameSite: "strict", expires: session.expiration }
 }
 
 const logout = async (req: Request, res: Response, next: NextFunction) => {

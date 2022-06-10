@@ -5,6 +5,7 @@ import adminRoutes from "./adminRoutes"
 import pollRoutes from "./pollRoutes"
 import userRoutes from "./userRoutes"
 import voteRoutes from "./voteRoutes"
+import webauthnRoutes from "./webauthn"
 
 // eslint-disable-next-line new-cap
 const apiRoutes = express.Router()
@@ -12,6 +13,7 @@ apiRoutes.use("/user", userRoutes)
 apiRoutes.use("/poll", pollRoutes)
 apiRoutes.use("/vote", voteRoutes)
 apiRoutes.use("/admin", adminRoutes)
+apiRoutes.use("/webauthn", webauthnRoutes)
 
 const test = async (req: Request, res: Response, next: NextFunction) => {
     return res.status(200).json({

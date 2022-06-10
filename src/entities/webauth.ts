@@ -1,18 +1,7 @@
 import { Buffer } from "node:buffer"
 import { User } from "./user"
-import {
-    Entity,
-    Column,
-    PrimaryGeneratedColumn,
-    BaseEntity,
-    ManyToMany,
-    OneToMany,
-    JoinTable,
-    PrimaryColumn,
-    ManyToOne,
-    OneToOne
-} from "typeorm"
-import { encode } from "punycode"
+import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, PrimaryColumn, ManyToOne } from "typeorm"
+import { base64URLStringToBuffer, bufferToBase64URLString } from "../helper"
 /* eslint-disable new-cap */
 
 @Entity()
@@ -54,32 +43,32 @@ export class Authenticator extends BaseEntity {
      * decode from sql stored format
      * @return {any}
      */
-    getCredentialID(): ArrayBuffer {
-        return Buffer.from(this.credentialID, "base64")
+    getCredentialID() {
+        return base64URLStringToBuffer(this.credentialID)
     }
 
     /**
      * encode to sql stored format
      * @param {any} credentialID
      */
-    setCredentialID(credentialID: ArrayBuffer) {
-        this.credentialID = Buffer.from(credentialID).toString("base64")
+    setCredentialID(credentialID: any) {
+        this.credentialID = bufferToBase64URLString(credentialID)
     }
 
     /**
      * decode from sql stored format
      * @return {any}
      */
-    getCredentialPublicKey(): ArrayBuffer {
-        return Buffer.from(this.credentialPublicKey, "base64")
+    getCredentialPublicKey() {
+        return base64URLStringToBuffer(this.credentialPublicKey)
     }
 
     /**
      * encode to sql stored format
      * @param {any} credentialPublicKey
      */
-    setCredentialPublicKey(credentialPublicKey: ArrayBuffer) {
-        this.credentialPublicKey = Buffer.from(credentialPublicKey).toString("base64")
+    setCredentialPublicKey(credentialPublicKey: any) {
+        this.credentialPublicKey = bufferToBase64URLString(credentialPublicKey)
     }
 
     /**
