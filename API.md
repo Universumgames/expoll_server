@@ -24,6 +24,8 @@ Configured on our server, the API is accessible via the `/api` Endpoint
 | `/admin/users` |     PUT     | Edit user account - Coming soon                                        |
 | `/admin/polls` |     GET     | [Details](#retrieve-poll-list) - Retrieve all existing polls           |
 
+TODO add webauthn doc
+
 ## Config files
 
 The configuration files are in the `./config/` directory with the default configuration being in the `./config/default.json` file. By creating a new file in this directory ending with `.json` these values can be overwritten.

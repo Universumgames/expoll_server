@@ -38,7 +38,7 @@ export default class Database {
             u.active = true
             await repo.save(u) */
         } catch (e) {
-            console.error("COnnection failed", e)
+            console.error("Connection failed", e)
         }
     }
 
