@@ -16,7 +16,7 @@
     },
     "maxPollCountPerUser": 10,
     "recaptchaAPIKey": "your google recaptcha api key goes here",
-    "serverVersion": "1.4.0",
+    "serverVersion": "1.5.0",
     "webauthn": {
         "rpName": "Expoll",
         "rpID": "expoll.mt32.net",

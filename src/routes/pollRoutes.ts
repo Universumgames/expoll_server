@@ -189,7 +189,8 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                 options: pollOptions,
                 userVotes: votes,
                 allowsMaybe: poll.allowsMaybe,
-                userNotes: easyNotes
+                userNotes: easyNotes,
+                allowsEditing: poll.allowsEditing
             }
 
             metrics = addServerTimingsMetrics(metrics, "getPoll", "Retrieve Poll Details", t2.getTime() - t1.getTime())
@@ -233,6 +234,8 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
         const options = body.options as any[]
         if (body.allowsMaybe == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const allowsMaybe = body.allowsMaybe as boolean
+        if (body.allowsEditing == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
+        const allowsEditing = body.allowsEditing as boolean
 
         const pollCount = await getPollManager().getPollCountCreatedByUser(user.id)
         if (pollCount >= config.maxPollCountPerUser && !user.admin) return res.status(ReturnCode.TOO_MANY_POLLS)
@@ -246,6 +249,7 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
         poll.maxPerUserVoteCount = maxPerUserVoteCount
         poll.allowsMaybe = allowsMaybe
         poll.votes = []
+        poll.allowsEditing = allowsEditing
 
         const checkedOptions: PollOption[] = []
 
@@ -300,20 +304,20 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
 
         const body = req.body as EditPollRequest
 
+        const pollID = body.pollID as string
+        if (pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
+        const poll = await getPollManager().getPoll(pollID)
+
         // invite
         if (body.inviteLink != undefined) {
             const inviteLink = body.inviteLink as string
+            if (!poll?.allowsEditing) return res.status(ReturnCode.CHANGE_NOT_ALLOWED).end()
             return res.status(await getUserManager().addPoll(user.mail, inviteLink)).end()
         } else if (body.leave != undefined && body.leave) {
             // leave
-            const pollID = body.pollID as string
-            if (pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
+            if (!poll?.allowsEditing) return res.status(ReturnCode.CHANGE_NOT_ALLOWED).end()
             return res.status(await getUserManager().removeFromPoll(user.id, pollID)).end()
         } else {
-            const pollID = body.pollID as string
-            if (pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
-            const poll = await getPollManager().getPoll(pollID)
-
             if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
             if (poll.admin.id != user.id && !user.admin) return res.status(ReturnCode.UNAUTHORIZED).end()
 
@@ -359,6 +363,7 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             const description = (body.description as string) ?? undefined
             const maxPerUserVoteCount = (body.maxPerUserVoteCount as number) ?? undefined
             const allowsMaybe = (body.allowsMaybe as boolean) ?? undefined
+            const allowsEditing = (body.allowsEditing as boolean) ?? undefined
             const userRemove = body.userRemove ?? undefined
             const votes = body.votes ?? undefined
             const options = body.options as ComplexOption[]
@@ -370,6 +375,12 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             if (maxPerUserVoteCount != undefined)
                 poll.maxPerUserVoteCount = maxPerUserVoteCount <= -1 ? -1 : maxPerUserVoteCount
             if (allowsMaybe != undefined) poll.allowsMaybe = allowsMaybe
+            if (allowsEditing != undefined) poll.allowsEditing = allowsEditing
+
+            if (!poll.allowsEditing) {
+                await poll.save()
+                return res.status(ReturnCode.OK).end()
+            }
 
             if (userRemove != undefined) {
                 // remove user from poll

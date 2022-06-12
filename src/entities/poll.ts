@@ -69,4 +69,7 @@ export class Poll extends BaseEntity implements IPoll {
 
     @Column()
     allowsMaybe: boolean = true
+
+    @Column()
+    allowsEditing: boolean = true
 }

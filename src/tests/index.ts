@@ -99,7 +99,8 @@ describe("API test", function () {
             description: "testdescription",
             type: PollType.String,
             options: [],
-            allowsMaybe: true
+            allowsMaybe: true,
+            allowsEditing: true
         }
         let originPollID: tPollID = ""
 

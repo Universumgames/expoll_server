@@ -38,7 +38,7 @@
         copy:
             src: ./expoll.nginx.conf
             dest: /etc/nginx/sites-enabled/expoll
-#- name: dockerize
-#  script:
-#      chdir: "{{  install_dir }}server/"
-#      cmd: "../run-full-server.sh"
+      - name: Create docker containers and start servers
+        script:
+            chdir: "{{  install_dir }}server/"
+            cmd: "../run-full-server.sh"

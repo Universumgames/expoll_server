@@ -32,6 +32,8 @@ const createVote = async (req: Request, res: Response, next: NextFunction) => {
         const poll = await getPollManager().getPoll(pollID)
         if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
 
+        if (!poll.allowsEditing) return res.status(ReturnCode.CHANGE_NOT_ALLOWED).end()
+
         // this part is for when an admin want to change a vote
         let userIDToUse = user.id
         if ((poll.admin.id == user.id || user.admin) && body.userID != undefined) userIDToUse = body.userID as tUserID
