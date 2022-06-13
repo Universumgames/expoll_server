@@ -1,6 +1,6 @@
 import { Request } from "express"
 import Database from "./database"
-import { Challenge, Poll, Session, User, Vote } from "./entities/entities"
+import { Authenticator, Challenge, Poll, Session, User, Vote } from "./entities/entities"
 import { config } from "./expoll_config"
 import getMailManager, { Mail } from "./MailManager"
 import getPollManager from "./PollManagement"
@@ -305,7 +305,7 @@ class UserManager {
      * @return {ReturnCode} the returncode of the operation
      */
     async deleteUser(userID: tUserID): Promise<ReturnCode> {
-        const user = await this.getUser({ userID: userID })
+        const user = await this.getUser({ userID: userID }, ["authenticators", "challenges"])
 
         if (user == undefined) {
             return ReturnCode.INVALID_PARAMS
@@ -319,6 +319,16 @@ class UserManager {
         const sessions = await this.getSessions(userID)
         sessions.forEach(async (session) => {
             await session.remove()
+        })
+
+        const authenticators = await Authenticator.find({ where: { user: user } })
+        authenticators.forEach(async (auth) => {
+            await auth.remove()
+        })
+
+        const challenges = await Challenge.find({ where: { user: user } })
+        challenges.forEach(async (challenge) => {
+            await challenge.remove()
         })
 
         await user.save()
