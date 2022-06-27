@@ -8,6 +8,8 @@ import { User } from "./../entities/entities"
 import express, { NextFunction, Request, Response } from "express"
 import getUserManager from "../UserManagement"
 import { CreateUserRequest, CreateUserResponse } from "expoll-lib/requestInterfaces"
+import { SimplePoll, SimpleUser } from "expoll-lib"
+import getPollManager from "../PollManagement"
 
 // eslint-disable-next-line new-cap
 const userRoutes = express.Router()
@@ -222,11 +224,39 @@ const getPersonalizedData = async (req: Request, res: Response, next: NextFuncti
         // @ts-ignore
         const user = req.user as User
 
+        let polls: SimplePoll[] = []
+
+        const pollQueue: Promise<SimplePoll | undefined>[] = []
+        for (const poll of user.polls) {
+            pollQueue.push(getPollManager().getSimplePoll(poll.id))
+        }
+        for (const pollWait of pollQueue) {
+            const poll = await pollWait
+            if (poll != undefined) {
+                polls.push(poll)
+            }
+        }
+        polls = polls.sort((ele2, ele1) => ele1.lastUpdated.getTime() - ele2.lastUpdated.getTime())
+
+        const simpleUser = {
+            id: user.id,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            mail: user.mail,
+            admin: getUserManager().userIsAdminOrSuperAdminSync(user),
+            superAdmin: getUserManager().userIsSuperAdminSync(user),
+            authenticators: user.authenticators,
+            polls: polls,
+            sessions: user.sessions,
+            votes: user.votes
+        }
+
         return (
             res
                 // @ts-ignore
                 .status(ReturnCode.OK)
-                .json(user)
+                .json(simpleUser)
         )
     } catch (e) {
         console.error(e)

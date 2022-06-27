@@ -173,6 +173,15 @@ class UserManager {
     }
 
     /**
+     * Check if an user is system admin
+     * @param {User} user the user
+     * @return {boolean} return true if user is system admin false otherwise
+     */
+    userIsSuperAdminSync(user: User) {
+        return config.superAdminMail == user.mail
+    }
+
+    /**
      * Check if user with mail address exists
      * @param {{string, string}} option the mail address of the user to search
      * @return {Promise<Boolean>} true when User exist, false otherwise
@@ -240,7 +249,6 @@ class UserManager {
      * @return {ReturnCode} the ReturnCode of the operation
      */
     async removeFromPoll(userID: tUserID, pollID: tPollID): Promise<ReturnCode> {
-        // TODO implement
         const user = await this.getUser({ userID: userID })
         if (user == undefined) return ReturnCode.INVALID_PARAMS
         const poll = await getPollManager().getPoll(pollID)
