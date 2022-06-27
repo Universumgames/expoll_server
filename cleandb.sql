@@ -1,0 +1,11 @@
+drop table authenticator;
+drop table challenge;
+drop table vote;
+drop table user_polls_poll;
+drop table session;
+drop table poll_user_note;
+drop table poll_option_string;
+drop table poll_option_date_time;
+drop table poll_option_date;
+drop table poll;
+drop table user;

@@ -15,6 +15,9 @@ export class Session extends BaseEntity implements ISession {
     @Column({ type: "datetime" })
     expiration: Date
 
+    @Column({ nullable: true })
+    userAgent: string
+
     @ManyToOne((type) => User, (user) => user.sessions)
     @JoinTable()
     user: User

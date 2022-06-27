@@ -1,7 +1,16 @@
 import { Authenticator, Challenge } from "./webauth"
 import { IUser } from "expoll-lib/interfaces"
 /* eslint-disable new-cap */
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, ManyToMany, OneToMany, JoinTable } from "typeorm"
+import {
+    Entity,
+    Column,
+    PrimaryGeneratedColumn,
+    BaseEntity,
+    ManyToMany,
+    OneToMany,
+    JoinTable,
+    PrimaryColumn
+} from "typeorm"
 import { tUserID } from "expoll-lib/interfaces"
 import { Poll } from "./poll"
 import { Vote } from "./vote"
@@ -13,7 +22,7 @@ import { PollUserNote } from "./note"
  * User object storing all user data
  */
 export class User extends BaseEntity implements IUser {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn("uuid")
     id: tUserID
 
     @Column({ unique: true })
