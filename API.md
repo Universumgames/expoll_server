@@ -1,30 +1,19 @@
 # API - Documentation
 
-## Endpoints
+## Endpoint overview
 
-Configured on our server, the API is accessible via the `/api` Endpoint
+Configured on our server, the API is accessible via the `/api` Endpoint, but the backend itself, without any proxy configuration (like nginx) is accessible via the `/` Endpoint.
 
-| Endpoint       | HTTP Method | Summary                                                                |
-| :------------- | :---------: | ---------------------------------------------------------------------- |
-| `/user`        |      -      | [Link](#user-endpoints)                                                |
-| `/user`        |    POST     | [Details](#create-a-user) - Creating a user                            |
-| `/user`        |     GET     | [Details](#get-user-data) - Get user data                              |
-| `/user`        |     PUT     | [Details](#edit-user-settings) - Edit own user (Coming soon)           |
-| `/user/login`  |    POST     | [Details](#login) - Login via loginKey or request login mail           |
-| `/user`        |   DELETE    | Deactivate a user account (Coming soon)                                |
-| `/poll`        |      -      | [Link](#poll-endpoints)                                                |
-| `/poll`        |     GET     | [Details](#retrieve-polls) - Get poll overview or detailed information |
-| `/poll`        |    POST     | [Details](#create-a-poll) - Creating a new Poll                        |
-| `/poll`        |     PUT     | [Details](#edit-a-poll) - Editing an existing Poll                     |
-| `/vote`        |      -      | [Link](#vote-endpoints)                                                |
-| `/vote`        |    POST     | [Details](#vote-or-replace-previous-one) - Vote on a poll              |
-| `/admin`       |      -      | [Link](#administration-endpoints)                                      |
-| `/admin/users` |      -      | [Link](#user-management)                                               |
-| `/admin/users` |     GET     | [Details](#retrieve-user-list) - retrieving all registered users       |
-| `/admin/users` |     PUT     | Edit user account - Coming soon                                        |
-| `/admin/polls` |     GET     | [Details](#retrieve-poll-list) - Retrieve all existing polls           |
-
-TODO add webauthn doc
+| Endpoint      | Summary                                                                                                     |
+| ------------- | ----------------------------------------------------------------------------------------------------------- |
+| `/user`       | [User Endpoints](#user-endpoints) - Register, Login and manage currently logged in user                     |
+| `/poll`       | [Poll Endpoints](#poll-endpoints) - Create, edit and manage polls                                           |
+| `/vote`       | [Vote Endpoints](#vote-endpoints) - Create and edit votes                                                   |
+| `/admin`      | [Admin Endpoints](#administration-endpoints) - Manage users and polls                                       |
+| `/webauthn`   | [WebAuthn Endpoints](#webauthn-endpoints) - Create and manage webauthn credentials                          |
+| `/test`       | Test Endpoint, for checking that server is running                                                          |
+| `/metaInfo`   | Meta Information Endpoint, review your Reverse Proxy Settings to see, what HTTP Headers the server receives |
+| `/serverInfo` | Retrieve basic server information (like backend version, port, base link, login mail sender)                |
 
 ## Config files
 
@@ -46,6 +35,10 @@ Inside the config following values can be changed:
     -   `rootPW` (string) the root password to the database
 -   `maxPollCountPerUser` (number) restrict the number of polls each user can create
 -   `recaptchaAPIKey` the api key to use google recaptcha
+-   `webauthn`
+    -   `rpName` (string) the name of the relying party
+    -   `rpID` (string) the unique identifier of the relying party
+    -   `origin` (string) the origin from where the user can login
 
 ## Detailed information about object structure
 
@@ -53,12 +46,29 @@ Detailed information about inner object structure, request and response objects 
 
 ## Return code overview
 
--   `200` OK
--   `400` (Bad request) parameters missing/invalid
--   `401` (Unauthorized) LoginKey invalid/expired, Captcha not accepted
--   `406` (Not acceptable) Vote is not acceptable / user already exists (mail or username)
--   `409` (Conflict) wrong parameter type
--   `413` (Payload too large) maximum number of polls created by the user is exceeded
+```ts
+export enum ReturnCode {
+    OK = 200,
+    BAD_REQUEST = 400,
+    MISSING_PARAMS = 400,
+    INVALID_PARAMS = 400,
+    UNAUTHORIZED = 401,
+    INVALID_LOGIN_KEY = 401,
+    INVALID_CHALLENGE_RESPONSE = 401,
+    CAPTCHA_INVALID = 401,
+    FORBIDDEN = 403,
+    CHANGE_NOT_ALLOWED = 403,
+    NOT_ACCEPTABLE = 406,
+    USER_EXISTS = 406,
+    CONFLICT = 409,
+    INVALID_TYPE = 409,
+    PAYLOAD_TOO_LARGE = 413,
+    TOO_MANY_POLLS = 413,
+    UNPROCESSABLE_ENTITY = 422,
+    INTERNAL_SERVER_ERROR = 500,
+    NOT_IMPLEMENTED = 501
+}
+```
 
 ## Login Method
 
@@ -78,6 +88,12 @@ Detailed request list:
     -   401 (Unauthorized) passed loginKey invalid
 
 ## User-Endpoints
+
+| Endpoint      | HTTP Method | Summary                                                           |
+| ------------- | ----------- | ----------------------------------------------------------------- |
+| `/user`       | POST        | [Request info](#create-a-user) - Create a new user                |
+| `/user`       | GET         | [Request info](#get-user-data) - Get user info                    |
+| `/user/login` | POST        | [Request info](#login-a-user) - Basic login via mail verification |
 
 ### Create a user
 
@@ -143,6 +159,12 @@ Detailed request list:
 <small>Not going to be implemented in first version</small>
 
 ## Poll-Endpoints
+
+| Endpoint | HTTP Method | Summary                                                                                                                             |
+| -------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `/poll`  | GET         | [Request info](#retrieve-poll-list) - Get summary of polls the user was invited to or get detailed information on one specific poll |
+| `/poll`  | POST        | [Request info](#create-a-poll) - Create a new poll                                                                                  |
+| `/poll`  | PUT         | [Request info](#edit-a-poll) - Edit a poll                                                                                          |
 
 ### Retrieve polls
 
@@ -265,6 +287,10 @@ Detailed request list:
 
 ## Vote Endpoints
 
+| Method  | Path | Summary        |
+| ------- | ---- | -------------- |
+| `/vote` | POST | Vote on a poll |
+
 ### Vote or replace previous one
 
 To vote on a poll you need the `pollID`, the selected option and wether or not it is selected or not. The user creating is vote is identified with the [loginKey](#login-method). When the user already voted for that poll and the option was already voted for once, the vote gets replaced as long as the maximum number of votes for that poll is not reached.
@@ -286,9 +312,13 @@ Detailed request list:
 
 All Routes beginning with `/admin` can only be performed as an admin. Either by being promoted to one or by setting the `superAdminMail` to the needed user's mail address. If a non-admin user performs a request to such endpoints the HTTP Code 401 (Unauthorized) will be returned.
 
-### User management
+| Method         | Path | Summary                                             |
+| -------------- | ---- | --------------------------------------------------- |
+| `/admin/users` | GET  | [Request info](#retrieve-user-list) - Get all users |
+| `/admin/users` | POST | [Request info](#edit-user) - Edit and delete users  |
+| `/admin/polls` | GET  | [Request info](#retrieve-poll-list) - Get all polls |
 
-#### Retrieve User List
+### Retrieve User List
 
 Retrieving a list of all registered users.
 
@@ -331,9 +361,7 @@ Detailed request list:
         -   HTTP Status: 200
     -   or default error codes, see [Error codes](#return-code-overview)
 
-### Poll management
-
-#### Retrieve Poll list
+### Retrieve Poll list
 
 Retrieve a list of all created polls:
 
@@ -345,3 +373,5 @@ Detailed request list:
 -   returns JSON:
 -   `polls`:
     -   See [Retrieve Poll overview](#retrieve-polls)
+
+## WebAuthn Endpoints
