@@ -1,9 +1,8 @@
 import { NextFunction, Request, Response } from "express"
-import { User } from "../entities/entities"
+import { Session, User } from "../entities/entities"
 import { addServerTimingsMetrics, cookieName, getLoginKey, isAdmin } from "../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
 import getUserManager from "../UserManagement"
-
 export const checkLoggedIn = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const t1 = new Date()
@@ -13,8 +12,15 @@ export const checkLoggedIn = async (req: Request, res: Response, next: NextFunct
         // @ts-ignore
         req.loginKey = loginKey
         const userReq = getUserManager().getUser({ loginKey: loginKey })
-        const user = await userReq
+        const session = await Session.findOne({ where: { loginKey: loginKey } })
+
+        if (session && session.userAgent == undefined) {
+            session.userAgent = req.headers["user-agent"] ?? "unknown"
+            await session.save()
+        }
         const t3 = new Date()
+        const user = await userReq
+        const t4 = new Date()
         if (user == undefined) {
             return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized
         }
@@ -26,14 +32,30 @@ export const checkLoggedIn = async (req: Request, res: Response, next: NextFunct
         req.user = user
 
         let metrics = addServerTimingsMetrics("", "loginKey", "Check login key", t2.getTime() - t1.getTime())
+        metrics = addServerTimingsMetrics(metrics, "userAgent", "Update user agent", t3.getTime() - t2.getTime())
         metrics = addServerTimingsMetrics(
             metrics,
             "userData",
             "Get user data from Database",
-            t3.getTime() - t2.getTime()
+            t4.getTime() - t3.getTime()
         )
         // @ts-ignore
         req.metrics = metrics
+
+        // TODO possible performance issue
+        // check all session if expired
+        new Promise<void>(async (resolve, reject) => {
+            // get all sessions from user
+            const sessions = await Session.find({ where: { user: user } })
+            // check if any session is expired
+            for (const session of sessions) {
+                if (session.expiration < new Date()) {
+                    // delete session
+                    await session.remove()
+                }
+            }
+            resolve()
+        })
 
         next()
     } catch (e) {

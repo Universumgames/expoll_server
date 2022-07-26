@@ -131,10 +131,8 @@ class UserManager {
      * @return {Session} return usersession
      */
     async getSessions(userID: tUserID, additionalRelations?: string[]): Promise<Session[]> {
-        const relations = [...["user", "user.polls", "user.votes", "user.polls.admin"], ...(additionalRelations ?? [])]
         const sessions = await Session.find({
-            where: { user: await this.getUser({ userID: userID }) },
-            relations: relations
+            where: { user: await this.getUser({ userID: userID }) }
         })
         return sessions
     }

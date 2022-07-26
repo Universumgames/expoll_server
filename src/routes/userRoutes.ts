@@ -4,11 +4,11 @@ import axios from "axios"
 import { checkLoggedIn } from "./routeHelper"
 import { addServerTimingsMetrics, cookieConfig, cookieName, getLoginKey } from "./../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
-import { User } from "./../entities/entities"
+import { Session, User } from "./../entities/entities"
 import express, { NextFunction, Request, Response } from "express"
 import getUserManager from "../UserManagement"
 import { CreateUserRequest, CreateUserResponse } from "expoll-lib/requestInterfaces"
-import { SimplePoll, SimpleUser } from "expoll-lib"
+import { SimplePoll } from "expoll-lib"
 import getPollManager from "../PollManagement"
 
 // eslint-disable-next-line new-cap
@@ -224,12 +224,33 @@ const getPersonalizedData = async (req: Request, res: Response, next: NextFuncti
         // @ts-ignore
         const user = req.user as User
 
+        const t1 = new Date()
         let polls: SimplePoll[] = []
-
         const pollQueue: Promise<SimplePoll | undefined>[] = []
         for (const poll of user.polls) {
             pollQueue.push(getPollManager().getSimplePoll(poll.id))
         }
+
+        // @ts-ignore
+        // const activeSession = (await getUserManager().getSession(req.loginKey)) as Session
+        const sessions = (await getUserManager().getSessions(user.id)).map((session) => {
+            if (!session) return undefined
+            // @ts-ignore
+            if (session.loginKey == req.loginKey)
+                return {
+                    expiration: session.expiration,
+                    userAgent: session.userAgent,
+                    shortKey: session.loginKey.substring(0, 4),
+                    active: true
+                }
+            return {
+                expiration: session.expiration,
+                userAgent: session.userAgent,
+                shortKey: session.loginKey.substring(0, 4)
+            }
+        })
+        const t2 = new Date()
+
         for (const pollWait of pollQueue) {
             const poll = await pollWait
             if (poll != undefined) {
@@ -248,16 +269,62 @@ const getPersonalizedData = async (req: Request, res: Response, next: NextFuncti
             superAdmin: getUserManager().userIsSuperAdminSync(user),
             authenticators: user.authenticators,
             polls: polls,
-            sessions: user.sessions,
+            sessions: sessions,
             votes: user.votes
         }
+        // @ts-ignore
+        let metrics = req.metrics
+        metrics = addServerTimingsMetrics(metrics, "sessionlist", "Get sessions summary", t2.getTime() - t1.getTime())
+        metrics = addServerTimingsMetrics(
+            metrics,
+            "polllist",
+            "Get poll summaries",
+            new Date().getTime() - t1.getTime()
+        )
 
         return (
             res
+                .set("Server-Timing", metrics)
                 // @ts-ignore
                 .status(ReturnCode.OK)
                 .json(simpleUser)
         )
+    } catch (e) {
+        console.error(e)
+        res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
+const logoutAll = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // @ts-ignore
+        const user = req.user as User
+
+        // const sessions = await getUserManager().getSessions(user.id)
+        await Session.delete({ user: user })
+        res.status(ReturnCode.OK).cookie(cookieName, "", { httpOnly: true, sameSite: "strict" }).end()
+    } catch (e) {
+        console.error(e)
+        res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
+const deleteSession = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // @ts-ignore
+        const user = req.user as User
+
+        const shortKey = req.body.shortKey as string
+        if (!shortKey) return res.status(ReturnCode.MISSING_PARAMS).end()
+
+        const sessions = await Session.find({ where: { user: user } })
+
+        const session = await sessions.find((session) => session.loginKey.startsWith(shortKey))
+
+        if (session) {
+            await session.remove()
+            res.status(ReturnCode.OK).end()
+        } else res.status(ReturnCode.INVALID_LOGIN_KEY).end()
     } catch (e) {
         console.error(e)
         res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
@@ -269,6 +336,8 @@ userRoutes.get("/", checkLoggedIn, getUserData)
 userRoutes.get("/personalizeddata", checkLoggedIn, getPersonalizedData)
 userRoutes.post("/login", login)
 userRoutes.post("/logout", logout)
+userRoutes.post("/logoutAll", checkLoggedIn, logoutAll)
 userRoutes.delete("/", checkLoggedIn, deleteUser)
+userRoutes.delete("/session", checkLoggedIn, deleteSession)
 
 export default userRoutes
