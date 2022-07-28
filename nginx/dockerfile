@@ -12,11 +12,54 @@ RUN npm install --legacy-peer-deps
 RUN npm run build
 
 
-FROM nginx
-COPY ./server/nginx/default.conf /etc/nginx/conf.d/default.conf
-#COPY ./backend-not-found.html /var/www/html/backend-not-found.html
+From alpine:latest
+WORKDIR /www/data
+# Install nginx and php
+RUN apk update && apk upgrade
+RUN apk add --no-cache \
+  curl \
+  nginx \
+  php81 \
+  php81-ctype \
+  php81-curl \
+  php81-dom \
+  php81-fpm \
+  php81-gd \
+  php81-intl \
+  php81-mbstring \
+  php81-mysqli \
+  php81-opcache \
+  php81-openssl \
+  php81-phar \
+  php81-session \
+  php81-xml \
+  php81-xmlreader \
+  php81-zlib \
+  supervisor
+# Create symlink so programs depending on `php` still function
+RUN ln -s /usr/bin/php81 /usr/bin/php
+# Make sure files/folders needed by the processes are accessable when they run under the nobody user
+RUN chown -R nobody.nobody /www/data /run /var/lib/nginx /var/log/nginx
+
+# Copy additional files
+COPY ./server/nginx/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+# configure php fpm
+COPY ./server/nginx/fpm-pool.conf /etc/php81/php-fpm.d/www.conf
+COPY ./server/nginx/php.ini /etc/php81/conf.d/custom.ini
+# Configure nginx
+COPY ./server/nginx/nginx.conf /etc/nginx/nginx.conf
+
+# copy nginx config
 COPY ./server/nginx/includes/ /etc/nginx/includes/
-#COPY ./ssl/ /etc/ssl/certs/nginx/
-COPY --from=0 /expoll/frontend_server/dist /www/data
+COPY ./server/nginx/default.conf /etc/nginx/conf.d/default.conf
+
+# Switch to use a non-root user from here on
+USER nobody
+
+COPY --from=0 --chown=nobody /expoll/frontend_server/dist /www/data
 
 EXPOSE 80
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
+
+# Configure a healthcheck to validate that everything is up&running
+HEALTHCHECK --timeout=10s CMD curl --silent --fail http://127.0.0.1:80/fpm-ping
