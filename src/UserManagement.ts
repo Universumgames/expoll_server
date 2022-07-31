@@ -1,6 +1,6 @@
 import { Request } from "express"
 import Database from "./database"
-import { Authenticator, Challenge, Poll, Session, User, Vote } from "./entities/entities"
+import { Authenticator, Challenge, DeleteConfirmation, Poll, Session, User, Vote } from "./entities/entities"
 import { config } from "./expoll_config"
 import getMailManager, { Mail } from "./MailManager"
 import getPollManager from "./PollManagement"
@@ -321,6 +321,12 @@ class UserManager {
         user.firstName = ""
         user.mail = user.id.toString() + "@deleteduser"
         user.username = "Deleted User " + user.id
+
+        // delete user deletion confirmation
+        const confirmations = await DeleteConfirmation.find({ where: { user: user } })
+        confirmations.forEach(async (confirmation) => {
+            await confirmation.remove()
+        })
 
         const sessions = await this.getSessions(userID)
         sessions.forEach(async (session) => {

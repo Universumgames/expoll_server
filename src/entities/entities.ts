@@ -5,6 +5,7 @@ import { PollUserNote } from "./note"
 import { Vote } from "./vote"
 import { Session } from "./session"
 import { User } from "./user"
+import { DeleteConfirmation } from "./confirmations"
 
 export {
     User,
@@ -17,5 +18,6 @@ export {
     PollOptionString,
     PollOption,
     Challenge,
-    Authenticator
+    Authenticator,
+    DeleteConfirmation
 }

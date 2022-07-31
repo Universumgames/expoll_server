@@ -4,7 +4,7 @@ import axios from "axios"
 import { checkLoggedIn } from "./routeHelper"
 import { addServerTimingsMetrics, cookieConfig, cookieName, getLoginKey } from "./../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
-import { Session, User } from "./../entities/entities"
+import { DeleteConfirmation, Session, User } from "./../entities/entities"
 import express, { NextFunction, Request, Response } from "express"
 import getUserManager from "../UserManagement"
 import { CreateUserRequest, CreateUserResponse } from "expoll-lib/requestInterfaces"
@@ -210,13 +210,64 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
         // @ts-ignore
         const user = req.user as User
 
-        const deleteRes = await getUserManager().deleteUser(user.id)
+        const conf = new DeleteConfirmation()
+        conf.user = user
+        conf.expiration = new Date()
+        conf.expiration.setHours(conf.expiration.getHours() + 1)
+        await conf.save()
+        getMailManager().sendMail({
+            from: config.mailUser,
+            to: user.mail,
+            subject: "Delete Account",
+            text:
+                "Please click on the following link to delete your account, " +
+                "the link is valid for an hour, once the link is opened, the action cannot be undone: \n" +
+                deleteUserConfirmURLBuilder(req, conf.id)
+        })
+        return res.status(ReturnCode.USER_EXISTS).json({ message: "Confirmation email sent" })
+    } catch (e) {
+        console.error(e)
+        res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
 
+const deleteUserConfirm = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const id = req.params.id
+
+        const conf = await DeleteConfirmation.findOne({ id: id }, { relations: ["user"] })
+        if (conf == undefined) return res.status(ReturnCode.BAD_REQUEST).end()
+        if (conf.expiration.getTime() < Date.now()) {
+            await conf.remove()
+            return res.status(ReturnCode.BAD_REQUEST).json({ message: "Confirmation expired" })
+        }
+
+        const deleteRes = await getUserManager().deleteUser(conf.user.id)
+
+        if (deleteRes == ReturnCode.OK) return res.status(deleteRes).send("User deleted").redirect("/")
         res.status(deleteRes).end()
     } catch (e) {
         console.error(e)
         res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
     }
+}
+
+/**
+ * Create url for deleting a user
+ * @param {Request} req express Request
+ * @param {String} confirmKey deletion key
+ * @return {String} the url the user has to click to confirm the deletion
+ */
+function deleteUserConfirmURLBuilder(req: Request, confirmKey: string) {
+    const port = req.app.settings.port || config.frontEndPort
+    return (
+        req.protocol +
+        "://" +
+        config.loginLinkURL +
+        (port == 80 || port == 443 ? "" : ":" + port) +
+        "/confirm/delete?id=" +
+        encodeURIComponent(confirmKey)
+    )
 }
 
 const getPersonalizedData = async (req: Request, res: Response, next: NextFunction) => {
@@ -338,6 +389,7 @@ userRoutes.post("/login", login)
 userRoutes.post("/logout", logout)
 userRoutes.post("/logoutAll", checkLoggedIn, logoutAll)
 userRoutes.delete("/", checkLoggedIn, deleteUser)
+userRoutes.get("/delete/:id/", deleteUserConfirm)
 userRoutes.delete("/session", checkLoggedIn, deleteSession)
 
 export default userRoutes
