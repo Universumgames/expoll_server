@@ -1,4 +1,4 @@
-import { Buffer } from "node:buffer"
+/* eslint-disable no-unused-vars */
 import { User } from "./user"
 import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, PrimaryColumn, ManyToOne } from "typeorm"
 import { base64URLStringToBuffer, bufferToBase64URLString } from "../helper"

@@ -3,6 +3,7 @@ import { Buffer } from "buffer"
 import { IUser } from "expoll-lib/interfaces"
 import { CookieOptions, Request } from "express"
 import { config } from "./expoll_config"
+import { MailRegexEntry } from "expoll-lib"
 
 export const cookieName = "expoll_dat"
 
@@ -138,4 +139,20 @@ export function base64URLStringToBuffer(base64URLString: string) {
         bytes[i] = binary.charCodeAt(i)
     }
     return buffer
+}
+
+/**
+ * Check if a mail is not banned
+ * @param {String} mail the mial adress to check
+ * @param {MailRegexEntry[]} regexRules not allowed mail adresss
+ * @return {boolean} returns true if mail is allowed, false otherwise
+ */
+export function mailIsAllowed(mail: string, regexRules: MailRegexEntry[]): boolean {
+    let res = true
+    for (const regex of regexRules) {
+        if ((mail.match(regex.regex) && regex.blacklist) || (!mail.match(regex.regex) && !regex.blacklist)) {
+            res = false
+        }
+    }
+    return res
 }

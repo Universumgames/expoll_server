@@ -22,7 +22,8 @@ export const config = {
     webauthn: {
         rpName: nodeconfig.get<string>("webauthn.rpName"), // Human-readable title for your website
         rpID: nodeconfig.get<string>("webauthn.rpID"), // A unique identifier for your website
-        origin: nodeconfig.get<string>("webauthn.origin") // The URL at which registrations and authentications should occur
+        origin: nodeconfig.get<string>("webauthn.origin")
+        // The URL at which registrations and authentications should occur
     }
 }
 

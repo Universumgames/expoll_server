@@ -5,6 +5,7 @@ import { PollUserNote } from "./note"
 import { Vote } from "./vote"
 import { Session } from "./session"
 import { User } from "./user"
+import { MailRegexRules } from "./mailrules"
 import { DeleteConfirmation } from "./confirmations"
 
 export {
@@ -19,5 +20,6 @@ export {
     PollOption,
     Challenge,
     Authenticator,
+    MailRegexRules,
     DeleteConfirmation
 }

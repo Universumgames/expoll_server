@@ -3,6 +3,7 @@ import { Session, User } from "../entities/entities"
 import { addServerTimingsMetrics, cookieName, getLoginKey, isAdmin } from "../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
 import getUserManager from "../UserManagement"
+
 export const checkLoggedIn = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const t1 = new Date()
@@ -12,17 +13,18 @@ export const checkLoggedIn = async (req: Request, res: Response, next: NextFunct
         // @ts-ignore
         req.loginKey = loginKey
         const userReq = getUserManager().getUser({ loginKey: loginKey })
-        const session = await Session.findOne({ where: { loginKey: loginKey } })
 
-        if (session && session.userAgent == undefined) {
-            session.userAgent = req.headers["user-agent"] ?? "unknown"
-            await session.save()
-        }
         const t3 = new Date()
         const user = await userReq
         const t4 = new Date()
         if (user == undefined) {
             return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized
+        }
+
+        const session = await Session.findOne({ where: { loginKey: loginKey } })
+        if (session && session.userAgent == undefined) {
+            session.userAgent = req.headers["user-agent"] ?? "unknown"
+            await session.save()
         }
 
         user.admin = getUserManager().userIsAdminOrSuperAdminSync(user)

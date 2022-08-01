@@ -2,9 +2,9 @@ import getMailManager, { Mail } from "./../MailManager"
 import { config } from "../expoll_config"
 import axios from "axios"
 import { checkLoggedIn } from "./routeHelper"
-import { addServerTimingsMetrics, cookieConfig, cookieName, getLoginKey } from "./../helper"
+import { addServerTimingsMetrics, cookieConfig, cookieName, getLoginKey, mailIsAllowed } from "./../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
-import { DeleteConfirmation, Session, User } from "./../entities/entities"
+import { DeleteConfirmation, MailRegexRules, Session, User } from "./../entities/entities"
 import express, { NextFunction, Request, Response } from "express"
 import getUserManager from "../UserManagement"
 import { CreateUserRequest, CreateUserResponse } from "expoll-lib/requestInterfaces"
@@ -66,6 +66,8 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
             (await getUserManager().checkUserExists({ username: username }))
         )
             return res.status(ReturnCode.USER_EXISTS).end()
+
+        if (mailIsAllowed(mail, await MailRegexRules.find())) return res.status(ReturnCode.NOT_ACCEPTABLE).end()
         // create user
         const user = new User()
         user.mail = mail

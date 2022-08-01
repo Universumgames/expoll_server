@@ -7,7 +7,7 @@ import getUserManager from "../UserManagement"
 import { checkAdmin, checkLoggedIn } from "./routeHelper"
 import { AdminPollListResponse, AdminUserListResponse, AdminEditUserRequest } from "expoll-lib/requestInterfaces"
 import { SimplePoll } from "expoll-lib/extraInterfaces"
-import { User } from "../entities/entities"
+import { MailRegexRules, User } from "./../entities/entities"
 import { isSuperAdmin, addServerTimingsMetrics } from "../helper"
 
 // eslint-disable-next-line new-cap
@@ -144,10 +144,47 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
+const mailRegexEdit = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const mailRegex = req.body.mailRegex as { regex: string; blacklist: boolean }[]
+        if (mailRegex == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
+
+        // clear old mail regex
+        await MailRegexRules.clear()
+        // save new mail regex
+        for (const regex of mailRegex) {
+            const mailRegexEntity = new MailRegexRules()
+            mailRegexEntity.regex = regex.regex
+            mailRegexEntity.blacklist = regex.blacklist
+            await mailRegexEntity.save()
+        }
+
+        res.status(ReturnCode.OK).end()
+    } catch (e) {
+        console.error(e)
+        res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
+const mailRegexList = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const mailRegex = await MailRegexRules.find()
+
+        return res.status(ReturnCode.OK).json({
+            regex: mailRegex
+        })
+    } catch (e) {
+        console.error(e)
+        res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
 authorizedAdminRoutes.get("/users", getUsers)
 authorizedAdminRoutes.put("/users", editUser)
 authorizedAdminRoutes.get("/polls", getPolls)
 authorizedAdminRoutes.delete("/user", deleteUser)
+authorizedAdminRoutes.post("/mailregex", mailRegexEdit)
+authorizedAdminRoutes.get("/mailregex", mailRegexList)
 
 // eslint-disable-next-line new-cap
 const adminRoutes = express.Router()

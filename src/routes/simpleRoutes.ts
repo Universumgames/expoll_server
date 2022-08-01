@@ -1,3 +1,4 @@
+import { MailRegexRules } from "../entities/entities"
 import { ReturnCode } from "expoll-lib"
 import express, { NextFunction, Request, Response } from "express"
 import getPollManager from "../PollManagement"
@@ -22,6 +23,20 @@ const pollname = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
+const mailRegexList = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const mailRegex = await MailRegexRules.find()
+
+        return res.status(ReturnCode.OK).json({
+            regex: mailRegex
+        })
+    } catch (e) {
+        console.error(e)
+        res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
 simpleRoutes.get("/poll/:pollid/title", pollname)
+simpleRoutes.get("/mailregex", mailRegexList)
 
 export default simpleRoutes
