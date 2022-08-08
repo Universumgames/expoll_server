@@ -304,16 +304,19 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
 
         const body = req.body as EditPollRequest
 
+        // invite
+        if (body.inviteLink != undefined) {
+            const inviteLink = body.inviteLink as string
+            const poll = await getPollManager().getPoll(inviteLink)
+            if (!poll?.allowsEditing) return res.status(ReturnCode.CHANGE_NOT_ALLOWED).end()
+            return res.status(await getUserManager().addPoll(user.mail, inviteLink)).end()
+        }
+
         const pollID = body.pollID as string
         if (pollID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const poll = await getPollManager().getPoll(pollID)
 
-        // invite
-        if (body.inviteLink != undefined) {
-            const inviteLink = body.inviteLink as string
-            if (!poll?.allowsEditing) return res.status(ReturnCode.CHANGE_NOT_ALLOWED).end()
-            return res.status(await getUserManager().addPoll(user.mail, inviteLink)).end()
-        } else if (body.leave != undefined && body.leave) {
+        if (body.leave != undefined && body.leave) {
             // leave
             if (!poll?.allowsEditing) return res.status(ReturnCode.CHANGE_NOT_ALLOWED).end()
             return res.status(await getUserManager().removeFromPoll(user.id, pollID)).end()

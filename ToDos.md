@@ -21,21 +21,21 @@
             -   [x] edit description
     -   [x] Vote
         -   [x] create vote
-    -   [ ] Administration
+    -   [x] Administration
 
 ## Implementation
 
--   [ ] User
+-   [x] User
     -   [x] Create user
-    -   [ ] Edit user
-    -   [ ] Polls
+    -   [x] Edit user
+    -   [x] Polls
         -   [x] Retrieve Existing Polls
         -   [x] Retrieve detailed Poll data
         -   [x] Create Poll
-        -   [ ] Edit Poll
-            -   [ ] add/remove user access
+        -   [x] Edit Poll
+            -   [x] add/remove user access
             -   [x] add/remove options
             -   [x] edit description
-    -   [ ] Vote
+    -   [x] Vote
         -   [x] create vote
-    -   [ ] Administration
+    -   [x] Administration

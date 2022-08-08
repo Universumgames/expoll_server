@@ -117,7 +117,8 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                 userCount: userCount,
                 lastUpdated: poll.updated,
                 type: poll.type as number,
-                pollID: poll.id
+                pollID: poll.id,
+                editable: poll.allowsEditing
             }
             polls.push(pollAdd)
         }

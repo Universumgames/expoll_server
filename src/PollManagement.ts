@@ -317,8 +317,9 @@ class PollManager {
             userCount: (await userCountReq).length,
             lastUpdated: poll.updated,
             type: poll.type as number,
-            pollID: poll.id
-        } as SimplePoll
+            pollID: poll.id,
+            editable: poll.allowsEditing
+        }
     }
 }
 

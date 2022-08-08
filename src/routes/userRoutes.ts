@@ -67,7 +67,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
         )
             return res.status(ReturnCode.USER_EXISTS).end()
 
-        if (mailIsAllowed(mail, await MailRegexRules.find())) return res.status(ReturnCode.NOT_ACCEPTABLE).end()
+        if (!mailIsAllowed(mail, await MailRegexRules.find())) return res.status(ReturnCode.NOT_ACCEPTABLE).end()
         // create user
         const user = new User()
         user.mail = mail
