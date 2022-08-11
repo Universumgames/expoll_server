@@ -35,7 +35,7 @@
 
 ## Endpoint overview
 
-Configured on our server, the API is accessible via the `/api` Endpoint, but the backend itself, without any proxy configuration (like nginx) is accessible via the `/` Endpoint.
+Configured on our server, the API is accessible via the `/api` Endpoint, but the backend itself, without any proxy configuration (like nginx) is accessible via the `/` (root) directory.
 
 | Endpoint      | Summary                                                                                                                   |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------- |
@@ -245,10 +245,10 @@ Detailed request list:
     -   required JSON fields: none (besides `loginKey` when not sent as cookie)
     -   returns 401 (Unauthorized) if loginKey is invalid
     -   returns (JSON)
-        -   `polls`: List of Poll overviews
+        -   `polls`: List of Poll overviews (SimplePoll[])
             -   `pollID` (String) unique id
             -   `name` (string)
-            -   `admin` the poll creator
+            -   `admin` the poll creator (SimpleUser)
                 -   `firstName` (String)
                 -   `lastName` (String)
                 -   `username` (String)
@@ -257,6 +257,7 @@ Detailed request list:
             -   `userCount` (Int) number users voted on this poll
             -   `lastUpdated` (DateTime (specifics not defined yet))
             -   `type` (0: String, 1: Date, 2: DateTime)
+            -   `editable` (boolean) indicates wether the poll can be edited or is archived by the admin
 -   Retrieve detailed information
     -   required JSON fields:
         -   `pollID` the poll id (may be in query string)
@@ -265,10 +266,11 @@ Detailed request list:
     -   returns (JSON)
         -   `pollID` (String) unique id
         -   `name`(string)
-        -   `admin` the poll creator
+        -   `admin` the poll creator (SimpleUser)
             -   `firstName` (String)
             -   `lastName` (String)
             -   `username` (String)
+            -   `id` (string)
         -   `description` (String)
         -   `maxPerUserVoteCount` (Non decimal number) - the number of options each user choose simultaneously (-1 is infinity)
         -   `userCount` (Int) number users voted on this poll
@@ -278,20 +280,28 @@ Detailed request list:
         -   `options`: List of options
             -   `optionID` (Int)
             -   `value` (String) when type is String
-            -   `dateStart`(Date) when type is Date
+            -   `dateStart`(Date | null) when type is Date
             -   `dateEnd`(Date | null) when type is Date
-            -   `dateTimeStart` (DateTime) when type is Datetime
-            -   `dateTimeEnd` (DateTime) when type is Datetime
-        -   List of votes
-            -   `optionID` (Int) the id of the option from the selectables from the poll
-            -   `votedFor` (boolean) wether or not the user agrees or disagrees
-            -   `userID`
-        -   List of participating users
-            -   `firstName`(String)
-            -   `lastName` (String)
-            -   `username` (String)
-            -   `id` (string)
-            -   `admin`(boolean) if user is any kind of admin
+            -   `dateTimeStart` (DateTime | null) when type is Datetime
+            -   `dateTimeEnd` (DateTime | null) when type is Datetime
+        -   `userVotes` List of votes by participating users (SimpleUserVotes[])
+            -   `user` (SimpleUser)
+                -   `firstName` (String)
+                -   `lastName` (String)
+                -   `username` (String)
+                -   `id` (string)
+            -   `votes` The votes from the user (SimpleVote[])
+                -   `optionID` (int) the option the user has a vote for
+                -   `votedFor` (no: 0, yes: 1, maybe: 2) the vote, if maybe is not allowed, the server automatically converts old values of "maybe" (2) into yes' (1)
+        -   `userNotes`List of notes for the users by poll admin (SimpleUserNote[])
+            -   `user` (SimpleUser)
+                -   `firstName` (String)
+                -   `lastName` (String)
+                -   `username` (String)
+                -   `id` (string)
+            -   `note` (String) the note or synonym by the admin for the specified user in that poll
+        -   `allowsMaybe` (boolean) wether "maybe" is allowed as voting option
+        -   `allowsEditing` (boolean) wether the poll can be edited or is archived by the admin
 
 ### Create a Poll
 
@@ -305,7 +315,7 @@ Detailed request list:
     -   `name` (String)
     -   `maxPerUserVoteCount` (Non decimal number) - the number of options each user choose simultaneously (-1 is infinity)
     -   `description` (String)
-    -   `type` (0: String, 1: Date, 2: DateTime)
+    -   `type` (0: String, 1: Date, 2: DateTime) (this field cannot be changed later)
     -   `options` Array of following type (must correlate to set value above):
         -   in case of type String
             -   `value`(String)
@@ -315,6 +325,8 @@ Detailed request list:
         -   in case of DateTime
             -   `dateTimeStart` (DateTime)
             -   `dateTimeEnd`(DateTime) value can be null or not set
+    -   `allowsMaybe` (boolean) wether or not "maybe" is allowed as a voting option
+    -   `allowsEditing` (boolean) wether or not the poll should be archived immediately after creation (default true)
 -   returns (JSON)
     -   `pollID` the polls uuid
 -   return 400 if parameters are missing
@@ -345,6 +357,7 @@ Detailed request list:
         -   `optionID` the optionID (if removing an option)
         -   and the new value (see the needed parameters from the options array at [Creating a poll](#create-a-poll))
     -   `delete` (boolean) this is to delete the poll irreversibly (!!!!!!!!!!!)
+    -   TODO update missing fields (allowsEditing, allowsMaybe, notes)
 -   returns (HTTP Codes)
     -   `200` Changes accepted
     -   `400` Poll not found
@@ -367,7 +380,7 @@ Detailed request list:
 -   required JSON fields:
     -   `pollID` (String) the poll this vote is directed to
     -   `optionID` (Int) the id of the option from the selectables from the poll
-    -   `votedFor` (boolean) wether or not the user agrees or disagrees
+    -   `votedFor` (no: 0, yes: 1, maybe: 2) wether or not the user agrees or disagrees
     -   `userID` (string) if an (poll)admin wants to alter a vote the modified user must be passed, if the user is not an (poll)admin this parameter will be ignored
 -   returns (HTTP codes)
     -   `200` Vote was accepted
