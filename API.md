@@ -1,19 +1,52 @@
 # API - Documentation
 
+- [API - Documentation](#api---documentation)
+  - [Endpoint overview](#endpoint-overview)
+  - [Config files](#config-files)
+  - [Detailed information about object structure](#detailed-information-about-object-structure)
+  - [Return code overview](#return-code-overview)
+  - [Login Method](#login-method)
+  - [User-Endpoints](#user-endpoints)
+    - [Create a user](#create-a-user)
+    - [Get user data](#get-user-data)
+    - [Trigger user deletion](#trigger-user-deletion)
+    - [Deletion confirmation](#deletion-confirmation)
+    - [Logout Session](#logout-session)
+    - [Personalized data](#personalized-data)
+    - [Login](#login)
+    - [Logout](#logout)
+    - [Logout All](#logout-all)
+    - [Edit User settings](#edit-user-settings)
+    - [Deactivate user](#deactivate-user)
+  - [Poll-Endpoints](#poll-endpoints)
+    - [Retrieve polls](#retrieve-polls)
+    - [Create a Poll](#create-a-poll)
+    - [Edit a poll](#edit-a-poll)
+  - [Vote Endpoints](#vote-endpoints)
+    - [Vote or replace previous one](#vote-or-replace-previous-one)
+  - [Administration Endpoints](#administration-endpoints)
+    - [Retrieve User List](#retrieve-user-list)
+    - [Edit user](#edit-user)
+    - [Retrieve Poll list](#retrieve-poll-list)
+  - [WebAuthn Endpoints](#webauthn-endpoints)
+  - [Test endpoint](#test-endpoint)
+  - [Meta Info](#meta-info)
+  - [Server Info](#server-info)
+
 ## Endpoint overview
 
 Configured on our server, the API is accessible via the `/api` Endpoint, but the backend itself, without any proxy configuration (like nginx) is accessible via the `/` Endpoint.
 
-| Endpoint      | Summary                                                                                                     |
-| ------------- | ----------------------------------------------------------------------------------------------------------- |
-| `/user`       | [User Endpoints](#user-endpoints) - Register, Login and manage currently logged in user                     |
-| `/poll`       | [Poll Endpoints](#poll-endpoints) - Create, edit and manage polls                                           |
-| `/vote`       | [Vote Endpoints](#vote-endpoints) - Create and edit votes                                                   |
-| `/admin`      | [Admin Endpoints](#administration-endpoints) - Manage users and polls                                       |
-| `/webauthn`   | [WebAuthn Endpoints](#webauthn-endpoints) - Create and manage webauthn credentials                          |
-| `/test`       | Test Endpoint, for checking that server is running                                                          |
-| `/metaInfo`   | Meta Information Endpoint, review your Reverse Proxy Settings to see, what HTTP Headers the server receives |
-| `/serverInfo` | Retrieve basic server information (like backend version, port, base link, login mail sender)                |
+| Endpoint      | Summary                                                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `/user`       | [User Endpoints](#user-endpoints) - Register, Login and manage currently logged in user                                   |
+| `/poll`       | [Poll Endpoints](#poll-endpoints) - Create, edit and manage polls                                                         |
+| `/vote`       | [Vote Endpoints](#vote-endpoints) - Create and edit votes                                                                 |
+| `/admin`      | [Admin Endpoints](#administration-endpoints) - Manage users and polls                                                     |
+| `/webauthn`   | [WebAuthn Endpoints](#webauthn-endpoints) - Create and manage webauthn credentials                                        |
+| `/test`       | [Test Endpoint](#test-endpoint) Test Endpoint, for checking that server is running                                        |
+| `/metaInfo`   | [Meta Information](#meta-info) Endpoint, review your Reverse Proxy Settings to see, what HTTP Headers the server receives |
+| `/serverInfo` | [Server Info](#server-info) Retrieve basic server information (like backend version, port, base link, login mail sender)  |
 
 ## Config files
 
@@ -79,7 +112,7 @@ Detailed request list:
 
 -   Path `/user/login`
 -   HTTP Method `POST`
--   required fields (JSON)
+-   required fields (JSON) (or)
     -   `mail` (string) the users mail address if a login-mail/loginKey is needed
     -   `loginKey` (string) the received loginKey
 -   returns
@@ -89,11 +122,17 @@ Detailed request list:
 
 ## User-Endpoints
 
-| Endpoint      | HTTP Method | Summary                                                           |
-| ------------- | ----------- | ----------------------------------------------------------------- |
-| `/user`       | POST        | [Request info](#create-a-user) - Create a new user                |
-| `/user`       | GET         | [Request info](#get-user-data) - Get user info                    |
-| `/user/login` | POST        | [Request info](#login-a-user) - Basic login via mail verification |
+| Endpoint                 | HTTP Method | Summary                                                               |
+| ------------------------ | ----------- | --------------------------------------------------------------------- |
+| `/user`                  | POST        | [Request info](#create-a-user) - Create a new user                    |
+| `/user`                  | GET         | [Request info](#get-user-data) - Get user info                        |
+| `/user`                  | DELETE      | [Request info](#trigger-deletion) - Trigger the user deletion process |
+| `/user/delete/:id`       | GET         | [Request info](#deletion-confirmation) - Deletion confirmation        |
+| `/user/session`          | DELETE      | [Request info](#logout-session) - Logout specific session             |
+| `/user/login`            | POST        | [Request info](#login-a-user) - Basic login via mail verification     |
+| `/user/logout`           | POST        | [Request info](#logout-the-user) - Logout the current session         |
+| `/user/logoutAll`        | POST        | [Request info](#logout-alls) - Logout all sessions                    |
+| `/user/personalizeddata` | GET         | [Request info](#personalized-data) - Get personalized data            |
 
 ### Create a user
 
@@ -134,6 +173,22 @@ Detailed request list:
     -   `active` (boolean) (indicates wether the account has been deactivated, see [Deactivate user](#deactivate-user))
     -   `admin`(most presumably false)
 
+### Trigger user deletion
+
+TODO add trigger user deletion
+
+### Deletion confirmation
+
+TODO add deletion confirmation
+
+### Logout Session
+
+TODO add logout specific session
+
+### Personalized data
+
+TODO add get personalized data
+
 ### Login
 
 Endpoint to either request a login mail or to retrieve a cookie with the loginKey provided.
@@ -149,6 +204,14 @@ Detailed request list:
     -   An EMail will be sent to the user (if he is registered)
 -   returns (loginKey provided):
     -   a cookie
+
+### Logout
+
+TODO add logout
+
+### Logout All
+
+TODO add logout all sessions
 
 ### Edit User settings
 
@@ -375,3 +438,46 @@ Detailed request list:
     -   See [Retrieve Poll overview](#retrieve-polls)
 
 ## WebAuthn Endpoints
+
+TODO add webauth endpoints
+
+## Test endpoint
+
+When backend is running, this endpoint returns a 200 OK with the message "Test Successful".
+
+-   Path `/test`
+-   HTTP Method `GET`
+-   required JSON fields: none
+-   returns JSON: `message` (string) "Test Successful"
+
+## Meta Info
+
+Returns meta information about the request, it's purpose is to test the proxy settings.
+
+-   Path `/metaInfo`
+-   HTTP Method `GET`
+-   returns JSON: request data
+
+## Server Info
+
+Returns backend server information. Partially the configuration of the server is returned.
+
+-   Path `/serverInfo`
+-   HTTP Method `GET`
+-   required JSON fields: none
+-   returns JSON:
+    -   `version` (string) the version of the backend server
+    -   `serverPort` (int) the port the backend is running on (the proxy should redirect to)
+    -   `frontendPort` (int) the port the frontend is running on (for login mail sending)
+    -   `loginLinkBase` (string) the base of the login link
+    -   `mailSender` (string) the mail address the mails are sent from
+-   example response:
+    ```json
+    {
+        "version": "2.4.0",
+        "serverPort": 6060,
+        "frontendPort": 80,
+        "loginLinkBase": "expoll.mt32.net",
+        "mailSender": "no-reply@universegame.de"
+    }
+    ```
