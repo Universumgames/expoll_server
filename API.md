@@ -12,10 +12,10 @@
     - [Trigger user deletion](#trigger-user-deletion)
     - [Deletion confirmation](#deletion-confirmation)
     - [Logout Session](#logout-session)
-    - [Personalized data](#personalized-data)
     - [Login](#login)
     - [Logout](#logout)
     - [Logout All](#logout-all)
+    - [Personalized data](#personalized-data)
     - [Edit User settings](#edit-user-settings)
     - [Deactivate user](#deactivate-user)
   - [Poll-Endpoints](#poll-endpoints)
@@ -165,7 +165,7 @@ Detailed request list:
 -   HTTP Method `GET`
 -   required data: loginKey (cookie or request body)
 -   returns (JSON):
-    -   `id` (Int)
+    -   `id` (string)
     -   `username` (String)
     -   `firstName` (String)
     -   `lastName` (String)
@@ -184,10 +184,6 @@ TODO add deletion confirmation
 ### Logout Session
 
 TODO add logout specific session
-
-### Personalized data
-
-TODO add get personalized data
 
 ### Login
 
@@ -213,6 +209,10 @@ TODO add logout
 
 TODO add logout all sessions
 
+### Personalized data
+
+TODO add get personalized data
+
 ### Edit User settings
 
 <small>Not going to be implemented in first version</small>
@@ -235,6 +235,8 @@ To retrieve all polls the user has access to or to retrieve data from a specific
 When passing no additional data, only essential information is passed, like the name, admin information, number of participants, last updated and the description.
 When retrieving a single poll by passing the poll ID all information about the poll is retrieved. The information passed, additional to "basic" information (sent when passing no data), are the available options to select from, all Votes the User made and all Votes by the other users. [Information about voting](#vote-endpoints)
 
+TODO update return fields
+
 Detailed request list:
 
 -   Path `/poll`
@@ -250,7 +252,7 @@ Detailed request list:
                 -   `firstName` (String)
                 -   `lastName` (String)
                 -   `username` (String)
-                -   `id` (number)
+                -   `id` (string)
             -   `description` (String)
             -   `userCount` (Int) number users voted on this poll
             -   `lastUpdated` (DateTime (specifics not defined yet))
@@ -288,7 +290,7 @@ Detailed request list:
             -   `firstName`(String)
             -   `lastName` (String)
             -   `username` (String)
-            -   `id` (String)
+            -   `id` (string)
             -   `admin`(boolean) if user is any kind of admin
 
 ### Create a Poll
@@ -380,6 +382,9 @@ All Routes beginning with `/admin` can only be performed as an admin. Either by 
 | `/admin/users` | GET  | [Request info](#retrieve-user-list) - Get all users |
 | `/admin/users` | POST | [Request info](#edit-user) - Edit and delete users  |
 | `/admin/polls` | GET  | [Request info](#retrieve-poll-list) - Get all polls |
+
+TODO add user deletion
+TODO add mail regex settings
 
 ### Retrieve User List
 
