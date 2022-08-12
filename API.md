@@ -175,15 +175,38 @@ Detailed request list:
 
 ### Trigger user deletion
 
-TODO add trigger user deletion
+Wanting to delete your user account, you first need this HTTP Endpoint, an confirmation E-Mail is sent and with a php script in the frontend repository, a request is sent to the [confirmation](#deletion-confirmation)
+
+-   Path `/user`
+-   HTTP Method `DELETE`
+-   required data: loginKey (cookie or request body)
+-   returns (JSON):
+    -   message: "Confirmation email sent"
+-   returns via mail verification: confirm link
 
 ### Deletion confirmation
 
-TODO add deletion confirmation
+Endpoint to confirm the deletion of the current user account
+
+-   Path `/user/delete/:id`
+-   HTTP Method `DELETE`
+-   required data: id (confirmation id from mail)
+-   returns (Text):
+    -   User deleted
 
 ### Logout Session
 
-TODO add logout specific session
+Logout the a given session with prefix of loginkey (retrieved from [Personalized Data](#personalized-data))
+
+-   Path `/user/session`
+-   HTTP Method `DELETE`
+-   required data:
+    -   loginKey (cookie or request body)
+    -   `shortKey` in request body - the beginning of the to-be-deleted loginkey/session
+-   returns (HTTP Codes)
+    -   200: Success
+    -   400: ShortKey missing
+    -   401: loginkey or shortkey invalid
 
 ### Login
 
@@ -203,23 +226,56 @@ Detailed request list:
 
 ### Logout
 
-TODO add logout
+Logout the current session
+
+-   Path `/user/logout`
+-   HTTP Method `POST`
+-   required data: loginKey (cookie or request body)
+-   returns an empty cookie and HTTP Status 200
 
 ### Logout All
 
-TODO add logout all sessions
+Delete all sessions rom current user
+
+-   Path `/user/logoutAll`
+-   HTTP Method `POST`
+-   required data: loginKey (cookie or request body)
+-   returns an empty cookie and HTTP Status 200
 
 ### Personalized data
 
-TODO add get personalized data
+Get all data stored on current user (to comply with certain laws in the EU)
+
+-   Path `/user/personalizeddata`
+-   HTTP Method `GET`
+-   required data: loginKey (cookie or request body)
+-   returns (JSON)
+    -   `id` (string) user id
+    -   `username` (string) username
+    -   `firstName` (string) the first name provided at registration
+    -   `lastName` (string) last name
+    -   `mail` (string) mail address used for login mails and deletion confirmation
+    -   `admin` (boolean) user is admin or system (super) admin
+    -   `superAdmin` (boolean) user is system (super) admin
+    -   `authenticators` (Authenticator[]) list of webauthn authenticators
+        -   TODO missing authenticator fields
+    -   `polls` (SimplePoll[])
+    -   `sessions` (Session[]) list of all active sessions
+        -   `expiration` (DateTime) time the login kez expires
+        -   `userAgent` (String) the first user agent the login key was used with
+        -   `shortKey` (String) the first 4 characters of the session loginkey (used for [deleting sessions](#logout-session))
+    -   `votes` (Vote[]) list of all votes
+        -   `id` (int) poll id for the vote
+        -   `optionID` (int) the option the vote is for
+        -   `votedFor` (int) the vote choice
 
 ### Edit User settings
 
-<small>Not going to be implemented in first version</small>
+<small>Not going to be implemented in first versions</small>
 
 ### Deactivate user
 
-<small>Not going to be implemented in first version</small>
+<small>Not going to be implemented in first versions</small>
 
 ## Poll-Endpoints
 
