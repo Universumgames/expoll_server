@@ -6,7 +6,7 @@ Expoll is a simple, easy to use polling service. Combined with the frontend writ
 
 -   simple passwordless login via username and EMail verification
 -   simple login via webauthn (WebAuthn is a standard for biometrical authentication)
--   simple, easy to use [API](API.md)
+-   simple, easy to use [API and Config](API/API_main.md)
 -   user management
 
 ## installation
