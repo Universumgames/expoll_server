@@ -7,9 +7,6 @@
 | `/user`                  | DELETE      | [Request info](#trigger-deletion) - Trigger the user deletion process |
 | `/user/delete/:id`       | GET         | [Request info](#deletion-confirmation) - Deletion confirmation        |
 | `/user/session`          | DELETE      | [Request info](#logout-session) - Logout specific session             |
-| `/user/login`            | POST        | [Request info](#login-a-user) - Basic login via mail verification     |
-| `/user/logout`           | POST        | [Request info](#logout-the-user) - Logout the current session         |
-| `/user/logoutAll`        | POST        | [Request info](#logout-alls) - Logout all sessions                    |
 | `/user/personalizeddata` | GET         | [Request info](#personalized-data) - Get personalized data            |
 
 ## Create a user
@@ -71,54 +68,6 @@ Endpoint to confirm the deletion of the current user account
 -   required data: id (confirmation id from mail)
 -   returns (Text):
     -   User deleted
-
-## Logout Session
-
-Logout the a given session with prefix of loginkey (retrieved from [Personalized Data](#personalized-data))
-
--   Path `/user/session`
--   HTTP Method `DELETE`
--   required data:
-    -   loginKey (cookie or request body)
-    -   `shortKey` in request body - the beginning of the to-be-deleted loginkey/session
--   returns (HTTP Codes)
-    -   200: Success
-    -   400: ShortKey missing
-    -   401: loginkey or shortkey invalid
-
-## Login
-
-Endpoint to either request a login mail or to retrieve a cookie with the loginKey provided.
-This endpoint is designed for webclients wanting to send the loginkey in the future over a cookie. The cookie will be provided over this endpoint.
-
-Detailed request list:
-
--   Path `/user/login`
--   HTTP Method `POST`
--   optional data (JSON body): `loginKey` if already recieved
--   returns (not key provided):
-    -   200 (OK)
-    -   An EMail will be sent to the user (if he is registered)
--   returns (loginKey provided):
-    -   a cookie
-
-## Logout
-
-Logout the current session
-
--   Path `/user/logout`
--   HTTP Method `POST`
--   required data: loginKey (cookie or request body)
--   returns an empty cookie and HTTP Status 200
-
-## Logout All
-
-Delete all sessions rom current user
-
--   Path `/user/logoutAll`
--   HTTP Method `POST`
--   required data: loginKey (cookie or request body)
--   returns an empty cookie and HTTP Status 200
 
 ## Personalized data
 

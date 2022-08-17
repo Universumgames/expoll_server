@@ -10,7 +10,7 @@ Configured on our server, the API is accessible via the `/api` Endpoint, but the
 | `/poll`       | [Poll Endpoints](./Poll_API.md) - Create, edit and manage polls                                                           |
 | `/vote`       | [Vote Endpoints](./Voting_API.md) - Create and edit votes                                                                 |
 | `/admin`      | [Admin Endpoints](./Admin_API.md) - Manage users and polls                                                                |
-| `/webauthn`   | [WebAuthn Endpoints](./Authentication_API.md) - Create and manage webauthn credentials                                    |
+| `/auth`       | [Authentication Endpoints](./Authentication_API.md) - Create and manage webauthn credentials                              |
 | `/test`       | [Test Endpoint](#test-endpoint) Test Endpoint, for checking that server is running                                        |
 | `/metaInfo`   | [Meta Information](#meta-info) Endpoint, review your Reverse Proxy Settings to see, what HTTP Headers the server receives |
 | `/serverInfo` | [Server Info](#server-info) Retrieve basic server information (like backend version, port, base link, login mail sender)  |

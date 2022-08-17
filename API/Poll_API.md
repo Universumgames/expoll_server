@@ -12,8 +12,6 @@ To retrieve all polls the user has access to or to retrieve data from a specific
 When passing no additional data, only essential information is passed, like the name, admin information, number of participants, last updated and the description.
 When retrieving a single poll by passing the poll ID all information about the poll is retrieved. The information passed, additional to "basic" information (sent when passing no data), are the available options to select from, all Votes the User made and all Votes by the other users. [Information about voting](#vote-endpoints)
 
-TODO update return fields
-
 Detailed request list:
 
 -   Path `/poll`
@@ -79,6 +77,7 @@ Detailed request list:
             -   `note` (String) the note or synonym by the admin for the specified user in that poll
         -   `allowsMaybe` (boolean) wether "maybe" is allowed as voting option
         -   `allowsEditing` (boolean) wether the poll can be edited or is archived by the admin
+        -   `shareURL` (String) the url to share the poll with others
 
 ## Create a Poll
 
