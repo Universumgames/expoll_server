@@ -1,4 +1,4 @@
-import { addServerTimingsMetrics } from "../helper"
+import { addServerTimingsMetrics, generateShareURL } from "../helper"
 import { ComplexOption, SimpleUserNote } from "expoll-lib/extraInterfaces"
 import { config } from "../expoll_config"
 import { ReturnCode, tDate, tDateTime, tOptionId, tPollID, tUserID } from "expoll-lib/interfaces"
@@ -65,6 +65,8 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
             // sort by updated
             polls = polls.sort((ele2, ele1) => ele1.lastUpdated.getTime() - ele2.lastUpdated.getTime())
             const t4 = new Date()
+
+            const data: PollOverview = { polls: polls }
             return res
                 .set(
                     "Server-Timing",
@@ -76,7 +78,7 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                     )
                 )
                 .status(ReturnCode.OK)
-                .json({ polls: polls } as PollOverview)
+                .json(data)
         } else {
             const t1 = new Date()
             const pollID = (body.pollID! as tPollID) ?? (req.query.pollID as tPollID)
@@ -190,7 +192,8 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                 userVotes: votes,
                 allowsMaybe: poll.allowsMaybe,
                 userNotes: easyNotes,
-                allowsEditing: poll.allowsEditing
+                allowsEditing: poll.allowsEditing,
+                shareURL: generateShareURL(pollID)
             }
 
             metrics = addServerTimingsMetrics(metrics, "getPoll", "Retrieve Poll Details", t2.getTime() - t1.getTime())

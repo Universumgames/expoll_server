@@ -1,8 +1,8 @@
 import { ReturnCode } from "expoll-lib/interfaces"
-import { config } from "./../expoll_config"
-import { Authenticator } from "./../entities/webauth"
-import { User } from "../entities/user"
-import { checkLoggedIn } from "./routeHelper"
+import { config } from "../../expoll_config"
+import { Authenticator } from "../../entities/webauth"
+import { User } from "../../entities/user"
+import { checkLoggedIn } from "../routeHelper"
 import express, { NextFunction, Request, Response } from "express"
 import {
     generateAuthenticationOptions,
@@ -11,8 +11,8 @@ import {
     verifyRegistrationResponse
 } from "@simplewebauthn/server"
 import { AuthenticatorTransportFuture } from "@simplewebauthn/typescript-types"
-import { cookieConfig, cookieName, getUserRequest, toBuffer } from "../helper"
-import getUserManager from "../UserManagement"
+import { cookieConfig, cookieName, getUserRequest, toBuffer } from "../../helper"
+import getUserManager from "../../UserManagement"
 import { CreateUserResponse } from "expoll-lib"
 
 // eslint-disable-next-line new-cap

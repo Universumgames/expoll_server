@@ -1,6 +1,6 @@
 import { Session } from "entities/session"
 import { Buffer } from "buffer"
-import { IUser } from "expoll-lib/interfaces"
+import { IUser, tPollID } from "expoll-lib/interfaces"
 import { CookieOptions, Request } from "express"
 import { config } from "./expoll_config"
 import { MailRegexEntry } from "expoll-lib"
@@ -155,4 +155,13 @@ export function mailIsAllowed(mail: string, regexRules: MailRegexEntry[]): boole
         }
     }
     return res
+}
+
+/**
+ * generates a url the user can click on to join the poll
+ * @param {tPollID} pollID the pollid to share
+ * @return {string} the url to share the poll
+ */
+export function generateShareURL(pollID: tPollID): string {
+    return config.shareURLPrefix + pollID
 }

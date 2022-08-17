@@ -2,9 +2,9 @@ import getMailManager, { Mail } from "./../MailManager"
 import { config } from "../expoll_config"
 import axios from "axios"
 import { checkLoggedIn } from "./routeHelper"
-import { addServerTimingsMetrics, cookieConfig, cookieName, getLoginKey, mailIsAllowed } from "./../helper"
+import { addServerTimingsMetrics, cookieConfig, cookieName, mailIsAllowed } from "./../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
-import { DeleteConfirmation, MailRegexRules, Session, User } from "./../entities/entities"
+import { DeleteConfirmation, MailRegexRules, User } from "./../entities/entities"
 import express, { NextFunction, Request, Response } from "express"
 import getUserManager from "../UserManagement"
 import { CreateUserRequest, CreateUserResponse } from "expoll-lib/requestInterfaces"
@@ -180,33 +180,6 @@ const getUserData = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-const login = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        // @ts-ignore
-        const loginKey = getLoginKey(req)
-        if (loginKey == undefined) {
-            return res.status(await getUserManager().sendLoginMail(req.body.mail, req)).end()
-        }
-        const user = await getUserManager().getUser({ loginKey: loginKey })
-        if (user == undefined) {
-            return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized
-        }
-        const data = {
-            loginKey: loginKey
-        }
-        const session = await getUserManager().getSession(loginKey)
-        if (session == undefined || !session.isValid()) return res.status(ReturnCode.INVALID_LOGIN_KEY).end()
-        return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(session!)).json(user)
-    } catch (e) {
-        console.error(e)
-        res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
-    }
-}
-
-const logout = async (req: Request, res: Response, next: NextFunction) => {
-    return res.status(ReturnCode.OK).cookie(cookieName, "", { httpOnly: true, sameSite: "strict" }).end()
-}
-
 const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // @ts-ignore
@@ -348,50 +321,9 @@ const getPersonalizedData = async (req: Request, res: Response, next: NextFuncti
     }
 }
 
-const logoutAll = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        // @ts-ignore
-        const user = req.user as User
-
-        // const sessions = await getUserManager().getSessions(user.id)
-        await Session.delete({ user: user })
-        res.status(ReturnCode.OK).cookie(cookieName, "", { httpOnly: true, sameSite: "strict" }).end()
-    } catch (e) {
-        console.error(e)
-        res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
-    }
-}
-
-const deleteSession = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        // @ts-ignore
-        const user = req.user as User
-
-        const shortKey = req.body.shortKey as string
-        if (!shortKey) return res.status(ReturnCode.MISSING_PARAMS).end()
-
-        const sessions = await Session.find({ where: { user: user } })
-
-        const session = await sessions.find((session) => session.loginKey.startsWith(shortKey))
-
-        if (session) {
-            await session.remove()
-            res.status(ReturnCode.OK).end()
-        } else res.status(ReturnCode.INVALID_LOGIN_KEY).end()
-    } catch (e) {
-        console.error(e)
-        res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
-    }
-}
-
 userRoutes.post("/", createUser)
 userRoutes.get("/", checkLoggedIn, getUserData)
 userRoutes.get("/personalizeddata", checkLoggedIn, getPersonalizedData)
-userRoutes.post("/login", login)
-userRoutes.post("/logout", logout)
-userRoutes.post("/logoutAll", checkLoggedIn, logoutAll)
 userRoutes.delete("/", checkLoggedIn, deleteUser)
 userRoutes.get("/delete/:id/", deleteUserConfirm)
-userRoutes.delete("/session", checkLoggedIn, deleteSession)
-
 export default userRoutes

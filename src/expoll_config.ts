@@ -24,7 +24,8 @@ export const config = {
         rpID: nodeconfig.get<string>("webauthn.rpID"), // A unique identifier for your website
         origin: nodeconfig.get<string>("webauthn.origin")
         // The URL at which registrations and authentications should occur
-    }
+    },
+    shareURLPrefix: nodeconfig.get<string>("shareURLPrefix")
 }
 
 console.log("Running server with config as following:\n", config)
