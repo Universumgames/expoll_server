@@ -118,22 +118,25 @@ Detailed request list:
 -   Path `/poll`
 -   HTTP Method `PUT`
 -   require JSON field:
-    -   `inviteLink` (String) when you are trying to join a poll to vote, this parameter must be set to the pollID the user wants to join
-    -   `leave`(boolean) the inverse to the former (`inviteLink`), if the user wants to leave the poll
-    -   `pollID` (String) the poll you want to change (the user must be the admin of that poll) (must always be set, except for an invite)
-    -   `name` (string) the poll name, if you want to change that
-    -   `description`(string) the polls description, if you want to change that
-    -   `maxPerUserVoteCount` (Non decimal number) - the number of options each user choose simultaneously (-1 is infinity)
-    -   `userRemove` (array of userID's) the users ids you want to remove from the poll
-    -   `votes` (array of following), if you change any vote
-        -   `userID` (string) the user the vote is from
-        -   `optionID` (number) the option you want to change
-        -   `votedFor` (boolean) the state you want that vote to change to
-    -   `options` (array of following), if you want to add or remove an option (xor: only one of the two can be inside one of the array elements, otherwise only the deletion will be acknowledged)
-        -   `optionID` the optionID (if removing an option)
-        -   and the new value (see the needed parameters from the options array at [Creating a poll](#create-a-poll))
-    -   `delete` (boolean) this is to delete the poll irreversibly (!!!!!!!!!!!)
-    -   TODO update missing fields (allowsEditing, allowsMaybe, notes)
+    -   Options:
+        -   `inviteLink` (String) when you are trying to join a poll to vote, this parameter must be set to the pollID the user wants to join
+    -   OR
+        -   `leave`(boolean) the inverse to the former (`inviteLink`), if the user wants to leave the poll
+    -   OR
+        -   `pollID` (String) the poll you want to change (the user must be the admin of that poll) (must always be set, except for an invite)
+        -   `name` (string) the poll name, if you want to change that
+        -   `description`(string) the polls description, if you want to change that
+        -   `maxPerUserVoteCount` (Non decimal number) - the number of options each user choose simultaneously (-1 is infinity)
+        -   `userRemove` (array of userID's) the users ids you want to remove from the poll
+        -   `votes` (array of following), if you change any vote
+            -   `userID` (string) the user the vote is from
+            -   `optionID` (number) the option you want to change
+            -   `votedFor` (boolean) the state you want that vote to change to
+        -   `options` (array of following), if you want to add or remove an option (xor: only one of the two can be inside one of the array elements, otherwise only the deletion will be acknowledged)
+            -   `optionID` the optionID (if removing an option)
+            -   and the new value (see the needed parameters from the options array at [Creating a poll](#create-a-poll))
+        -   `delete` (boolean) this is to delete the poll irreversibly (!!!!!!!!!!!)
+        -   TODO update missing fields (allowsEditing, allowsMaybe, notes)
 -   returns (HTTP Codes)
     -   `200` Changes accepted
     -   `400` Poll not found
