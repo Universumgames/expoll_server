@@ -37,7 +37,7 @@ class UserManager {
      */
     async createUser(firstName: string, lastName: string, mail: string, username: string): Promise<User | undefined> {
         const u = new User()
-        u.mail = mail
+        u.mail = mail.toLowerCase().replaceAll(" ", "")
         if ((await this.checkUserExists({ mail: mail })) || (await this.checkUserExists({ username: username })))
             return undefined
         u.username = username
@@ -89,7 +89,7 @@ class UserManager {
         const defaultRelations = ["polls", "votes", "polls.admin"]
         if (data.mail != undefined)
             return await this.repo.findOne({
-                where: { mail: data.mail },
+                where: { mail: data.mail.toLowerCase().replaceAll(" ", "") },
                 relations: [...defaultRelations, ...(additionalRelations ?? [])]
             })
         else if (data.loginKey != undefined) {
