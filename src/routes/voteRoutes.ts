@@ -44,10 +44,12 @@ const createVote = async (req: Request, res: Response, next: NextFunction) => {
         let vote: Vote | undefined = await getPollManager().getVote(userIDToUse, pollID, optionID)
 
         // check if an additional vote could be made
-        const count = await getPollManager().getVoteCountFromUser(userIDToUse, pollID)
+        const count =
+            (await getPollManager().getVoteCountFromUser(userIDToUse, pollID)) -
+            (vote != undefined && vote.votedFor != VoteValue.no ? 1 : 0)
 
         if (
-            count + (votedFor ? 1 : 0) <= poll.maxPerUserVoteCount ||
+            count + (votedFor != VoteValue.no ? 1 : 0) <= poll.maxPerUserVoteCount ||
             (vote != undefined && !votedFor) ||
             poll.maxPerUserVoteCount == -1
         ) {
