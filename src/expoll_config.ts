@@ -25,7 +25,14 @@ export const config = {
         origin: nodeconfig.get<string>("webauthn.origin")
         // The URL at which registrations and authentications should occur
     },
-    shareURLPrefix: nodeconfig.get<string>("shareURLPrefix")
+    shareURLPrefix: nodeconfig.get<string>("shareURLPrefix"),
+    notifications: {
+        bundleID: nodeconfig.get<string>("notifications.bundleID"),
+        teamID: nodeconfig.get<string>("notifications.teamID"),
+        apnsKeyID: nodeconfig.get<string>("notifications.apnsKeyID"),
+        apnsKeyPath: nodeconfig.get<string>("notifications.apnsKeyPath"),
+        apnsURL: nodeconfig.get<string>("notifications.apnsURL")
+    }
 }
 
 console.log("Running server with config as following:\n", config)

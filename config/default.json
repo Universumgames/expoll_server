@@ -16,11 +16,18 @@
     },
     "maxPollCountPerUser": 10,
     "recaptchaAPIKey": "your google recaptcha api key goes here",
-    "serverVersion": "2.5.4",
+    "serverVersion": "2.5.5",
     "webauthn": {
         "rpName": "Expoll",
         "rpID": "expoll.mt32.net",
         "origin": "https://expoll.mt32.net"
     },
-    "shareURLPrefix": "https://expoll.mt32.net/share?pollID="
+    "shareURLPrefix": "https://expoll.mt32.net/share?pollID=",
+    "notifications": {
+        "bundleID": "de.universegame.expoll-ios",
+        "teamID": "team id",
+        "apnsKeyID": "the apns key id",
+        "apnsKeyPath": "your key to the ios/macos app for notifications, relative path from root (this config file would be \"config/default.json\"",
+        "apnsURL": "https://api.push.apple.com:443"
+    }
 }

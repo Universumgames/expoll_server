@@ -35,11 +35,13 @@
     },
     "dependencies": {
         "@simplewebauthn/server": "^5.2.1",
+        "apn": "^2.2.0",
         "axios": "^0.24.0",
         "config": "^3.3.6",
         "cookie-parser": "^1.4.6",
         "expoll-lib": "git+https://git.mt32.net/universum/expoll_lib.git",
         "express": "^4.17.1",
+        "jose": "^4.9.2",
         "mariadb": "^2.5.5",
         "module-alias": "^2.2.2",
         "mysql": "^2.18.1",

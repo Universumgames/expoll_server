@@ -1,5 +1,5 @@
 import { addServerTimingsMetrics, generateShareURL } from "../helper"
-import { ComplexOption, SimpleUserNote } from "expoll-lib/extraInterfaces"
+import { ComplexOption, NotificationType, SimpleUserNote } from "expoll-lib/extraInterfaces"
 import { config } from "../expoll_config"
 import { ReturnCode, tDate, tDateTime, tOptionId, tPollID, tUserID } from "expoll-lib/interfaces"
 import {
@@ -19,6 +19,7 @@ import { PollType, VoteValue } from "expoll-lib/interfaces"
 import { checkLoggedIn } from "./routeHelper"
 import { SimplePoll, SimpleUserVotes } from "expoll-lib/extraInterfaces"
 import { DetailedPollResponse, EditPollRequest, PollOverview } from "expoll-lib/requestInterfaces"
+import getNotificationManager from "../NotificationManager"
 
 // eslint-disable-next-line new-cap
 const pollRoutes = express.Router()
@@ -307,11 +308,14 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
 
         const body = req.body as EditPollRequest
 
+        let notType = NotificationType.pollEdited
+
         // invite
         if (body.inviteLink != undefined) {
             const inviteLink = body.inviteLink as string
             const poll = await getPollManager().getPoll(inviteLink)
             if (!poll?.allowsEditing) return res.status(ReturnCode.CHANGE_NOT_ALLOWED).end()
+            await getNotificationManager().onPollUpdate(user, poll, NotificationType.userAdded, { user: user })
             return res.status(await getUserManager().addPoll(user.mail, inviteLink)).end()
         }
 
@@ -322,6 +326,7 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
         if (body.leave != undefined && body.leave) {
             // leave
             if (!poll?.allowsEditing) return res.status(ReturnCode.CHANGE_NOT_ALLOWED).end()
+            await getNotificationManager().onPollUpdate(user, poll, NotificationType.userRemoved, { user: user })
             return res.status(await getUserManager().removeFromPoll(user.id, pollID)).end()
         } else {
             if (poll == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
@@ -361,6 +366,8 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
                     }
                 }
 
+                await getNotificationManager().onPollUpdate(user, poll, NotificationType.pollDeleted, {})
+
                 await Poll.remove(poll)
                 return res.status(ReturnCode.OK).end()
             }
@@ -382,6 +389,8 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
                 poll.maxPerUserVoteCount = maxPerUserVoteCount <= -1 ? -1 : maxPerUserVoteCount
             if (allowsMaybe != undefined) poll.allowsMaybe = allowsMaybe
             if (allowsEditing != undefined) poll.allowsEditing = allowsEditing
+
+            notType = NotificationType.pollArchived
 
             if (!poll.allowsEditing) {
                 await poll.save()
@@ -508,6 +517,8 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
                     }
                 }
             }
+
+            await getNotificationManager().onPollUpdate(user, poll, notType, {})
 
             return res.status(ReturnCode.OK).end()
         }

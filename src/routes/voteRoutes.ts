@@ -5,6 +5,8 @@ import express, { NextFunction, Request, Response } from "express"
 import getPollManager from "../PollManagement"
 import getUserManager from "../UserManagement"
 import { VoteRequest } from "expoll-lib/requestInterfaces"
+import getNotificationManager from "../NotificationManager"
+import { NotificationType } from "expoll-lib"
 
 // eslint-disable-next-line new-cap
 const voteRoutes = express.Router()
@@ -66,6 +68,12 @@ const createVote = async (req: Request, res: Response, next: NextFunction) => {
             poll.votes.push(vote)
             await poll.save()
         } else return res.status(ReturnCode.NOT_ACCEPTABLE).end()
+
+        try {
+            await getNotificationManager().onPollUpdate(user, poll, NotificationType.voteChange, { user: u2 })
+        } catch (e) {
+            console.log(e)
+        }
 
         return res.status(ReturnCode.OK).end()
     } catch (e) {

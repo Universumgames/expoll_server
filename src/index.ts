@@ -1,4 +1,3 @@
-import "module-alias/register"
 /* eslint-disable no-unused-vars */
 import Database from "./database"
 // import http from "http"
@@ -8,6 +7,7 @@ import { createUserManager } from "./UserManagement"
 import { createPollManager } from "./PollManagement"
 import { createMailManager } from "./MailManager"
 import { config } from "./expoll_config"
+import { createNotificationManager } from "./NotificationManager"
 
 const db = new Database()
 db.init()
@@ -15,6 +15,7 @@ db.init()
 const userManager = createUserManager(db)
 const pollManager = createPollManager(db)
 const mailManager = createMailManager()
+const notificationManager = createNotificationManager()
 
 /**
  * Test mail connection

@@ -7,6 +7,8 @@ import { Session } from "./session"
 import { User } from "./user"
 import { MailRegexRules } from "./mailrules"
 import { DeleteConfirmation } from "./confirmations"
+import { APNsDevice } from "./apnDevice"
+import { NotificationPreferencesEntity } from "./notifications"
 
 export {
     User,
@@ -21,5 +23,7 @@ export {
     Challenge,
     Authenticator,
     MailRegexRules,
-    DeleteConfirmation
+    DeleteConfirmation,
+    APNsDevice,
+    NotificationPreferencesEntity
 }
