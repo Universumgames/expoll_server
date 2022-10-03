@@ -390,10 +390,12 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             if (allowsMaybe != undefined) poll.allowsMaybe = allowsMaybe
             if (allowsEditing != undefined) poll.allowsEditing = allowsEditing
 
-            notType = NotificationType.pollArchived
+            notType = NotificationType.pollEdited
 
             if (!poll.allowsEditing) {
+                notType = NotificationType.pollArchived
                 await poll.save()
+                await getNotificationManager().onPollUpdate(user, poll, notType, {})
                 return res.status(ReturnCode.OK).end()
             }
 
@@ -469,15 +471,15 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
                         } else if (type == PollType.Date) {
                             if (option.dateStart == undefined) error = true
                             const o = new PollOptionDate()
-                            o.dateStart = option.dateStart as tDate
-                            if (option.dateEnd != undefined) o.dateEnd = option.dateEnd as tDate
+                            o.dateStart = new Date(option.dateStart!)
+                            if (option.dateEnd != undefined) o.dateEnd = new Date(option.dateEnd!)
                             o.poll = poll
                             checkedOptions.push(o)
                         } else if (type == PollType.DateTime) {
                             if (option.dateTimeStart == undefined) error = true
                             const o = new PollOptionDateTime()
-                            o.dateTimeStart = option.dateTimeStart as tDateTime
-                            if (option.dateTimeEnd != undefined) o.dateTimeEnd = option.dateTimeEnd as tDateTime
+                            o.dateTimeStart = new Date(option.dateTimeStart!)
+                            if (option.dateTimeEnd != undefined) o.dateTimeEnd = new Date(option.dateTimeEnd!)
                             o.poll = poll
                             checkedOptions.push(o)
                         }

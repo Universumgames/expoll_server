@@ -13,8 +13,20 @@
           - src: ../../client/
             dest: client
       install_dir: "/opt/expoll/"
+      date: "{{ lookup('pipe', 'date +%Y_%m_%d-%H_%M') }}"
+
+  vars_files:
+      - vars.yml
 
   pre_tasks:
+      - name: Create docker mysql backup
+        shell: sudo docker exec -i d749b8cc3d3531ee2e64ab2e6c3943d42a914d3babe9a5a06d9094a3aeaa6426 mysqldump -uroot -ppassword expoll > /tmp/expoll_db.sql
+      - name: Copy docker mysql backup to local
+        fetch:
+            src: /tmp/expoll_db.sql
+            dest: ../backups/expoll_db_{{ date }}.sql
+            flat: yes
+            fail_on_missing: yes
       - name: Push repositories to server
         synchronize:
             src: "{{ item.src }}"

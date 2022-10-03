@@ -3,8 +3,6 @@ import { User } from "./../../entities/entities"
 import { ReturnCode } from "expoll-lib/interfaces"
 import express, { NextFunction, Request, Response } from "express"
 import { APNsDevice } from "../../entities/apnDevice"
-import getNotificationManager from "../../NotificationManager"
-import { randomUUID } from "crypto"
 
 // eslint-disable-next-line new-cap
 const appleNotificationRoutes = express.Router()
@@ -21,23 +19,6 @@ const register = async (req: Request, res: Response, next: NextFunction) => {
         const user = req.user as User
         const body = req.body
         const deviceID = body.deviceID as string
-
-        setTimeout(async () => {
-            const devices = await APNsDevice.find({ where: { user: user }, relations: ["user"] })
-            if (devices.length == 0) {
-                console.log("Device undefined")
-                return
-            }
-            getNotificationManager().sendNotification(
-                devices[0].deviceID,
-                {
-                    "title-loc-key": "notification.user.added %@ %@",
-                    "title-loc-args": [user.username, "test"],
-                    body: `Poll test was updated`
-                },
-                randomUUID()
-            )
-        }, 1000 * 5)
 
         if (deviceID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
 
