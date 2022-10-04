@@ -1,7 +1,7 @@
 import { Authenticator, Challenge } from "./webauth"
 import { IUser } from "expoll-lib/interfaces"
 /* eslint-disable new-cap */
-import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, ManyToMany, OneToMany, JoinTable, OneToOne } from "typeorm"
+import { Entity, Column, PrimaryGeneratedColumn, BaseEntity, ManyToMany, OneToMany, JoinTable } from "typeorm"
 import { tUserID } from "expoll-lib/interfaces"
 import { Poll } from "./poll"
 import { Vote } from "./vote"

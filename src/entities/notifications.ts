@@ -1,6 +1,6 @@
 /* eslint-disable new-cap */
 import { NotificationPreferences } from "expoll-lib"
-import { Entity, BaseEntity, Column, OneToOne, JoinTable, PrimaryGeneratedColumn, JoinColumn } from "typeorm"
+import { Entity, BaseEntity, Column, OneToOne, PrimaryGeneratedColumn, JoinColumn } from "typeorm"
 import { User } from "./user"
 
 @Entity()

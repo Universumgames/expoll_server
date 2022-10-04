@@ -157,14 +157,9 @@ const getPolls = async (req: Request, res: Response, next: NextFunction) => {
                 const n = notes.find((note) => note.user.id == user.id)
                 if (n != undefined) {
                     easyNotes.push({
-                        user: {
-                            id: user.id,
-                            username: user.username,
-                            firstName: user.firstName,
-                            lastName: user.lastName
-                        },
+                        userID: user.id,
                         note: n.note
-                    })
+                    } as SimpleUserNote)
                 }
             }
 

@@ -20,7 +20,7 @@
 
   pre_tasks:
       - name: Create docker mysql backup
-        shell: sudo docker exec -i d749b8cc3d3531ee2e64ab2e6c3943d42a914d3babe9a5a06d9094a3aeaa6426 mysqldump -uroot -ppassword expoll > /tmp/expoll_db.sql
+        shell: sudo docker exec -i expoll_database mysqldump -uroot -ppassword expoll > /tmp/expoll_db.sql
       - name: Copy docker mysql backup to local
         fetch:
             src: /tmp/expoll_db.sql
