@@ -62,6 +62,7 @@ const logoutAll = async (req: Request, res: Response, next: NextFunction) => {
 
 authRoutes.post("/logoutAll", checkLoggedIn, logoutAll)
 authRoutes.post("/logout", checkLoggedIn, logout)
+authRoutes.get("/loggedIn", checkLoggedIn, (req, res) => res.status(ReturnCode.OK).end())
 
 authRoutes.use("/simple", simpleAuthRoutes)
 authRoutes.use("/webauthn", webauthnRoutes)

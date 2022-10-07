@@ -25,7 +25,7 @@ Detailed request list:
 -   returns (loginKey provided):
     -   a cookie
 
-## Logout
+## Logout Session
 
 Logout the current session
 

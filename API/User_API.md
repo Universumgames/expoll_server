@@ -6,7 +6,6 @@
 | `/user`                  | GET         | [Request info](#get-user-data) - Get user info                        |
 | `/user`                  | DELETE      | [Request info](#trigger-deletion) - Trigger the user deletion process |
 | `/user/delete/:id`       | GET         | [Request info](#deletion-confirmation) - Deletion confirmation        |
-| `/user/session`          | DELETE      | [Request info](#logout-session) - Logout specific session             |
 | `/user/personalizeddata` | GET         | [Request info](#personalized-data) - Get personalized data            |
 
 ## Create a user
