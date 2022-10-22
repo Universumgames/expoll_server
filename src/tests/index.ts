@@ -2,11 +2,12 @@
 /* eslint-disable no-unused-vars */
 import assert from "assert"
 import axios, { AxiosRequestConfig } from "axios"
+import { NotificationPreferences } from "expoll-lib"
 import { IUser, PollType, tPollID } from "expoll-lib/interfaces"
 import { CreatePollRequest, DetailedPollResponse, EditPollRequest, PollOverview } from "expoll-lib/requestInterfaces"
 import { describe, it } from "mocha"
 import { isRegularExpressionLiteral } from "typescript"
-import { User } from "../entities/entities"
+import { Authenticator, User } from "../entities/entities"
 import { key } from "./test-config"
 
 const baseURL = "http://localhost:6060"
@@ -41,19 +42,22 @@ describe("API test", function () {
             if (!["n", "no", "f", "false", "0"].includes(requestKey))
                 it("Request loginmail for user", async () => {
                     try {
-                        await axios.post(baseURL + "/user/login", { mail: loginUserMail })
-                        assert.ok(true)
+                        const data = await axios.post(baseURL + "/auth/simple", { mail: loginUserMail })
+
+                        assert.ok(data.status == 200)
+                        if (data.status != 200) {
+                            assert.fail("Loginmal could not be requested " + data.status)
+                        }
+                        key = prompt("Enter login key: ")
                     } catch (e) {
                         assert.fail("Loginmal could not be requested " + e)
                     }
                 })
-
-            key = prompt("Enter login key: ")
         }
 
         it("Login with key", async () => {
             try {
-                user = (await axios.post(baseURL + "/user/login", { loginKey: key })).data
+                user = (await axios.post(baseURL + "/auth/simple", { loginKey: key })).data
                 assert.ok(true)
             } catch (e) {
                 assert.fail("Login failed " + e)
@@ -151,6 +155,36 @@ describe("API test", function () {
                 assert.ok(true)
             } catch (e) {
                 assert.fail("Deleting failed: " + e)
+            }
+        })
+    })
+
+    describe("Test user info endpoints", () => {
+        it("Get personalized info", async () => {
+            try {
+                const data = (await axios.get(baseURL + "/user/personalizeddata", { params: { loginKey: key } })).data
+                assert.ok(data != undefined)
+            } catch {
+                assert.fail("Retrieving personalized data failed")
+            }
+        })
+        it("Get authenticators", async () => {
+            try {
+                const data = (await axios.get(baseURL + "/auth/webauthn/list", { params: { loginKey: key } })).data as {
+                    authenticators: Authenticator[]
+                }
+                assert.ok(data != undefined && data.authenticators != undefined)
+            } catch {
+                assert.fail("Retrieving authenticators failed")
+            }
+        })
+        it("Get notification preferences", async () => {
+            try {
+                const data = (await axios.get(baseURL + "/notifications/preferences", { params: { loginKey: key } }))
+                    .data as NotificationPreferences
+                assert.ok(data != undefined)
+            } catch {
+                assert.fail("Retrieving notification preferences failed")
             }
         })
     })
