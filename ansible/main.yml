@@ -14,6 +14,10 @@
             dest: client
       install_dir: "/opt/expoll/"
       date: "{{ lookup('pipe', 'date +%Y_%m_%d-%H_%M') }}"
+  
+  environment:
+       COMPOSE_PROJECT_NAME: expoll
+
 
   vars_files:
       - vars.yml
@@ -21,12 +25,13 @@
   pre_tasks:
       - name: Create docker mysql backup
         shell: sudo docker exec -i expoll_database mysqldump -uroot -ppassword expoll > /tmp/expoll_db.sql
+        ignore_errors: true
       - name: Copy docker mysql backup to local
         fetch:
             src: /tmp/expoll_db.sql
             dest: ../backups/expoll_db_{{ date }}.sql
             flat: yes
-            fail_on_missing: yes
+            fail_on_missing: false
       - name: Push repositories to server
         synchronize:
             src: "{{ item.src }}"
@@ -50,6 +55,7 @@
         copy:
             src: ./expoll.nginx.conf
             dest: /etc/nginx/sites-enabled/expoll
+        ignore_errors: true
       - name: Create docker containers and start servers
         script:
             chdir: "{{  install_dir }}server/"

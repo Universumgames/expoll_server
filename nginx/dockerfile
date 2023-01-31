@@ -1,9 +1,9 @@
 
 from node as compiler
-WORKDIR /expoll/lib
-COPY ./lib .
-RUN npm install
-RUN npm run build
+#WORKDIR /expoll/lib
+#COPY ./lib .
+#RUN npm install
+#RUN npm run build
 
 WORKDIR /expoll/frontend_server
 COPY ./client .
@@ -37,6 +37,7 @@ RUN apk add --no-cache \
   php81-zlib \
   supervisor
 # Create symlink so programs depending on `php` still function
+RUN rm /usr/bin/php
 RUN ln -s /usr/bin/php81 /usr/bin/php
 # Make sure files/folders needed by the processes are accessable when they run under the nobody user
 RUN chown -R nobody.nobody /www/data /run /var/lib/nginx /var/log/nginx

@@ -37,6 +37,14 @@ async function verifyCaptcha(token: string): Promise<boolean> {
     return googleReturn.score >= 0.5 ?? false
 }
 
+/**
+ * Verifz a legit user via a private access token
+ * @param {String} pat the private access token
+ */
+async function verifyPAT(pat: string): Promise<boolean> {
+    return true
+}
+
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const t1 = new Date()
