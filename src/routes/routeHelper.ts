@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express"
 import { Session, User } from "../entities/entities"
-import { addServerTimingsMetrics, cookieName, getLoginKey, isAdmin } from "../helper"
+import { addServerTimingsMetrics, cookieName, getDataFromAny, getLoginKey, isAdmin } from "../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
 import getUserManager from "../UserManagement"
 
@@ -16,6 +16,7 @@ export const checkLoggedIn = async (req: Request, res: Response, next: NextFunct
 
         const t3 = new Date()
         const user = await userReq
+
         const t4 = new Date()
         if (user == undefined) {
             return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized
@@ -25,6 +26,11 @@ export const checkLoggedIn = async (req: Request, res: Response, next: NextFunct
         if (session && session.userAgent == undefined) {
             session.userAgent = req.headers["user-agent"] ?? "unknown"
             await session.save()
+        }
+        if (session != undefined && session.expiration < new Date()) {
+            // delete session
+            await session.remove()
+            return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized
         }
 
         user.admin = getUserManager().userIsAdminOrSuperAdminSync(user)
@@ -46,7 +52,7 @@ export const checkLoggedIn = async (req: Request, res: Response, next: NextFunct
 
         // TODO possible performance issue
         // check all session if expired
-        new Promise<void>(async (resolve, reject) => {
+        /* new Promise<void>(async (resolve, reject) => {
             // get all sessions from user
             const sessions = await Session.find({ where: { user: user } })
             // check if any session is expired
@@ -57,7 +63,15 @@ export const checkLoggedIn = async (req: Request, res: Response, next: NextFunct
                 }
             }
             resolve()
-        })
+        })*/
+
+        const originalLoginKey = getDataFromAny(req, "originalLoginKey")
+        if (originalLoginKey != undefined) {
+            // @ts-ignore
+            req.originalLoginKey = originalLoginKey
+            // @ts-ignore
+            req.originalUser = await getUserManager().getUser({ loginKey: originalLoginKey })
+        }
 
         next()
     } catch (e) {
@@ -77,8 +91,6 @@ export const checkAdmin = async (req: Request, res: Response, next: NextFunction
             if (user == undefined) return res.status(ReturnCode.INVALID_LOGIN_KEY).end()
             user.admin = isAdmin(user)
         }
-        // check for "normal" admin or superadmin
-        if (user == undefined || !user.admin) return res.status(ReturnCode.NOT_ACCEPTABLE).end()
 
         const t2 = new Date()
         // @ts-ignore
@@ -89,6 +101,12 @@ export const checkAdmin = async (req: Request, res: Response, next: NextFunction
             "Check if user is an Admin",
             t2.getTime() - t1.getTime()
         )
+
+        // @ts-ignore
+        const metrics = req.metrics
+        // check for "normal" admin or superadmin
+        if (user == undefined || !user.admin)
+            return res.set("Server-Timing", metrics).status(ReturnCode.UNAUTHORIZED).end()
 
         next()
     } catch (e) {

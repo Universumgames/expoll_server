@@ -12,7 +12,7 @@ services:
             MYSQL_DATABASE: expoll
         volumes:
             - mysqlDB:/var/lib/mysql
-        container_name: database
+        container_name: expoll_database
 
 volumes:
     mysqlDB:

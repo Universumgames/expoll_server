@@ -301,7 +301,10 @@ class PollManager {
      */
     async getSimplePoll(pollID: tPollID): Promise<SimplePoll | undefined> {
         const userCountReq = getPollManager().getContributedUsers(pollID)
-        const poll = await getPollManager().getPoll(pollID)
+        const poll = await Poll.findOne({
+            where: { id: pollID },
+            relations: ["admin"]
+        })
         if (poll == undefined) return undefined
 
         // simplify and constrain "access" to polls

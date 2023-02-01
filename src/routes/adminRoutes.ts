@@ -7,8 +7,9 @@ import getUserManager from "../UserManagement"
 import { checkAdmin, checkLoggedIn } from "./routeHelper"
 import { AdminPollListResponse, AdminUserListResponse, AdminEditUserRequest } from "expoll-lib/requestInterfaces"
 import { SimplePoll } from "expoll-lib/extraInterfaces"
-import { MailRegexRules, User } from "./../entities/entities"
-import { isSuperAdmin, addServerTimingsMetrics } from "../helper"
+import { MailRegexRules, Session, User } from "./../entities/entities"
+import { isSuperAdmin, addServerTimingsMetrics, cookieName, cookieConfig, getDataFromAny, mailIsAllowed } from "../helper"
+import getMailManager, { Mail } from "../MailManager"
 
 // eslint-disable-next-line new-cap
 const authorizedAdminRoutes = express.Router()
@@ -18,6 +19,7 @@ const authorizedAdminRoutes = express.Router()
         message: "Test successful"
     })
 } */
+
 
 const getUsers = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -180,16 +182,141 @@ const mailRegexList = async (req: Request, res: Response, next: NextFunction) =>
     }
 }
 
+const createUser = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const createUserReq = req.body
+        const mail = createUserReq.mail
+        const firstName = createUserReq.firstName
+        const lastName = createUserReq.lastName
+        const username = createUserReq.username
+
+        if (mail == undefined || firstName == undefined || lastName == undefined || username == undefined)
+            return res.status(ReturnCode.MISSING_PARAMS).end()
+
+        // check user not exist
+        if (
+            (await getUserManager().checkUserExists({ mail: mail })) ||
+            (await getUserManager().checkUserExists({ username: username }))
+        )
+            return res.status(ReturnCode.USER_EXISTS).end()
+
+        if (!mailIsAllowed(mail, await MailRegexRules.find())) return res.status(ReturnCode.NOT_ACCEPTABLE).end()
+        // create user
+        const user = new User()
+        user.mail = mail
+        user.firstName = firstName
+        user.lastName = lastName
+        user.username = username
+        try {
+            await user.save()
+
+            const port = req.app.settings.port || config.frontEndPort
+            getMailManager().sendMail({
+                from: config.mailUser,
+                to: user.mail,
+                subject: "Thank you for registering in expoll",
+                text:
+                    "Thank you for creating an account at over at expoll (" +
+                    req.protocol +
+                    "://" +
+                    config.loginLinkURL +
+                    (port == 80 || port == 443 ? "" : ":" + port) +
+                    ")"
+            } as Mail)
+
+            return (
+                res
+                    .status(ReturnCode.OK).end()
+            )
+        } catch (e) {
+            console.error(e)
+            return res.status(500).end()
+        }
+    } catch (e) {
+        console.error(e)
+        res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
+const impersonate = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // @ts-ignore
+        const admin = req.user as User
+        const impersonateID = req.body.impersonateID
+        if (impersonateID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
+
+        const user = await getUserManager().getUser({ userID: impersonateID })
+        if (user == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
+        if (isSuperAdmin(user)) return res.status(ReturnCode.UNAUTHORIZED).end()
+
+
+        const session = await user.generateSession()
+
+        const data = {
+            loginKey: session.loginKey,
+            // @ts-ignore
+            originalLoginKey: req.loginKey
+        }
+        return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(session!)).json(user)
+    } catch (e) {
+        console.error(e)
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
+const isImpersonating = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // @ts-ignore
+        const user = req.user as User
+        // @ts-ignore
+        const loginKey = getDataFromAny(req, "originalLoginKey")
+
+        const session = await Session.findOne({ where: { loginKey: loginKey} })
+        if (session == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
+
+        return res.status(ReturnCode.OK).json(user)
+    } catch (e) {
+        console.error(e)
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
+
+const unimpersonate = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        // @ts-ignore
+        const admin = req.originalUser as User
+        const originalLoginKey = getDataFromAny(req, "originalLoginKey")
+
+        const session = await Session.findOne({ where: { loginKey: originalLoginKey} })
+        if (session == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
+
+        const data = {
+            // @ts-ignore
+            loginKey: originalLoginKey
+        }
+        return res.status(ReturnCode.OK).cookie(cookieName, data, cookieConfig(session!)).json(admin)
+    } catch (e) {
+        console.error(e)
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
 authorizedAdminRoutes.get("/users", getUsers)
 authorizedAdminRoutes.put("/users", editUser)
 authorizedAdminRoutes.get("/polls", getPolls)
 authorizedAdminRoutes.delete("/user", deleteUser)
 authorizedAdminRoutes.post("/mailregex", mailRegexEdit)
 authorizedAdminRoutes.get("/mailregex", mailRegexList)
+authorizedAdminRoutes.post("/impersonate", impersonate)
+authorizedAdminRoutes.post("/createUser", createUser)
 
 // eslint-disable-next-line new-cap
 const adminRoutes = express.Router()
 
+adminRoutes.post("/unimpersonate", checkLoggedIn, unimpersonate)
+adminRoutes.get("/isImpersonating", checkLoggedIn, isImpersonating)
 adminRoutes.use("/", checkLoggedIn, checkAdmin, authorizedAdminRoutes)
+
 
 export default adminRoutes

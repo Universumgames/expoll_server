@@ -22,17 +22,28 @@ export function cookieConfig(session: Session): CookieOptions {
  * @return {string} the login key
  */
 export function getLoginKey(req: Request): string | undefined {
+    return getDataFromAny(req, "loginKey") as string
+}
+
+/**
+ * get data from cookie, request body or query
+ * @param {express.Request} req the exporess request process
+ * @param {string} dataKey the key of the data to get
+ * @return {string} the data from any source
+ */
+export function getDataFromAny(req: Request, dataKey: string): string | boolean | any | undefined {
     if (req.cookies != undefined) {
         const cookie = req.cookies[cookieName]
         if (cookie != undefined) {
-            const key = cookie.loginKey as string
+            const key = cookie[dataKey] as string
             if (key != undefined) return key
         }
     }
-    if (req.body != undefined) {
-        if (req.body.loginKey != undefined) return req.body.loginKey as string
-    }
-    if (req.query != undefined) return req.query.loginKey as string
+    if (req.body != undefined && req.body[dataKey] != undefined) return req.body[dataKey] as string
+    if (req.query != undefined && req.query[dataKey] != undefined)
+        return req.query[dataKey] as string
+    if (req.params != undefined && req.params[dataKey] != undefined)
+        return req.params[dataKey] as string
     return undefined
 }
 

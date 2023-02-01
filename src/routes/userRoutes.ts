@@ -133,7 +133,6 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
                     // @ts-ignore
                     .set("Server-Timing", metrics)
                     .status(ReturnCode.OK)
-                    .cookie(cookieName, data, cookieConfig(session))
                     .json(data)
             )
         } catch (e) {
@@ -179,7 +178,6 @@ const getUserData = async (req: Request, res: Response, next: NextFunction) => {
                     )
                 )
                 .status(ReturnCode.OK)
-                .cookie(cookieName, data, cookieConfig(session!))
                 .json(easyUser)
         )
     } catch (e) {
