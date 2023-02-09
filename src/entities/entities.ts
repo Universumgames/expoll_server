@@ -9,6 +9,7 @@ import { MailRegexRules } from "./mailrules"
 import { DeleteConfirmation } from "./confirmations"
 import { APNsDevice } from "./apnDevice"
 import { NotificationPreferencesEntity } from "./notifications"
+import { AppAttests } from "./appAttest"
 
 export {
     User,
@@ -25,5 +26,6 @@ export {
     MailRegexRules,
     DeleteConfirmation,
     APNsDevice,
-    NotificationPreferencesEntity
+    NotificationPreferencesEntity,
+    AppAttests
 }

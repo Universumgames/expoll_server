@@ -2,7 +2,7 @@ import getMailManager, { Mail } from "./../MailManager"
 import { config } from "../expoll_config"
 import axios from "axios"
 import { checkLoggedIn } from "./routeHelper"
-import { addServerTimingsMetrics, cookieConfig, cookieName, mailIsAllowed } from "./../helper"
+import { addServerTimingsMetrics, base64URLStringToBuffer, mailIsAllowed } from "./../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
 import { DeleteConfirmation, MailRegexRules, User } from "./../entities/entities"
 import express, { NextFunction, Request, Response } from "express"
@@ -10,6 +10,11 @@ import getUserManager from "../UserManagement"
 import { CreateUserRequest, CreateUserResponse } from "expoll-lib/requestInterfaces"
 import { SimplePoll } from "expoll-lib"
 import getPollManager from "../PollManagement"
+import * as cbor from "cbor"
+import { IAppleAppAttest } from "../entities/appAttest"
+import * as crypto from "crypto"
+import * as fs from "fs"
+
 
 // eslint-disable-next-line new-cap
 const userRoutes = express.Router()
@@ -38,12 +43,72 @@ async function verifyCaptcha(token: string): Promise<boolean> {
 }
 
 /**
- * Verifz a legit user via a private access token
- * @param {String} pat the private access token
+ * Verify if request is from a legit apple device
+ * @param {String} attest the attestation
+ * @param {String} challengeId the challenge id
+ * @return {boolean} true if request is legit false otherwise
+ * @see https://developer.apple.com/documentation/devicecheck
  */
-async function verifyPAT(pat: string): Promise<boolean> {
+async function verifyAppleAppAttest(attest: string, challengeId: string): Promise<boolean> {
+    const buffer = base64URLStringToBuffer(attest)
+    const decoded = await cbor.decodeFirst(buffer) as IAppleAppAttest
+    /* const stored = await AppAttests.findOne({ where: { uuid: challengeId } })
+    console.log("decoded", decoded)
+    console.log("stored", stored)
+    if (stored == undefined) return false*/
+
+    // load keys
+    const credCert = new crypto.X509Certificate(decoded.attStmt.x5c[0])
+    const caCert = new crypto.X509Certificate(decoded.attStmt.x5c[1])
+    const rootCert = new crypto.X509Certificate(fs.readFileSync("config/Apple_App_Attestation_Root_CA.pem"))
+    // 1. verify certificate chain
+    const first = credCert.verify(caCert.publicKey)
+    const second = caCert.verify(rootCert.publicKey)
+    // console.log(first, second)
+    if (!first || !second) return false
+
+    // i have verified that the request is from a legit apple device
     return true
+
+    // continue with verification to test for legit app
+    // see https://blog.restlesslabs.com/john/ios-app-attest
+    // see https://developer.apple.com/documentation/devicecheck/validating_apps_that_connect_to_your_server
+    /*
+    // 2. create own hash and concat with authData
+    const clientDataHash = crypto.createHash("sha256").update(stored.challenge).digest()
+    const composite = Buffer.concat([decoded.authData, clientDataHash])
+    // console.log("composite", composite)
+
+    // 3. create nonce
+    const nonce = crypto.createHash("sha256").update(composite).digest()
+    // console.log("nonce", nonce)
+
+    // 4. obtain value of credCert extension with OID 1.2.840.113635.100.8.2, decode sequence and test against nonce
+    const decodeASN1 = asn1.fromBER(credCert.raw).result.valueBlock
+    // find extension with OID 1.2.840.113635.100.8.2
+    const oidValue = (decodeASN1 as any).value[0]
+    // console.log("decodeASN1", decodeASN1)
+    // console.log("oid_value", oidValue)
+
+
+    // decode credCert with der encoding asn.1 sequence
+
+
+    return true*/
 }
+
+const createUserChallange = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        return res.status(ReturnCode.OK).send("challenge")
+    } catch (e) {
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
+/* userRoutes.post("/test", async (req: Request, res: Response, next: NextFunction) => {
+    await verifyAppleAppAttest(req.body.attest, "1")
+    return res.status(200).end()
+}) */
 
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -59,12 +124,17 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
         if (lastName == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const username = body.username as string
         if (username == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
-        if (body.captcha == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
+        if (body.captcha == undefined && body.appAttest == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
         const captchaToken = body.captcha
+        const appAttest = body.appAttest
 
         const t2 = new Date()
 
-        if (!(await verifyCaptcha(captchaToken))) return res.status(ReturnCode.CAPTCHA_INVALID).end()
+        if ((captchaToken != undefined && !(await verifyCaptcha(captchaToken))) ||
+            (appAttest != undefined && !(await verifyAppleAppAttest(appAttest, "")))) {
+            return res.status(ReturnCode.CAPTCHA_INVALID).end()
+        }
+        // TODO retrieve challenge id from request
 
         const t3 = new Date()
 
@@ -327,6 +397,7 @@ const getPersonalizedData = async (req: Request, res: Response, next: NextFuncti
     }
 }
 
+userRoutes.get("/createChallenge", createUserChallange)
 userRoutes.post("/", createUser)
 userRoutes.get("/", checkLoggedIn, getUserData)
 userRoutes.get("/personalizeddata", checkLoggedIn, getPersonalizedData)

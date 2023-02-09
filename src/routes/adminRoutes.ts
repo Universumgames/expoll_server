@@ -8,7 +8,14 @@ import { checkAdmin, checkLoggedIn } from "./routeHelper"
 import { AdminPollListResponse, AdminUserListResponse, AdminEditUserRequest } from "expoll-lib/requestInterfaces"
 import { SimplePoll } from "expoll-lib/extraInterfaces"
 import { MailRegexRules, Session, User } from "./../entities/entities"
-import { isSuperAdmin, addServerTimingsMetrics, cookieName, cookieConfig, getDataFromAny, mailIsAllowed } from "../helper"
+import {
+    isSuperAdmin,
+    addServerTimingsMetrics,
+    cookieName,
+    cookieConfig,
+    getDataFromAny,
+    mailIsAllowed
+} from "../helper"
 import getMailManager, { Mail } from "../MailManager"
 
 // eslint-disable-next-line new-cap
@@ -224,10 +231,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
                     ")"
             } as Mail)
 
-            return (
-                res
-                    .status(ReturnCode.OK).end()
-            )
+            return res.status(ReturnCode.OK).end()
         } catch (e) {
             console.error(e)
             return res.status(500).end()
@@ -241,7 +245,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 const impersonate = async (req: Request, res: Response, next: NextFunction) => {
     try {
         // @ts-ignore
-        const admin = req.user as User
+        // const admin = req.user as User
         const impersonateID = req.body.impersonateID
         if (impersonateID == undefined) return res.status(ReturnCode.MISSING_PARAMS).end()
 
@@ -271,7 +275,7 @@ const isImpersonating = async (req: Request, res: Response, next: NextFunction) 
         // @ts-ignore
         const loginKey = getDataFromAny(req, "originalLoginKey")
 
-        const session = await Session.findOne({ where: { loginKey: loginKey} })
+        const session = await Session.findOne({ where: { loginKey: loginKey } })
         if (session == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
 
         return res.status(ReturnCode.OK).json(user)
@@ -288,7 +292,7 @@ const unimpersonate = async (req: Request, res: Response, next: NextFunction) =>
         const admin = req.originalUser as User
         const originalLoginKey = getDataFromAny(req, "originalLoginKey")
 
-        const session = await Session.findOne({ where: { loginKey: originalLoginKey} })
+        const session = await Session.findOne({ where: { loginKey: originalLoginKey } })
         if (session == undefined) return res.status(ReturnCode.INVALID_PARAMS).end()
 
         const data = {

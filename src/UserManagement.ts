@@ -1,6 +1,6 @@
 import { Request } from "express"
 import Database from "./database"
-import { Authenticator, Challenge, DeleteConfirmation, Poll, Session, User, Vote } from "./entities/entities"
+import { Authenticator, Challenge, DeleteConfirmation, NotificationPreferencesEntity, Poll, Session, User, Vote } from "./entities/entities"
 import { config } from "./expoll_config"
 import getMailManager, { Mail } from "./MailManager"
 import getPollManager from "./PollManagement"
@@ -341,6 +341,11 @@ class UserManager {
         const challenges = await Challenge.find({ where: { user: user } })
         challenges.forEach(async (challenge) => {
             await challenge.remove()
+        })
+
+        const notifications = await NotificationPreferencesEntity.find({ where: { user: user } })
+        notifications.forEach(async (notification) => {
+            await notification.remove()
         })
 
         await user.save()
