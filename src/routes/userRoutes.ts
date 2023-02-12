@@ -97,7 +97,7 @@ async function verifyAppleAppAttest(attest: string, challengeId: string): Promis
     return true*/
 }
 
-const createUserChallange = async (req: Request, res: Response, next: NextFunction) => {
+const createUserChallenge = async (req: Request, res: Response, next: NextFunction) => {
     try {
         return res.status(ReturnCode.OK).send("challenge")
     } catch (e) {
@@ -397,7 +397,7 @@ const getPersonalizedData = async (req: Request, res: Response, next: NextFuncti
     }
 }
 
-userRoutes.get("/createChallenge", createUserChallange)
+userRoutes.get("/createChallenge", createUserChallenge)
 userRoutes.post("/", createUser)
 userRoutes.get("/", checkLoggedIn, getUserData)
 userRoutes.get("/personalizeddata", checkLoggedIn, getPersonalizedData)
