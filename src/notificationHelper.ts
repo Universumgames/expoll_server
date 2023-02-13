@@ -106,7 +106,8 @@ export async function sendAPN(
     if (
         bearerAge == undefined ||
         apnsBearer == undefined ||
-        bearerAge.getTime() + 30 * 60 * 1000 < new Date().getTime()
+        // check that the bearer is not older than 40 minutes
+        new Date().getTime() - bearerAge.getTime() > 40 * 60 * 1000
     ) {
         apnsBearer = await apnsBearerToken()
         bearerAge = new Date()
