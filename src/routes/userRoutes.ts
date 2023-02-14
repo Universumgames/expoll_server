@@ -2,7 +2,7 @@ import getMailManager, { Mail } from "./../MailManager"
 import { config } from "../expoll_config"
 import axios from "axios"
 import { checkLoggedIn } from "./routeHelper"
-import { addServerTimingsMetrics, base64URLStringToBuffer, mailIsAllowed } from "./../helper"
+import { addServerTimingsMetrics, base64URLStringToBuffer, getDataFromAny, mailIsAllowed } from "./../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
 import { DeleteConfirmation, MailRegexRules, User } from "./../entities/entities"
 import express, { NextFunction, Request, Response } from "express"
@@ -99,7 +99,9 @@ async function verifyAppleAppAttest(attest: string, challengeId: string): Promis
 
 const createUserChallenge = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        return res.status(ReturnCode.OK).send("challenge")
+        const username = getDataFromAny(req, "username") as string
+        const mail = getDataFromAny(req, "mail") as string
+        return res.status(ReturnCode.OK).send("challenge" + username + mail)
     } catch (e) {
         return res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
     }
