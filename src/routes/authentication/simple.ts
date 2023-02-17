@@ -1,4 +1,5 @@
 import { ReturnCode } from "expoll-lib"
+import { config } from "../../expoll_config"
 import express, { NextFunction, Request, Response } from "express"
 import { cookieConfig, cookieName, getLoginKey } from "../../helper"
 import getUserManager from "../../UserManagement"
@@ -19,7 +20,10 @@ const login = async (req: Request, res: Response, next: NextFunction) => {
         if (loginKey == undefined) {
             return res.status(await getUserManager().sendLoginMail(req.body.mail, req)).end()
         }
-        const user = await getUserManager().getUser({ loginKey: loginKey })
+        let user = await getUserManager().getUser({ loginKey: loginKey })
+        if (user == undefined && loginKey == config.testUser.loginKey) {
+            user = await getUserManager().ensureTestUser()
+        }
         if (user == undefined) {
             return res.status(ReturnCode.INVALID_LOGIN_KEY).cookie(cookieName, {}).end() // unauthorized
         }

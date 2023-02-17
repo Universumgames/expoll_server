@@ -3,6 +3,7 @@ import { Session, User } from "../entities/entities"
 import { addServerTimingsMetrics, cookieName, getDataFromAny, getLoginKey, isAdmin } from "../helper"
 import { ReturnCode } from "expoll-lib/interfaces"
 import getUserManager from "../UserManagement"
+import { config } from "../expoll_config"
 
 export const checkLoggedIn = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -34,8 +35,6 @@ export const checkLoggedIn = async (req: Request, res: Response, next: NextFunct
         }
 
         user.admin = getUserManager().userIsAdminOrSuperAdminSync(user)
-
-        getUserManager().ensureTestUser()
 
         // setting user and loginkey for methods down the line
         // @ts-ignore
