@@ -388,6 +388,50 @@ class UserManager {
         await challengeObj.save()
         return challengeObj
     }
+
+    /**
+     * create a test user if not already existing
+     * @return {Promise<User>} the test user
+     */
+    async ensureTestUser(): Promise<User> {
+        let user = await this.getUser({ mail: "duffle.dares_0k@icloud.com"})
+        if (user != undefined) {
+            await this.ensureTestUserSession()
+            return user
+        }
+        user = await this.createUser(
+            config.testUser.firstName,
+            config.testUser.lastName,
+            config.testUser.email,
+            config.testUser.username
+        )
+        if (user == undefined) throw new Error("Could not create test user")
+
+        await user.save()
+        await this.ensureTestUserSession()
+
+        return user
+    }
+
+    /**
+     * create a test user session if not already existing
+     * @return {Promise<Session>} the test user session
+     */
+    private async ensureTestUserSession(): Promise<Session> {
+        const session = await this.getSession(config.testUser.loginKey)
+        const expiration = new Date(Date.now() + 1000*60*60*24*365)
+        if (session != undefined) {
+            session.expiration = expiration
+            await session.save()
+            return session
+        }
+        const user = await this.ensureTestUser()
+        const newSession = await user.generateSession()
+        newSession.expiration = expiration
+        newSession.loginKey = config.testUser.loginKey
+        await newSession.save()
+        return newSession
+    }
 }
 
 /**

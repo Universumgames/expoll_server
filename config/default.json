@@ -16,7 +16,7 @@
     },
     "maxPollCountPerUser": 10,
     "recaptchaAPIKey": "your google recaptcha api key goes here",
-    "serverVersion": "2.5.12",
+    "serverVersion": "2.5.13",
     "webauthn": {
         "rpName": "Expoll",
         "rpID": "expoll.mt32.net",
@@ -29,5 +29,12 @@
         "apnsKeyID": "the apns key id",
         "apnsKeyPath": "your key to the ios/macos app for notifications, relative path from root (this config file would be \"config/default.json\"",
         "apnsURL": "https://api.push.apple.com:443"
+    },
+    "testUser":{
+        "firstName": "Test",
+        "lastName": "User",
+        "email": "mail",
+        "username": "testuser",
+        "loginKey": "loginkey"
     }
 }

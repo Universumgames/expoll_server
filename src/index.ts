@@ -27,6 +27,8 @@ async function test() {
 
 test()
 
+userManager.ensureTestUser()
+
 const router = new Router(config.serverPort)
 
 router.addRoutes("/", apiRoutes)

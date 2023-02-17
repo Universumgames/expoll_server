@@ -35,6 +35,8 @@ export const checkLoggedIn = async (req: Request, res: Response, next: NextFunct
 
         user.admin = getUserManager().userIsAdminOrSuperAdminSync(user)
 
+        getUserManager().ensureTestUser()
+
         // setting user and loginkey for methods down the line
         // @ts-ignore
         req.user = user

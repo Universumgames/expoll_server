@@ -32,6 +32,13 @@ export const config = {
         apnsKeyID: nodeconfig.get<string>("notifications.apnsKeyID"),
         apnsKeyPath: nodeconfig.get<string>("notifications.apnsKeyPath"),
         apnsURL: nodeconfig.get<string>("notifications.apnsURL")
+    },
+    testUser: {
+        firstName: nodeconfig.get<string>("testUser.firstName"),
+        lastName: nodeconfig.get<string>("testUser.lastName"),
+        email: nodeconfig.get<string>("testUser.email"),
+        username: nodeconfig.get<string>("testUser.username"),
+        loginKey: nodeconfig.get<string>("testUser.loginKey")
     }
 }
 
