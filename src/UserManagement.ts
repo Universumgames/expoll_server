@@ -324,36 +324,36 @@ class UserManager {
 
         // delete user deletion confirmation
         const confirmations = await DeleteConfirmation.find({ where: { user: user } })
-        confirmations.forEach(async (confirmation) => {
+        await Promise.all(confirmations.map(async (confirmation) => {
             await confirmation.remove()
-        })
+        }))
 
         const sessions = await this.getSessions(userID)
-        sessions.forEach(async (session) => {
+        await Promise.all(sessions.map(async (session) => {
             await session.remove()
-        })
+        }))
 
         const authenticators = await Authenticator.find({ where: { user: user } })
-        authenticators.forEach(async (auth) => {
+        await Promise.all(authenticators.map(async (auth) => {
             await auth.remove()
-        })
+        }))
 
         const challenges = await Challenge.find({ where: { user: user } })
-        challenges.forEach(async (challenge) => {
+        await Promise.all(challenges.map(async (challenge) => {
             await challenge.remove()
-        })
+        }))
 
         const notifications = await NotificationPreferencesEntity.find({ where: { user: user } })
-        notifications.forEach(async (notification) => {
+        await Promise.all(notifications.map(async (notification) => {
             await notification.remove()
-        })
+        }))
 
         await user.save()
 
         if (user.votes.length == 0 || !user.active) {
-            user.votes?.forEach(async (vote) => {
+            await Promise.all(user.votes?.map(async (vote) => {
                 await vote.remove()
-            })
+            }))
             await user.save()
             await User.delete({ id: user.id })
         } else {
@@ -393,31 +393,40 @@ class UserManager {
      * create a test user if not already existing
      * @return {Promise<User>} the test user
      */
-    async ensureTestUser(): Promise<User> {
-        let user = await this.getUser({ mail: "duffle.dares_0k@icloud.com"})
-        if (user != undefined) {
+    async ensureTestUser(): Promise<User | undefined> {
+        try {
+            let user = await this.getUser({ mail: "duffle.dares_0k@icloud.com"})
+            if (user != undefined) {
+                await this.ensureTestUserSession()
+                user.firstName = config.testUser.firstName
+                user.lastName = config.testUser.lastName
+                user.username = config.testUser.username
+                await user.save()
+                return user
+            }
+            user = await this.createUser(
+                config.testUser.firstName,
+                config.testUser.lastName,
+                config.testUser.email,
+                config.testUser.username
+            )
+            if (user == undefined) throw new Error("Could not create test user")
+
+            await user.save()
             await this.ensureTestUserSession()
+
             return user
+        } catch (e) {
+            console.error(e)
+            return undefined
         }
-        user = await this.createUser(
-            config.testUser.firstName,
-            config.testUser.lastName,
-            config.testUser.email,
-            config.testUser.username
-        )
-        if (user == undefined) throw new Error("Could not create test user")
-
-        await user.save()
-        await this.ensureTestUserSession()
-
-        return user
     }
 
     /**
      * create a test user session if not already existing
      * @return {Promise<Session>} the test user session
      */
-    private async ensureTestUserSession(): Promise<Session> {
+    private async ensureTestUserSession(): Promise<Session | undefined> {
         const session = await this.getSession(config.testUser.loginKey)
         const expiration = new Date(Date.now() + 1000*60*60*24*365)
         if (session != undefined) {
@@ -426,6 +435,7 @@ class UserManager {
             return session
         }
         const user = await this.ensureTestUser()
+        if (user == undefined) return undefined
         const newSession = await user.generateSession()
         newSession.expiration = expiration
         newSession.loginKey = config.testUser.loginKey

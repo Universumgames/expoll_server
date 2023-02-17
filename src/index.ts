@@ -3,7 +3,7 @@ import Database from "./database"
 // import http from "http"
 import Router from "./router"
 import apiRoutes from "./routes/apiroutes"
-import { createUserManager } from "./UserManagement"
+import getUserManager, { createUserManager } from "./UserManagement"
 import { createPollManager } from "./PollManagement"
 import { createMailManager } from "./MailManager"
 import { config } from "./expoll_config"
@@ -26,8 +26,6 @@ async function test() {
 }
 
 test()
-
-userManager.ensureTestUser()
 
 const router = new Router(config.serverPort)
 
