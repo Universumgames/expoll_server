@@ -1,6 +1,7 @@
 import http from "http"
 import express, { Express } from "express"
 import cookieParser from "cookie-parser"
+import bodyParser from "body-parser"
 
 /**
  * Main class for managing http routes
@@ -27,8 +28,9 @@ export default class Router {
      * Creates server
      */
     private setup(): void {
+        this.router.use(express.json({ limit: "50mb" }))
+        this.router.use(express.urlencoded({ limit: "50mb", extended: true }))
         this.router.use(cookieParser())
-        this.router.use(express.json())
         this.router.use("/", this.routes)
         this.httpServer = http.createServer(this.router)
         this.isSetUp = true

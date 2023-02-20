@@ -46,8 +46,10 @@ export class Poll extends BaseEntity implements IPoll {
     @UpdateDateColumn()
     updated: Date
 
-    @Column()
+    @Column({ type: "text" })
     description: string
+
+    static MAX_DESCRIPTION_LENGTH = 65535
 
     @Column()
     type: PollType = PollType.String
