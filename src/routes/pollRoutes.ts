@@ -243,6 +243,9 @@ const createPoll = async (req: Request, res: Response, next: NextFunction) => {
         const poll = new Poll()
         poll.name = name
         poll.description = description.substring(0, Math.min(description.length, Poll.MAX_DESCRIPTION_LENGTH))
+            .replaceAll("\\n", "\n")
+            .replaceAll("\\r", "\r")
+            .replaceAll("\\t", "\t")
         poll.type = type
         poll.admin = user
         poll.maxPerUserVoteCount = maxPerUserVoteCount
@@ -380,6 +383,9 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
             if (name != undefined) poll.name = name
             if (description != undefined)
                 poll.description = description.substring(0, Math.min(description.length, Poll.MAX_DESCRIPTION_LENGTH))
+                    .replaceAll("\\n", "\n")
+                    .replaceAll("\\r", "\r")
+                    .replaceAll("\\t", "\t")
             // constrain maxperuservotecount to -1
             if (maxPerUserVoteCount != undefined)
                 poll.maxPerUserVoteCount = maxPerUserVoteCount <= -1 ? -1 : maxPerUserVoteCount
