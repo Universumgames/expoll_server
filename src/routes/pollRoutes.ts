@@ -1,4 +1,4 @@
-import { addServerTimingsMetrics, generateShareURL } from "../helper"
+import { addServerTimingsMetrics, generateShareURL, getDataFromAny } from "../helper"
 import { ComplexOption, NotificationType, SimpleUserNote } from "expoll-lib/extraInterfaces"
 import { config } from "../expoll_config"
 import { ReturnCode, tDate, tDateTime, tOptionId, tPollID, tUserID } from "expoll-lib/interfaces"
@@ -532,9 +532,30 @@ const editPoll = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
+const getChangedPollsSince = async (req: Request, res: Response) => {
+    try {
+        // @ts-ignore
+        const user = req.user as User
+        const sinceTimestamp = getDataFromAny(req, "since") as number | undefined
+        if (sinceTimestamp == undefined) return res.status(ReturnCode.BAD_REQUEST).end()
+        const since = new Date(sinceTimestamp * 1000)
+
+        const polls = await getUserManager().getPolls(user.mail)
+        const changedPollIDs: tPollID[] = polls.filter((poll) => poll.updated > since).map((poll) => poll.id)
+
+        return res.status(ReturnCode.OK).json(changedPollIDs).end()
+    } catch (e) {
+        console.error(e)
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).end()
+    }
+}
+
+pollRoutes.get("/changed", checkLoggedIn, getChangedPollsSince)
+
 pollRoutes.get("/", checkLoggedIn, getPolls)
 pollRoutes.post("/", checkLoggedIn, createPoll)
 pollRoutes.put("/", checkLoggedIn, editPoll)
+
 
 // pollRoutes.all("/metaInfo", metaInfo)
 

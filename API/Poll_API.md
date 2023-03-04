@@ -1,10 +1,11 @@
 # Poll-Endpoints
 
-| Endpoint | HTTP Method | Summary                                                                                                                             |
-| -------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `/poll`  | GET         | [Request info](#retrieve-poll-list) - Get summary of polls the user was invited to or get detailed information on one specific poll |
-| `/poll`  | POST        | [Request info](#create-a-poll) - Create a new poll                                                                                  |
-| `/poll`  | PUT         | [Request info](#edit-a-poll) - Edit a poll                                                                                          |
+| Endpoint        | HTTP Method | Summary                                                                                                                             |
+| --------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `/poll`         | GET         | [Request info](#retrieve-poll-list) - Get summary of polls the user was invited to or get detailed information on one specific poll |
+| `/poll`         | POST        | [Request info](#create-a-poll) - Create a new poll                                                                                  |
+| `/poll`         | PUT         | [Request info](#edit-a-poll) - Edit a poll                                                                                          |
+| `/poll/changed` | GET         | [Request info](#poll-changed) - Get a list of poll ids that have changed since the last request                                     |
 
 ## Retrieve polls
 
@@ -141,3 +142,18 @@ Detailed request list:
     -   `200` Changes accepted
     -   `400` Poll not found
     -   `401` User not admin of poll, cannot commit changes
+
+
+## Poll changed
+
+Retrieve poll ids that have changed since to provided utc timestamp. This is useful for clients that want to keep the data sent from the server to a minimum. The server will send a list of poll ids that have changed since the provided timestamp. The client can then request the full poll data for each of the changed polls.
+
+-   Path `/poll/changed`
+-   HTTP Method `GET`
+-   required fields:
+    -   `since` (UTC timestamp)
+- returns (JSON Array)
+    -   an array of poll ids that have changed since the provided timestamp
+- returns (HTTP Codes)
+    -   `200` OK
+    -   `400` Bad request, required fields missing or invalid

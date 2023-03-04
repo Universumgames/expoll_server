@@ -16,7 +16,7 @@
     },
     "maxPollCountPerUser": 10,
     "recaptchaAPIKey": "your google recaptcha api key goes here",
-    "serverVersion": "2.5.18",
+    "serverVersion": "2.5.19",
     "minimumRequiredClientVersion": "2.5.17",
     "webauthn": {
         "rpName": "Expoll",
