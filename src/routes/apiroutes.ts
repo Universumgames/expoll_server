@@ -8,6 +8,7 @@ import voteRoutes from "./voteRoutes"
 import simpleRoutes from "./simpleRoutes"
 import authRoutes from "./authentication/auth"
 import notificationRoutes from "./notifications/notifications"
+import { compareVersion, getDataFromAny } from "../helper"
 
 // eslint-disable-next-line new-cap
 const apiRoutes = express.Router()
@@ -57,6 +58,7 @@ export const metaInfo = async (req: Request, res: Response, next: NextFunction) 
 export const serverInfo = async (req: Request, res: Response, next: NextFunction) => {
     const returnData = {
         version: config.serverVersion,
+        minimumRequiredVersion: config.minimumRequiredClientVersion,
         serverPort: config.serverPort,
         frontendPort: config.frontEndPort,
         loginLinkBase: config.loginLinkURL,
@@ -65,8 +67,21 @@ export const serverInfo = async (req: Request, res: Response, next: NextFunction
     return res.status(ReturnCode.OK).json(returnData)
 }
 
+export const checkCompliance = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const clientVersion = getDataFromAny(req, "version") as string
+        return res.status(ReturnCode.OK).send(`${compareVersion(clientVersion, config.minimumRequiredClientVersion)}`)
+    } catch (err) {
+        console.warn(err)
+        return res.status(ReturnCode.INTERNAL_SERVER_ERROR).json({
+            message: err
+        })
+    }
+}
+
 apiRoutes.get("/test", test)
 apiRoutes.all("/metaInfo", metaInfo)
 apiRoutes.all("/serverInfo", serverInfo)
+apiRoutes.all("/compliance", checkCompliance)
 
 export default apiRoutes

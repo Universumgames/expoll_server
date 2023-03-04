@@ -6,7 +6,7 @@ import { User } from "./user"
 
 @Entity()
 /**
- * Session ibject to store users session data
+ * Session object to store users session data
  */
 export class Session extends BaseEntity implements ISession {
     @PrimaryColumn()

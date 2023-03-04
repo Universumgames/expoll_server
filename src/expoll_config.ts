@@ -39,7 +39,8 @@ export const config = {
         email: nodeconfig.get<string>("testUser.email"),
         username: nodeconfig.get<string>("testUser.username"),
         loginKey: nodeconfig.get<string>("testUser.loginKey")
-    }
+    },
+    minimumRequiredClientVersion: nodeconfig.get<string>("minimumRequiredClientVersion")
 }
 
 console.log("Running server with config as following:\n", config)

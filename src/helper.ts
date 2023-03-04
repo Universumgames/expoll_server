@@ -176,3 +176,20 @@ export function mailIsAllowed(mail: string, regexRules: MailRegexEntry[]): boole
 export function generateShareURL(pollID: tPollID): string {
     return config.shareURLPrefix + pollID
 }
+
+
+/**
+ * Check if a version is greater than another
+ * @param {string} version1 the first version
+ * @param {string} version2 the second version
+ * @return {number} 1 if version1 > version2, -1 if version1 < version2, 0 if version1 == version2
+ */
+export function compareVersion(version1: string, version2: string): number {
+    const v1 = version1.split(".")
+    const v2 = version2.split(".")
+    for (let i = 0; i < v1.length && i < v2.length; i++) {
+        if (v1[i] > v2[i]) return 1
+        if (v1[i] < v2[i]) return -1
+    }
+    return 0
+}
