@@ -1,0 +1,10 @@
+ktor:
+    application:
+        modules:
+            - net.mt32.expoll.ApplicationKt.module
+    deployment:
+        port: 7070
+jwt:
+    domain: "https://jwt-provider-domain/"
+    audience: "jwt-audience"
+    realm: "ktor sample app"
