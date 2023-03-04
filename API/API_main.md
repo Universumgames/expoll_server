@@ -15,6 +15,7 @@ Configured on our server, the API is accessible via the `/api` Endpoint, but the
 | `/metaInfo`      | [Meta Information](#meta-info) Endpoint, review your Reverse Proxy Settings to see, what HTTP Headers the server receives |
 | `/serverInfo`    | [Server Info](#server-info) Retrieve basic server information (like backend version, port, base link, login mail sender)  |
 | `/notifications` | [Notification Endpoints](./Notification_API.md) - Create and manage notification preferences                              |
+| `/compliance`    | [Compliance Endpoints](#compliance) - Check if the client meets the minimum version requirements                          |
 
 ## Config files
 
@@ -118,6 +119,7 @@ Returns backend server information. Partially the configuration of the server is
     -   `frontendPort` (int) the port the frontend is running on (for login mail sending)
     -   `loginLinkBase` (string) the base of the login link
     -   `mailSender` (string) the mail address the mails are sent from
+    -   `minimumRequiredClientVersion` (string) the minimum required client version to use the backend
 -   example response:
     ```json
     {
@@ -125,6 +127,20 @@ Returns backend server information. Partially the configuration of the server is
         "serverPort": 6060,
         "frontendPort": 80,
         "loginLinkBase": "expoll.mt32.net",
-        "mailSender": "no-reply@universegame.de"
+        "mailSender": "no-reply@universegame.de",
+        "minimumRequiredClientVersion": "2.4.0"
     }
     ```
+
+## Compliance
+A simple endpoint for any client to check wether his version is compatible with the backend.
+
+- Path `/compliance`
+- HTTP Method `GET`
+- required fields (json, query):
+  - `version` (string) the version of the client
+- returns
+  - 200 (OK) 
+    - `-1` (int) if the client is incompatible
+    - `0` (int) if the version is equal to the minimum version (compatible)
+    - `1` (int) if the client is ahead of the minimum version (compatible)
