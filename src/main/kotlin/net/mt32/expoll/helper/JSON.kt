@@ -16,7 +16,7 @@ val defaultJSON = Json {
 fun mergeJsonObjects(obj1: JsonObject, obj2: JsonObject?): JsonObject {
     if (obj2 == null) return obj1
     val merged = obj1.toMutableMap();
-    for (entry in merged.entries) {
+    merged.forEach { entry ->
         if (obj2.containsKey(entry.key)) {
             val isObj = merged[entry.key].toString().contains("{") || merged[entry.key].toString().contains("[")
             merged[entry.key] = if (isObj) mergeJsonObjects(
@@ -25,9 +25,9 @@ fun mergeJsonObjects(obj1: JsonObject, obj2: JsonObject?): JsonObject {
             ) else obj2[entry.key]?.jsonPrimitive ?: entry.value
         }
     }
-    for(entry in obj2.entries){
-        if(merged.containsKey(entry.key)) continue
-        merged.put(entry.key, entry.value)
+    obj2.forEach { entry ->
+        if (!merged.containsKey(entry.key))
+            merged.put(entry.key, entry.value)
     }
     return JsonObject(merged)
 }
