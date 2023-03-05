@@ -34,3 +34,13 @@ out/
 
 ### VS Code ###
 .vscode/
+
+.DS_Store
+*.tsbuildinfo
+config/dev*
+config/prod*
+**/keys*
+package-lock.json
+docker/db.env
+backups
+*.p8

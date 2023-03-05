@@ -1,9 +1,11 @@
 {
-    "mailServer": "your-mailserver-url",
-    "mailPort": 587,
-    "mailSecure": false,
-    "mailUser": "your mail",
-    "mailPassword": "password",
+    "mail": {
+        "mailServer": "your-mailserver-url",
+        "mailPort": 587,
+        "mailSecure": false,
+        "mailUser": "your mail",
+        "mailPassword": "password"
+    },
     "serverPort": 6060,
     "frontEndPort": 80,
     "loginLinkURL": "localhost",
@@ -16,7 +18,7 @@
     },
     "maxPollCountPerUser": 10,
     "recaptchaAPIKey": "your google recaptcha api key goes here",
-    "serverVersion": "2.5.19",
+    "serverVersion": "2.5.18",
     "minimumRequiredClientVersion": "2.5.17",
     "webauthn": {
         "rpName": "Expoll",
