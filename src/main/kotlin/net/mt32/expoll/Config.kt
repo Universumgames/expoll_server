@@ -1,10 +1,8 @@
 package net.mt32.expoll
 
-import jdk.incubator.vector.VectorOperators.Test
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import net.mt32.expoll.helper.defaultJSON
@@ -60,7 +58,7 @@ data class ConfigData(
     val frontEndPort: Int = 0,
     val loginLinkURL: String = "",
     val superAdminMail: String = "",
-    val database: DatabaseConfig,
+    val database: DatabaseConfig = DatabaseConfig(),
     val maxPollCountPerUser: Int = 0,
     val recaptchaAPIKey: String = "",
     val serverVersion: String = "",
@@ -71,17 +69,17 @@ data class ConfigData(
     val minimumRequiredClientVersion: String = ""
 )
 
-var config: ConfigData? = null
+var config: ConfigData = ConfigData()
 
 object ConfigLoader {
 
     fun load(environment: String = "") {
-        var defaultConfigFile = File("config/default.json").readText()
-        var desiredConfigFile = File("config/${environment}.json").readText()
-        var defaultConf: JsonObject = defaultJSON.decodeFromString(defaultConfigFile)
-        var desiredConfig: JsonObject = defaultJSON.decodeFromString(desiredConfigFile)
+        val defaultConfigFile = File("config/default.json").readText()
+        val desiredConfigFile = File("config/${environment}.json").readText()
+        val defaultConf: JsonObject = defaultJSON.decodeFromString(defaultConfigFile)
+        val desiredConfig: JsonObject = defaultJSON.decodeFromString(desiredConfigFile)
 
-        var merged = mergeJsonObjects(defaultConf, desiredConfig)
+        val merged = mergeJsonObjects(defaultConf, desiredConfig)
         config = defaultJSON.decodeFromJsonElement(merged)
 
         println("Loaded config with")
