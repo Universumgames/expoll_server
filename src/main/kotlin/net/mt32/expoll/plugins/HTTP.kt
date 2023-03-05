@@ -1,10 +1,10 @@
 package net.mt32.expoll.plugins
 
-import io.ktor.server.plugins.defaultheaders.*
-import io.ktor.server.plugins.openapi.*
-import io.ktor.server.routing.*
-import io.ktor.server.plugins.compression.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.compression.*
+import io.ktor.server.plugins.defaultheaders.*
+import io.ktor.server.plugins.doublereceive.*
+import io.ktor.server.routing.*
 import net.mt32.expoll.routes.userRoutes
 
 fun Application.configureHTTP() {
@@ -15,6 +15,7 @@ fun Application.configureHTTP() {
         //openAPI(path = "openapi")
         userRoutes()
     }
+    install(DoubleReceive)
     install(Compression) {
         gzip {
             priority = 1.0

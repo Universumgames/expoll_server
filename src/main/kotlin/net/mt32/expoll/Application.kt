@@ -19,7 +19,8 @@ fun main(args: Array<String>){
     println(vote)
     println(user?.votes?.get(0))
 
-    embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)
+    //embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)
+    embeddedServer(Netty, port = 7070, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 
@@ -28,6 +29,5 @@ fun Application.module() {
     configureSecurity()
     configureHTTP()
     configureSerialization()
-    configureDatabases()
     configureRouting()
 }
