@@ -24,4 +24,4 @@ compiling: # This job runs in the build stage, which runs first.
         - gradle buildFatJar --no-daemon
     artifacts:
         paths:
-            - src/build/libs/*.jar
+            - build/libs/*.jar
