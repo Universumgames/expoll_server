@@ -91,8 +91,8 @@ class User : IUser, DatabaseEntity {
         fun loadFromLoginKey(loginKey: String): User? {
             return transaction {
                 val sessionRow =
-                    Sessions.select { Sessions.loginKey eq loginKey }.firstOrNull() ?: return@transaction null
-                val userRow = Users.select { Users.id eq sessionRow[Sessions.userID] }.firstOrNull()
+                    Session.select { Session.loginKey eq loginKey }.firstOrNull() ?: return@transaction null
+                val userRow = Users.select { Users.id eq sessionRow[Session.userID] }.firstOrNull()
                 if (userRow != null) return@transaction User(userRow) else null
             }
         }

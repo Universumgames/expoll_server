@@ -24,38 +24,36 @@ class Session : DatabaseEntity {
     }
 
     constructor(sessionRow: ResultRow) {
-        this.loginkey = sessionRow[Sessions.loginKey]
-        this.expirationTimestamp = sessionRow[Sessions.expirationTimestamp]
-        this.userAgent = sessionRow[Sessions.userAgent]
-        this.userID = sessionRow[Sessions.userID]
+        this.loginkey = sessionRow[Session.loginKey]
+        this.expirationTimestamp = sessionRow[Session.expirationTimestamp]
+        this.userAgent = sessionRow[Session.userAgent]
+        this.userID = sessionRow[Session.userID]
     }
 
 
-    companion object {
+    companion object : Table("session"){
+
+        val loginKey = varchar("loginKey", UUIDLength)
+        val expirationTimestamp = long("expirationTimestamp")
+        val userAgent = varchar("userAgent", 512).nullable()
+        val userID = varchar("userId", UUIDLength)
+
+        override val primaryKey = PrimaryKey(loginKey)
         fun fromLoginKey(loginKey: String): Session? {
             return transaction {
                 val sessionRow =
-                    Sessions.select { Sessions.loginKey eq loginKey }.firstOrNull() ?: return@transaction null
+                    Session.select { Session.loginKey eq loginKey }.firstOrNull() ?: return@transaction null
                 return@transaction Session(sessionRow)
             }
         }
     }
 
     override fun save() {
-        Sessions.upsert(Sessions.loginKey) {
+        Session.upsert(Session.loginKey) {
             it[loginKey] = this@Session.loginkey
             it[expirationTimestamp] = this@Session.expirationTimestamp
             it[userAgent] = this@Session.userAgent
             it[userID] = this@Session.userID
         }
     }
-}
-
-object Sessions : Table("session") {
-    val loginKey = varchar("loginKey", UUIDLength)
-    val expirationTimestamp = long("expirationTimestamp")
-    val userAgent = varchar("userAgent", 512).nullable()
-    val userID = varchar("userId", UUIDLength)
-
-    override val primaryKey = PrimaryKey(loginKey)
 }

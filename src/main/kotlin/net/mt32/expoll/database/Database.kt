@@ -3,9 +3,9 @@ package net.mt32.expoll.database
 import net.mt32.expoll.config
 import net.mt32.expoll.database.transform.dateToTimestamp
 import net.mt32.expoll.database.transform.dropAllForeignKeys
-import net.mt32.expoll.entities.Sessions
+import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.Users
-import net.mt32.expoll.entities.Votes
+import net.mt32.expoll.entities.Vote
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.selectAll
@@ -22,7 +22,7 @@ object DatabaseFactory {
         transaction {
             SchemaUtils.createDatabase("expoll")
             Transformer.transformTables()
-            SchemaUtils.createMissingTablesAndColumns(Votes, Sessions)
+            SchemaUtils.createMissingTablesAndColumns(Vote, Session)
             //SchemaUtils.createMissingTablesAndColumns(Users)
             val select = Users.selectAll()
             select.forEach {
@@ -117,6 +117,7 @@ object Transformer {
 const val UUIDLength = 36
 
 abstract class DatabaseEntity {
+
     /**
      * Save current entity to database
      */

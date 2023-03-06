@@ -21,11 +21,11 @@ class Vote: DatabaseEntity {
 
 
     constructor(voteRow: ResultRow) {
-        this.id = voteRow[Votes.id]
-        this.userID = voteRow[Votes.userID]
-        this.pollID = voteRow[Votes.pollID]
-        this.optionID = voteRow[Votes.optionID]
-        this.votedFor = VoteValue.values()[voteRow[Votes.votedFor]]
+        this.id = voteRow[Vote.id]
+        this.userID = voteRow[Vote.userID]
+        this.pollID = voteRow[Vote.pollID]
+        this.optionID = voteRow[Vote.optionID]
+        this.votedFor = VoteValue.values()[voteRow[Vote.votedFor]]
     }
 
     constructor(id: Int, userID: tUserID, pollID: tPollID, optionID: tOptionID, votedFor: VoteValue) {
@@ -38,7 +38,7 @@ class Vote: DatabaseEntity {
 
     override fun save(){
         transaction {
-            Votes.upsert (Votes.id) {
+            Vote.upsert (Vote.id) {
                 it[id] = this@Vote.id
                 it[userID] = this@Vote.userID
                 it[pollID]= this@Vote.pollID
@@ -52,31 +52,27 @@ class Vote: DatabaseEntity {
         return "Vote(id=$id, userID='$userID', pollID='$pollID', optionID=$optionID, votedFor=$votedFor)"
     }
 
-    companion object {
+    companion object : Table("vote"){
+
+        val id = integer("id").autoIncrement()
+        val userID = varchar("userId", UUIDLength)
+        val pollID = varchar("pollId", UUIDLength)
+        val optionID = integer("optionId")
+        val votedFor = integer("votedFor")
+
+        override val primaryKey = PrimaryKey(id)
         fun fromUser(user: User): List<Vote> {
             return transaction {
-                val result = Votes.select { Votes.userID eq user.id }
+                val result = Vote.select { Vote.userID eq user.id }
                 return@transaction result.map { Vote(it) }
             }
         }
 
         fun fromPoll(poll: Poll): List<Vote> {
             return transaction {
-                val result = Votes.select { Votes.pollID eq poll.id }
+                val result = Vote.select { Vote.pollID eq poll.id }
                 return@transaction result.map { Vote(it) }
             }
         }
     }
-
-
-}
-
-object Votes : Table("vote") {
-    val id = integer("id").autoIncrement()
-    val userID = varchar("userId", UUIDLength)
-    val pollID = varchar("pollId", UUIDLength)
-    val optionID = integer("optionId")
-    val votedFor = integer("votedFor")
-
-    override val primaryKey = PrimaryKey(id)
 }
