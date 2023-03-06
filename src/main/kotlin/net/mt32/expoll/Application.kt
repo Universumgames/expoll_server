@@ -3,6 +3,7 @@ package net.mt32.expoll
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import net.mt32.expoll.database.DatabaseFactory
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.plugins.*
 

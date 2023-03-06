@@ -1,0 +1,15 @@
+openapi: "3.0.0"
+info:
+  title: Expoll REST API
+  summary: Simple poll backend server
+  description: This is the backend api documentation for expoll
+  license:
+    name: MIT
+    url: https://github.com/Universumgames/expoll_server/blob/main/LICENSE
+  version: 2.6.0
+servers:
+  - url: https://expoll.mt32.net/api
+    description: the production server api
+
+components:
+  schemas:

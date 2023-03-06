@@ -1,7 +1,8 @@
 package net.mt32.expoll.entities
 
-import net.mt32.expoll.UUIDLength
-import net.mt32.expoll.helper.timestampFromString
+import net.mt32.expoll.database.DatabaseEntity
+import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
@@ -9,7 +10,7 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
-class Session {
+class Session : DatabaseEntity {
     val loginkey: String
     val expirationTimestamp: Long
     var userAgent: String?
@@ -24,7 +25,7 @@ class Session {
 
     constructor(sessionRow: ResultRow) {
         this.loginkey = sessionRow[Sessions.loginKey]
-        this.expirationTimestamp = timestampFromString(sessionRow[Sessions.expirationTimestamp])
+        this.expirationTimestamp = sessionRow[Sessions.expirationTimestamp]
         this.userAgent = sessionRow[Sessions.userAgent]
         this.userID = sessionRow[Sessions.userID]
     }
@@ -39,11 +40,20 @@ class Session {
             }
         }
     }
+
+    override fun save() {
+        Sessions.upsert(Sessions.loginKey) {
+            it[loginKey] = this@Session.loginkey
+            it[expirationTimestamp] = this@Session.expirationTimestamp
+            it[userAgent] = this@Session.userAgent
+            it[userID] = this@Session.userID
+        }
+    }
 }
 
 object Sessions : Table("session") {
     val loginKey = varchar("loginKey", UUIDLength)
-    val expirationTimestamp = varchar("expiration", 255)
+    val expirationTimestamp = long("expirationTimestamp")
     val userAgent = varchar("userAgent", 512).nullable()
     val userID = varchar("userId", UUIDLength)
 

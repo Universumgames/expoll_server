@@ -1,7 +1,7 @@
 package net.mt32.expoll.entities
 
-import net.mt32.expoll.DatabaseEntity
-import net.mt32.expoll.UUIDLength
+import net.mt32.expoll.database.DatabaseEntity
+import net.mt32.expoll.database.UUIDLength
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.select
