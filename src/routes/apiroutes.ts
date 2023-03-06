@@ -49,7 +49,7 @@ export const metaInfo = async (req: Request, res: Response, next: NextFunction) 
             serverPort: config.serverPort,
             frontendPort: config.frontEndPort,
             loginLinkBase: config.loginLinkURL,
-            mailSender: config.mailUser
+            mailSender: config.mail.mailUser
         }
     }
     return res.status(ReturnCode.OK).json(returnData)
@@ -62,7 +62,7 @@ export const serverInfo = async (req: Request, res: Response, next: NextFunction
         serverPort: config.serverPort,
         frontendPort: config.frontEndPort,
         loginLinkBase: config.loginLinkURL,
-        mailSender: config.mailUser
+        mailSender: config.mail.mailUser
     }
     return res.status(ReturnCode.OK).json(returnData)
 }

@@ -1,11 +1,13 @@
 import nodeconfig from "config"
 
 export const config = {
-    mailServer: nodeconfig.get<string>("mailServer"),
-    mailPort: nodeconfig.get<number>("mailPort"),
-    mailSecure: nodeconfig.get<boolean>("mailSecure"),
-    mailUser: nodeconfig.get<string>("mailUser"),
-    mailPassword: nodeconfig.get<string>("mailPassword"),
+    mail: {
+        mailServer: nodeconfig.get<string>("mail.mailServer"),
+        mailPort: nodeconfig.get<number>("mail.mailPort"),
+        mailSecure: nodeconfig.get<boolean>("mail.mailSecure"),
+        mailUser: nodeconfig.get<string>("mail.mailUser"),
+        mailPassword: nodeconfig.get<string>("mail.mailPassword")
+    },
     serverPort: nodeconfig.get<number>("serverPort"),
     frontEndPort: nodeconfig.get<number>("frontEndPort"),
     loginLinkURL: nodeconfig.get<string>("loginLinkURL"),

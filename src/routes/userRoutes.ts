@@ -168,7 +168,7 @@ const createUser = async (req: Request, res: Response, next: NextFunction) => {
 
             const port = req.app.settings.port || config.frontEndPort
             getMailManager().sendMail({
-                from: config.mailUser,
+                from: config.mail.mailUser,
                 to: user.mail,
                 subject: "Thank you for registering in expoll",
                 text:
@@ -269,7 +269,7 @@ const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
         conf.expiration.setHours(conf.expiration.getHours() + 1)
         await conf.save()
         getMailManager().sendMail({
-            from: config.mailUser,
+            from: config.mail.mailUser,
             to: user.mail,
             subject: "Delete Account",
             text:

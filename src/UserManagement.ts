@@ -292,7 +292,7 @@ class UserManager {
         if (user == undefined) return ReturnCode.INVALID_PARAMS
         const key = await user.generateSession()
         getMailManager().sendMail({
-            from: config.mailUser,
+            from: config.mail.mailUser,
             to: user.mail,
             subject: "Login to expoll",
             text:

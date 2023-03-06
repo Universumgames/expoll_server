@@ -20,12 +20,12 @@ class MailManager {
      */
     constructor() {
         this.transporter = nodemailer.createTransport({
-            host: config.mailServer,
-            port: config.mailPort,
-            secure: config.mailSecure,
+            host: config.mail.mailServer,
+            port: config.mail.mailPort,
+            secure: config.mail.mailSecure,
             auth: {
-                user: config.mailUser,
-                pass: config.mailPassword
+                user: config.mail.mailUser,
+                pass: config.mail.mailPassword
             }
         })
     }
