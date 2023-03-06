@@ -53,4 +53,12 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
     implementation("org.mariadb.jdbc:mariadb-java-client:2.1.2")
     implementation("io.ktor:ktor-server-double-receive:$ktor_version")
+    implementation("io.ktor:ktor-server-auth:$ktor_version")
+    implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-jetty:$ktor_version")
+    implementation("io.ktor:ktor-client-java:$ktor_version")
+    implementation("io.arrow-kt:arrow-core:1.1.2")
+    implementation("io.github.nefilim.kjwt:kjwt-core:0.8.0")
+
 }
