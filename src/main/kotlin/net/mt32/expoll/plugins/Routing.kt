@@ -6,7 +6,6 @@ import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import net.mt32.expoll.routes.apiRouting
-import net.mt32.expoll.routes.userRoutes
 
 fun Application.configureRouting() {
     install(StatusPages) {
@@ -16,10 +15,5 @@ fun Application.configureRouting() {
     }
     routing {
         apiRouting()
-        userRoutes()
-        get("/") {
-            call.respondText("Hello World!")
-        }
-
     }
 }

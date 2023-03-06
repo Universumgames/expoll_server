@@ -23,6 +23,9 @@ fun Application.configureSecurity() {
         cookie<ExpollCookie>(cookieName) {
             cookie.extensions["SameSite"] = "lax"
         }
+        cookie<MySession>("MY_SESSION"){
+            cookie.extensions["SameSite"] = "lax"
+        }
     }
     routing {
         get("/session/increment") {

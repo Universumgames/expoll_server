@@ -4,6 +4,7 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.plugins.doublereceive.*
+import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.routing.*
 import net.mt32.expoll.routes.userRoutes
@@ -29,4 +30,5 @@ fun Application.configureHTTP() {
             minimumSize(1024) // condition
         }
     }
+    install(ForwardedHeaders)
 }
