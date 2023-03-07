@@ -19,21 +19,20 @@ class Vote: DatabaseEntity {
     val optionID: tOptionID
     var votedFor: VoteValue
 
-
-    constructor(voteRow: ResultRow) {
-        this.id = voteRow[Vote.id]
-        this.userID = voteRow[Vote.userID]
-        this.pollID = voteRow[Vote.pollID]
-        this.optionID = voteRow[Vote.optionID]
-        this.votedFor = VoteValue.values()[voteRow[Vote.votedFor]]
-    }
-
     constructor(id: Int, userID: tUserID, pollID: tPollID, optionID: tOptionID, votedFor: VoteValue) {
         this.id = id
         this.userID = userID
         this.pollID = pollID
         this.optionID = optionID
         this.votedFor = votedFor
+    }
+
+    private constructor(voteRow: ResultRow) {
+        this.id = voteRow[Vote.id]
+        this.userID = voteRow[Vote.userID]
+        this.pollID = voteRow[Vote.pollID]
+        this.optionID = voteRow[Vote.optionID]
+        this.votedFor = VoteValue.values()[voteRow[Vote.votedFor]]
     }
 
     override fun save(){

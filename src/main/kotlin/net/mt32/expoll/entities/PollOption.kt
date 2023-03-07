@@ -26,7 +26,7 @@ class PollOptionString : PollOption, DatabaseEntity {
         this.id = id
     }
 
-    constructor(optionRow: ResultRow) {
+    private constructor(optionRow: ResultRow) {
         id = optionRow[PollOptionString.id]
         pollID = optionRow[PollOptionString.pollID]
         value = optionRow[PollOptionString.value]
@@ -67,7 +67,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
         this.id = id
     }
 
-    constructor(optionRow: ResultRow) {
+    private constructor(optionRow: ResultRow) {
         id = optionRow[PollOptionDate.id]
         pollID = optionRow[PollOptionDate.pollID]
         dateStartTimestamp = optionRow[PollOptionDate.dateStartTimestamp]
@@ -110,7 +110,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
         this.id = id
     }
 
-    constructor(optionRow: ResultRow) {
+    private constructor(optionRow: ResultRow) {
         id = optionRow[PollOptionDateTime.id]
         pollID = optionRow[PollOptionDateTime.pollID]
         dateTimeStartTimestamp = optionRow[PollOptionDateTime.dateTimeStartTimestamp]

@@ -54,5 +54,11 @@ fun Route.apiRouting(){
             )
         }
         userRoutes()
+        pollRoutes()
+        voteRoutes()
+        adminRoute()
+        authRoutes()
+        simpleRoutes()
+        notificationRoutes()
     }
 }

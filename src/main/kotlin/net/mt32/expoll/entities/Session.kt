@@ -23,7 +23,7 @@ class Session : DatabaseEntity {
         this.userID = userID
     }
 
-    constructor(sessionRow: ResultRow) {
+    private constructor(sessionRow: ResultRow) {
         this.loginkey = sessionRow[Session.loginKey]
         this.expirationTimestamp = sessionRow[Session.expirationTimestamp]
         this.userAgent = sessionRow[Session.userAgent]
@@ -31,7 +31,7 @@ class Session : DatabaseEntity {
     }
 
 
-    companion object : Table("session"){
+    companion object : Table("session") {
 
         val loginKey = varchar("loginKey", UUIDLength)
         val expirationTimestamp = long("expirationTimestamp")

@@ -2,6 +2,9 @@ package net.mt32.expoll.database.transform
 
 import net.mt32.expoll.database.DatabaseFactory
 import net.mt32.expoll.database.Transformer
+import net.mt32.expoll.entities.*
+import org.jetbrains.exposed.sql.Column
+import org.jetbrains.exposed.sql.Table
 import java.util.*
 
 /**
@@ -10,65 +13,56 @@ import java.util.*
 fun Transformer.dateToTimestamp() {
     sessionDateToTimestamp()
     pollOptionDateToTimestamp()
+    apnDeviceDateToTimestamp()
+    confirmationDateToTimestamp()
 }
 
-internal fun pollOptionDateToTimestamp() {
-    if (Transformer.tableExists("poll_option_date_time")) {
-        val columnType = Transformer.getColumnType("poll_option_date_time", "dateTimeStart")
-        if (columnType != null && columnType.lowercase().contains("date")) {
-            if (!Transformer.columnExists("poll_option_date_time", "dateTimeStartTimestamp")) {
-                // start time
-                if (!Transformer.addColumn("poll_option_date_time", "dateTimeStartTimestamp", "BIGINT"))
-                    throw Error("Couldn't create new column for poll_option_date_time")
-                DatabaseFactory.runRawSQL("UPDATE poll_option_date_time SET dateTimeStartTimestamp=UNIX_TIMESTAMP(dateTimeStart);") {}
-                //Transformer.dropColumn("poll_option_date_time", "dateTimeStart")
-            }
-            if (!Transformer.columnExists("poll_option_date_time", "dateTimeEndTimestamp")) {
-                //end time
-                if (!Transformer.addColumn("poll_option_date_time", "dateTimeEndTimestamp", "BIGINT NULL DEFAULT NULL"))
-                    throw Error("Couldn't create new column for poll_option_date_time")
-                DatabaseFactory.runRawSQL("UPDATE poll_option_date_time SET dateTimeEndTimestamp=UNIX_TIMESTAMP(dateTimeEnd);") {}
-                //Transformer.dropColumn("poll_option_date_time", "dateTimeEnd")
-            }
-        }
+private fun changeDateColumnToTimestamp(
+    table: Table,
+    column: Column<*>,
+    oldName: String,
+    additionalTypeInfo: String = ""
+) {
+    if (!Transformer.tableExists(table.tableName))
+        return
+    val columnToChangeIsDate = Transformer.getColumnType(table.tableName, oldName)
+    if (columnToChangeIsDate == null || !columnToChangeIsDate.lowercase(Locale.getDefault()).contains("date"))
+        return
+    if (!Transformer.columnExists(table.tableName, column.name)) {
+        if (!Transformer.addColumn(table.tableName, column.name, "BIGINT $additionalTypeInfo"))
+            throw Error("Couldn't create new column for ${table.tableName}.${column.name}")
+        DatabaseFactory.runRawSQL("UPDATE ${table.tableName} SET ${column.name}=UNIX_TIMESTAMP(${oldName});") {}
     }
-    if (Transformer.tableExists("poll_option_date")) {
-        val columnType = Transformer.getColumnType("poll_option_date", "dateStart")
-        if (columnType != null && columnType.lowercase().contains("date")) {
-            if (!Transformer.columnExists("poll_option_date", "dateStartTimestamp")) {
-                // start time
-                if (!Transformer.addColumn("poll_option_date", "dateStartTimestamp", "BIGINT"))
-                    throw Error("Couldn't create new column for poll_option_date")
-                DatabaseFactory.runRawSQL("UPDATE poll_option_date SET dateStartTimestamp=UNIX_TIMESTAMP(dateStart);") {}
-                //Transformer.dropColumn("poll_option_date", "dateStart")
-            }
-            if (!Transformer.columnExists("poll_option_date", "dateEndTimestamp")) {
-                //end time
-                if (!Transformer.addColumn("poll_option_date", "dateEndTimestamp", "BIGINT NULL DEFAULT NULL"))
-                    throw Error("Couldn't create new column for poll_option_date")
-                DatabaseFactory.runRawSQL("UPDATE poll_option_date SET dateEndTimestamp=UNIX_TIMESTAMP(dateEnd);") {}
-                //Transformer.dropColumn("poll_option_date", "dateEnd")
-            }
-        }
-    }
+    // TODO remove comment
+    //if (Transformer.columnExists(table.tableName, oldName))
+    //    Transformer.dropColumn(table.tableName, oldName)
+    // or change to computed column
+    //Transformer.dropColumn(table.tableName, oldName)
+    //Transformer.addColumn(table.tableName, oldName, "DATE GENERATED ALWAYS AS (FROM_UNIXTIME(${column.name}))")
+}
+
+private fun confirmationDateToTimestamp(){
+    changeDateColumnToTimestamp(DeleteConfirmation.Companion, DeleteConfirmation.expirationTimestamp, "expiration")
+}
+
+private fun apnDeviceDateToTimestamp() {
+    changeDateColumnToTimestamp(APNDevice.Companion, APNDevice.creationTimestamp, "creation")
+    changeDateColumnToTimestamp(AppAttest.Companion, AppAttest.createdAtTimestamp, "createdAt")
+}
+
+private fun pollOptionDateToTimestamp() {
+    changeDateColumnToTimestamp(
+        PollOptionDateTime.Companion,
+        PollOptionDateTime.dateTimeStartTimestamp,
+        "dateTimeStart"
+    )
+    changeDateColumnToTimestamp(PollOptionDateTime.Companion, PollOptionDateTime.dateTimeEndTimestamp, "dateTimeEnd")
+
+    changeDateColumnToTimestamp(PollOptionDate.Companion, PollOptionDate.dateStartTimestamp, "dateStart")
+    changeDateColumnToTimestamp(PollOptionDate.Companion, PollOptionDate.dateEndTimestamp, "dateEnd")
 }
 
 // Session
-internal fun sessionDateToTimestamp() {
-    if (!Transformer.tableExists("session"))
-        return
-    val expirationIsDateTime = Transformer.getColumnType("session", "expiration")
-    if (expirationIsDateTime == null || !expirationIsDateTime.lowercase(Locale.getDefault()).contains("date"))
-        return
-    if (Transformer.columnExists("session", "expirationTimestamp"))
-        return
-    if (!Transformer.addColumn("session", "expirationTimestamp", "BIGINT"))
-        throw Error("Couldn't create new column for session")
-    /*val sessions = DatabaseFactory.runRawSQL("SELECT id, expiration FROM session;")
-    while(sessions?.next() == true){
-        val update = DatabaseFactory.runRawSQL("UPDATE session SET ")
-    }*/
-    DatabaseFactory.runRawSQL("UPDATE session SET expirationTimestamp=UNIX_TIMESTAMP(expiration);") {}
-    // TODO remove comment
-    //val dropColumn = Transformer.dropColumn("session", "expiration")
+private fun sessionDateToTimestamp() {
+    changeDateColumnToTimestamp(Session.Companion, Session.expirationTimestamp, "expiration")
 }

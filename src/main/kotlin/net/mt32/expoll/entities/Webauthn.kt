@@ -20,7 +20,7 @@ class Challenge: DatabaseEntity{
         this.userID = userID
     }
 
-    constructor(challengeRow: ResultRow){
+    private constructor(challengeRow: ResultRow){
         this.id = challengeRow[Challenge.id]
         this.challenge = challengeRow[Challenge.challenge]
         this.userID = challengeRow[Challenge.userID]

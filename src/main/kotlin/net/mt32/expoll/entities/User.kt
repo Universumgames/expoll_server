@@ -51,25 +51,14 @@ class User : IUser, DatabaseEntity {
 
     private var cachedPolls: List<Poll>? = null
 
-    private constructor(userRow: ResultRow) {
-        this.id = userRow[Users.id]
-        this.username = userRow[Users.username]
-        this.mail = userRow[Users.mail]
-        this.firstName = userRow[Users.firstName]
-        this.lastName = userRow[Users.lastName]
-        this.active = userRow[Users.active]
-        this.admin = userRow[Users.admin]
-    }
-
     constructor(
         username: String,
         firstName: String,
         lastName: String,
         mail: String,
         active: Boolean = true,
-        admin: Boolean,
-
-        ) {
+        admin: Boolean
+    ) {
         this.id = UUID.randomUUID().toString()
         this.username = username
         this.firstName = firstName
@@ -78,6 +67,16 @@ class User : IUser, DatabaseEntity {
         this.active = active
         this.admin = admin
 
+    }
+
+    private constructor(userRow: ResultRow) {
+        this.id = userRow[Users.id]
+        this.username = userRow[Users.username]
+        this.mail = userRow[Users.mail]
+        this.firstName = userRow[Users.firstName]
+        this.lastName = userRow[Users.lastName]
+        this.active = userRow[Users.active]
+        this.admin = userRow[Users.admin]
     }
 
     companion object {
