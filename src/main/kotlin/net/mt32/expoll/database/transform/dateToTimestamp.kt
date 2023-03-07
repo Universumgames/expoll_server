@@ -33,6 +33,7 @@ private fun changeDateColumnToTimestamp(
             throw Error("Couldn't create new column for ${table.tableName}.${column.name}")
         DatabaseFactory.runRawSQL("UPDATE ${table.tableName} SET ${column.name}=UNIX_TIMESTAMP(${oldName});") {}
     }
+
     // TODO remove comment
     //if (Transformer.columnExists(table.tableName, oldName))
     //    Transformer.dropColumn(table.tableName, oldName)

@@ -73,5 +73,12 @@ class Vote: DatabaseEntity {
                 return@transaction result.map { Vote(it) }
             }
         }
+
+        fun fromPoll(pollID: tPollID): List<Vote> {
+            return transaction {
+                val result = Vote.select { Vote.pollID eq pollID }
+                return@transaction result.map { Vote(it) }
+            }
+        }
     }
 }

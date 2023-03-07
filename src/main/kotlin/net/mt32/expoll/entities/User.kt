@@ -2,27 +2,28 @@ package net.mt32.expoll.entities
 
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.upsert
+import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
-import java.net.Authenticator
 import java.util.*
 
 interface IUser {
-    val id: String
+    val id: tUserID
     var username: String
     var firstName: String
     var lastName: String
     var mail: String
     var polls: List<Poll>
     val votes: List<Vote>
-    var session: List<Session>
-    var notes: List<PollUserNote>
+    val session: List<Session>
+    val notes: List<PollUserNote>
     var active: Boolean
     var admin: Boolean
-    var challenges: List<Challenge>
-    var authenticators: List<Authenticator>
+    val challenges: List<Challenge>
+    val authenticators: List<Authenticator>
 }
 
 class User : IUser, DatabaseEntity {
@@ -34,7 +35,7 @@ class User : IUser, DatabaseEntity {
     override var mail: String
     override var polls: List<Poll>
         get() {
-            return cachedPolls ?: mutableListOf()
+            return cachedPolls ?: Poll.accessibleForUser(id)
         }
         set(value) {
             cachedPolls = value
@@ -42,12 +43,24 @@ class User : IUser, DatabaseEntity {
     override val votes: List<Vote>
         get() = Vote.fromUser(this)
 
-    override var session: List<Session> = mutableListOf()
-    override var notes: List<PollUserNote> = mutableListOf()
+    override val session: List<Session>
+        get() {
+            return Session.forUser(id)
+        }
+    override val notes: List<PollUserNote>
+        get() {
+            return PollUserNote.forUser(id)
+        }
     override var active: Boolean
     override var admin: Boolean
-    override var challenges: List<Challenge> = mutableListOf()
-    override var authenticators: List<Authenticator> = mutableListOf()
+    override val challenges: List<Challenge>
+        get() {
+            return Challenge.forUser(id)
+        }
+    override val authenticators: List<Authenticator>
+        get() {
+            return Authenticator.fromUser(id)
+        }
 
     private var cachedPolls: List<Poll>? = null
 
@@ -70,20 +83,49 @@ class User : IUser, DatabaseEntity {
     }
 
     private constructor(userRow: ResultRow) {
-        this.id = userRow[Users.id]
-        this.username = userRow[Users.username]
-        this.mail = userRow[Users.mail]
-        this.firstName = userRow[Users.firstName]
-        this.lastName = userRow[Users.lastName]
-        this.active = userRow[Users.active]
-        this.admin = userRow[Users.admin]
+        this.id = userRow[User.id]
+        this.username = userRow[User.username]
+        this.mail = userRow[User.mail]
+        this.firstName = userRow[User.firstName]
+        this.lastName = userRow[User.lastName]
+        this.active = userRow[User.active]
+        this.admin = userRow[User.admin]
     }
 
-    companion object {
+    override fun save() {
+        TODO("Not yet implemented")
+        User.upsert(User.id) {
+            it[id] = this@User.id
+            it[username] = this@User.username
+            it[mail] = this@User.mail
+            it[firstName] = this@User.firstName
+            it[lastName] = this@User.lastName
+            it[active] = this@User.active
+            it[admin] = this@User.admin
+        }
+    }
+
+    companion object : Table("user") {
+        const val maxUserNameLength = 255
+        const val maxNameComponentLength = 255
+        const val maxMailLength = 255
+
+
+        val id = varchar("id", UUIDLength).default(UUID.randomUUID().toString())
+        val username = varchar("username", maxUserNameLength)
+        val firstName = varchar("firstName", maxNameComponentLength)
+        val lastName = varchar("lastName", maxNameComponentLength)
+        val mail = varchar("mail", maxMailLength)
+        val active = bool("active")
+        val admin = bool("admin")
+
+
+        override val primaryKey = PrimaryKey(id)
+
         fun loadFromID(id: String): User? {
             return transaction {
-                val userRow = Users.select { Users.id eq id }.limit(1).firstOrNull()
-                if (userRow != null) return@transaction User(userRow) else null
+                val userRow = User.select { User.id eq id }.limit(1).firstOrNull()
+                return@transaction userRow?.let { User(it) }
             }
         }
 
@@ -91,37 +133,9 @@ class User : IUser, DatabaseEntity {
             return transaction {
                 val sessionRow =
                     Session.select { Session.loginKey eq loginKey }.firstOrNull() ?: return@transaction null
-                val userRow = Users.select { Users.id eq sessionRow[Session.userID] }.firstOrNull()
-                if (userRow != null) return@transaction User(userRow) else null
+                val userRow = User.select { User.id eq sessionRow[Session.userID] }.firstOrNull()
+                return@transaction userRow?.let { User(it) }
             }
         }
     }
-
-    override fun save() {
-        TODO("Not yet implemented")
-    }
-
-    override fun saveRecursive() {
-
-    }
-}
-
-
-object Users : Table("user") {
-    const val maxUserNameLength = 255
-    const val maxNameComponentLength = 255
-    const val maxMailLength = 255
-
-
-    val id = varchar("id", UUIDLength).default(UUID.randomUUID().toString())
-    val username = varchar("username", maxUserNameLength)
-    val firstName = varchar("firstName", maxNameComponentLength)
-    val lastName = varchar("lastName", maxNameComponentLength)
-    val mail = varchar("mail", maxMailLength)
-    val active = bool("active")
-    val admin = bool("admin")
-
-
-    override val primaryKey = PrimaryKey(id)
-
 }

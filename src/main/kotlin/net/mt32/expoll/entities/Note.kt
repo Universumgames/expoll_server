@@ -1,7 +1,9 @@
 package net.mt32.expoll.entities
 
+import kotlinx.serialization.Serializable
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.ResultRow
@@ -11,13 +13,14 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
+@Serializable
 class PollUserNote : DatabaseEntity {
     val id: Int
     val userID: tUserID
     val pollID: tPollID
     var note: String
 
-    constructor(id: Int, userID: tUserID, pollID: tPollID, note: String) : super() {
+    constructor(id: Int, userID: tUserID, pollID: tPollID, note: String) {
         this.id = id
         this.userID = userID
         this.pollID = pollID
@@ -32,7 +35,12 @@ class PollUserNote : DatabaseEntity {
     }
 
     override fun save() {
-        TODO("Not yet implemented")
+        PollUserNote.upsert(PollUserNote.id) {
+            it[id] = this@PollUserNote.id
+            it[userID] = this@PollUserNote.userID
+            it[pollID] = this@PollUserNote.pollID
+            it[note] = this@PollUserNote.note
+        }
     }
 
     companion object : Table("poll_user_note") {
@@ -49,6 +57,22 @@ class PollUserNote : DatabaseEntity {
                     PollUserNote.select { (PollUserNote.userID eq userID) and (PollUserNote.pollID eq pollID) }
                         .firstOrNull()
                 return@transaction noteRow?.let { PollUserNote(it) }
+            }
+        }
+
+        fun forPoll(pollID: tPollID): List<PollUserNote> {
+            return transaction {
+                val noteRow =
+                    PollUserNote.select { (PollUserNote.userID eq userID) and (PollUserNote.pollID eq pollID) }
+                return@transaction noteRow.map { PollUserNote(it) }
+            }
+        }
+
+        fun forUser(userID: tUserID): List<PollUserNote> {
+            return transaction {
+                val noteRow =
+                    PollUserNote.select { PollUserNote.userID eq userID }
+                return@transaction noteRow.map { PollUserNote(it) }
             }
         }
     }

@@ -8,7 +8,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.encodeToString
 import net.mt32.expoll.config
-import net.mt32.expoll.entities.ServerInfo
+import net.mt32.expoll.serializable.ServerInfo
 import net.mt32.expoll.helper.compareVersion
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.helper.getDataFromAny

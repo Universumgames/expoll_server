@@ -4,7 +4,7 @@ import net.mt32.expoll.config
 import net.mt32.expoll.database.transform.dateToTimestamp
 import net.mt32.expoll.database.transform.dropAllForeignKeys
 import net.mt32.expoll.entities.Session
-import net.mt32.expoll.entities.Users
+import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.Vote
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -14,19 +14,20 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.ResultSet
 
 object DatabaseFactory {
+
     fun init() {
         val jdbcUrl = "jdbc:mariadb://${config.database.host}:${config.database.port}/expoll"
 
-        val database = Database.connect(jdbcUrl, user = "root", password = "password")
+        Database.connect(jdbcUrl, user = "root", password = "password")
 
         transaction {
             SchemaUtils.createDatabase("expoll")
             Transformer.transformTables()
             SchemaUtils.createMissingTablesAndColumns(Vote, Session)
             //SchemaUtils.createMissingTablesAndColumns(Users)
-            val select = Users.selectAll()
+            val select = User.selectAll()
             select.forEach {
-                println(it[Users.id].toString() + " " + it[Users.username])
+                println(it[User.id].toString() + " " + it[User.username])
             }
             /*Users.insert {
                 it[username] = "Testuiaskojfs"
@@ -89,9 +90,10 @@ object Transformer {
      * @return true on success, false otherwise
      */
     fun addColumn(table: String, columnName: String, type: String): Boolean {
-        return DatabaseFactory.runRawSQL("ALTER TABLE $table ADD $columnName ${type};") {
-            return@runRawSQL it.next()
-        } ?: false
+        DatabaseFactory.runRawSQL("ALTER TABLE $table ADD $columnName ${type};") {
+        // not called
+        }
+        return true
     }
 
     /**
@@ -127,5 +129,5 @@ abstract class DatabaseEntity {
      * OPTIONALLY IMPLEMENTED
      * save current Entity and child entities
      */
-    open fun saveRecursive() {}
+    //open fun saveRecursive() {}
 }

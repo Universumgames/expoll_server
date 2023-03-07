@@ -2,6 +2,7 @@ package net.mt32.expoll.entities
 
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.upsert
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.selectAll
@@ -25,7 +26,11 @@ class MailRule : DatabaseEntity {
     }
 
     override fun save() {
-        TODO("Not yet implemented")
+        MailRule.upsert(MailRule.id){
+            it[id] = this@MailRule.id
+            it[regex] = this@MailRule.regex
+            it[blacklist] = this@MailRule.blacklist
+        }
     }
 
     companion object : Table("mail_regex_rules") {

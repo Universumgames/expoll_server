@@ -2,6 +2,7 @@ package net.mt32.expoll.entities
 
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
@@ -27,7 +28,11 @@ class Challenge: DatabaseEntity{
     }
 
     override fun save(){
-        TODO("Not implemented yet")
+        Challenge.upsert(Challenge.id){
+            it[id] = this@Challenge.id
+            it[challenge] = this@Challenge.challenge
+            it[userID] = this@Challenge.userID
+        }
     }
 
     companion object: Table("challenge"){
@@ -40,14 +45,21 @@ class Challenge: DatabaseEntity{
         fun fromID(id: String): Challenge? {
             return transaction{
                 val challengeRow = Challenge.select{ Challenge.id eq id}.firstOrNull()
-                if(challengeRow != null) return@transaction Challenge(challengeRow) else return@transaction null
+                return@transaction challengeRow?.let { Challenge(it) }
+            }
+        }
+
+        fun forUser(userID: String): List<Challenge>{
+            return transaction{
+                val challengeRow = Challenge.select{ Challenge.id eq id}
+                return@transaction challengeRow.map { Challenge(it) }
             }
         }
     }
 }
 
 
-class Webauthn: DatabaseEntity{
+class Authenticator: DatabaseEntity{
     val userID: tUserID
     val credentialID: String
     val credentialPublicKey: String
@@ -77,7 +89,7 @@ class Webauthn: DatabaseEntity{
         this.createdTimestamp = createdTimestamp
     }
 
-    // TODO implement authenticator table
+// TODO implement
     /*constructor(authRow: ResultRow){
         this.userID = userID
         this.credentialID = credentialID
@@ -95,9 +107,9 @@ class Webauthn: DatabaseEntity{
 
     companion object: Table("authenticator"){
 
-        // TODO implement
-        fun fromUser(userID: String): Array<Webauthn>{
-            return arrayOf()
+
+        fun fromUser(userID: String): List<Authenticator>{
+            TODO()
         }
     }
 }

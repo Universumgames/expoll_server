@@ -46,6 +46,14 @@ class Session : DatabaseEntity {
                 return@transaction Session(sessionRow)
             }
         }
+
+        fun forUser(userID: tUserID): List<Session> {
+            return transaction {
+                val sessionRow =
+                    Session.select { Session.userID eq userID }
+                return@transaction sessionRow.map { Session(it) }
+            }
+        }
     }
 
     override fun save() {

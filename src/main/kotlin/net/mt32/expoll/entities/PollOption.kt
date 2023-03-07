@@ -2,6 +2,7 @@ package net.mt32.expoll.entities
 
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tOptionID
 import net.mt32.expoll.tPollID
 import org.jetbrains.exposed.sql.ResultRow
@@ -33,7 +34,11 @@ class PollOptionString : PollOption, DatabaseEntity {
     }
 
     override fun save() {
-        TODO("Not yet implemented")
+        PollOptionString.upsert(PollOptionString.id) {
+            it[id] = this@PollOptionString.id
+            it[pollID] = this@PollOptionString.pollID
+            it[value] = this@PollOptionString.value
+        }
     }
 
     companion object : Table("poll_option_date_time") {
@@ -75,7 +80,12 @@ class PollOptionDate : PollOption, DatabaseEntity {
     }
 
     override fun save() {
-        TODO("Not yet implemented")
+        PollOptionDate.upsert(PollOptionDate.id) {
+            it[id] = this@PollOptionDate.id
+            it[pollID] = this@PollOptionDate.pollID
+            it[dateStartTimestamp] = this@PollOptionDate.dateStartTimestamp
+            it[dateEndTimestamp] = this@PollOptionDate.dateEndTimestamp
+        }
     }
 
     companion object : Table("poll_option_date_time") {
@@ -99,13 +109,13 @@ class PollOptionDate : PollOption, DatabaseEntity {
 
 class PollOptionDateTime : PollOption, DatabaseEntity {
     val dateTimeStartTimestamp: Long
-    val dateTImeEndTimestamp: Long?
+    val dateTimeEndTimestamp: Long?
     override val pollID: tPollID
     override val id: tOptionID
 
     constructor(dateTimeStartTimestamp: Long, dateTImeEndTimestamp: Long?, pollID: tPollID, id: tOptionID) {
         this.dateTimeStartTimestamp = dateTimeStartTimestamp
-        this.dateTImeEndTimestamp = dateTImeEndTimestamp
+        this.dateTimeEndTimestamp = dateTImeEndTimestamp
         this.pollID = pollID
         this.id = id
     }
@@ -114,11 +124,16 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
         id = optionRow[PollOptionDateTime.id]
         pollID = optionRow[PollOptionDateTime.pollID]
         dateTimeStartTimestamp = optionRow[PollOptionDateTime.dateTimeStartTimestamp]
-        dateTImeEndTimestamp = optionRow[PollOptionDateTime.dateTimeEndTimestamp]
+        dateTimeEndTimestamp = optionRow[PollOptionDateTime.dateTimeEndTimestamp]
     }
 
     override fun save() {
-        TODO("Not yet implemented")
+        PollOptionDateTime.upsert(PollOptionDateTime.id) {
+            it[id] = this@PollOptionDateTime.id
+            it[pollID] = this@PollOptionDateTime.pollID
+            it[dateTimeStartTimestamp] = this@PollOptionDateTime.dateTimeStartTimestamp
+            it[dateTimeEndTimestamp] = this@PollOptionDateTime.dateTimeEndTimestamp
+        }
     }
 
     companion object : Table("poll_option_date_time") {

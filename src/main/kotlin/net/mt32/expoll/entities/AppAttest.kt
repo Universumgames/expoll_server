@@ -2,6 +2,7 @@ package net.mt32.expoll.entities
 
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.upsert
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.select
@@ -26,7 +27,11 @@ class AppAttest : DatabaseEntity {
     }
 
     override fun save() {
-        TODO("Not yet implemented")
+        AppAttest.upsert(AppAttest.uuid){
+            it[uuid] = this@AppAttest.uuid
+            it[challenge] = this@AppAttest.challenge
+            it[createdAtTimestamp] = this@AppAttest.createdAtTimestamp
+        }
     }
 
     companion object : Table("appleAppAttests") {

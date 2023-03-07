@@ -1,4 +1,4 @@
-package net.mt32.expoll.entities
+package net.mt32.expoll.serializable
 
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.config

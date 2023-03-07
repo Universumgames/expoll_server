@@ -2,6 +2,7 @@ package net.mt32.expoll.entities
 
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
@@ -27,7 +28,11 @@ class APNDevice : DatabaseEntity {
     }
 
     override fun save() {
-        TODO("not implemented yet")
+        APNDevice.upsert (APNDevice.deviceID){
+            it[deviceID] = this@APNDevice.deviceID
+            it[userID] = this@APNDevice.userID
+            it[creationTimestamp] = this@APNDevice.creationTimestamp
+        }
     }
 
     companion object : Table("apn_devices") {
