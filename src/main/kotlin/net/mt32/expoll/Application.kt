@@ -4,21 +4,14 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import net.mt32.expoll.database.DatabaseFactory
-import net.mt32.expoll.entities.User
 import net.mt32.expoll.plugins.*
 
-fun main(args: Array<String>){
-    ConfigLoader.load("development")
+fun main(args: Array<String>) {
+    val environment = if (args.isEmpty()) "" else args[0]
+    if (args.isEmpty())
+        println("Define an environment to load the config from by providing it as the first argument")
+    ConfigLoader.load(environment)
     DatabaseFactory.init()
-    val user = User.loadFromID("4411a4b1-f62a-11ec-bd56-0242ac190002")
-    println(user?.mail)
-    println(user?.votes)
-    println(user?.votes?.get(0))
-    val vote = user?.votes?.get(0)
-    vote?.votedFor = VoteValue.MAYBE
-    vote?.save()
-    println(vote)
-    println(user?.votes?.get(0))
 
     //embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)
     embeddedServer(Netty, port = 7070, host = "0.0.0.0", module = Application::module)

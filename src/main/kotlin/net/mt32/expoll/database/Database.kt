@@ -4,11 +4,9 @@ import net.mt32.expoll.config
 import net.mt32.expoll.database.transform.dateToTimestamp
 import net.mt32.expoll.database.transform.dropAllForeignKeys
 import net.mt32.expoll.entities.Session
-import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.Vote
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.sql.ResultSet
@@ -23,12 +21,9 @@ object DatabaseFactory {
         transaction {
             SchemaUtils.createDatabase("expoll")
             Transformer.transformTables()
+            // TODO add table creation
             SchemaUtils.createMissingTablesAndColumns(Vote, Session)
             //SchemaUtils.createMissingTablesAndColumns(Users)
-            val select = User.selectAll()
-            select.forEach {
-                println(it[User.id].toString() + " " + it[User.username])
-            }
             /*Users.insert {
                 it[username] = "Testuiaskojfs"
             }*/
