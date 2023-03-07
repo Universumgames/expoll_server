@@ -4,9 +4,8 @@ import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tUserID
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
@@ -79,7 +78,6 @@ class User : IUser, DatabaseEntity {
         this.mail = mail
         this.active = active
         this.admin = admin
-
     }
 
     private constructor(userRow: ResultRow) {
@@ -93,7 +91,6 @@ class User : IUser, DatabaseEntity {
     }
 
     override fun save() {
-        TODO("Not yet implemented")
         User.upsert(User.id) {
             it[id] = this@User.id
             it[username] = this@User.username
@@ -103,6 +100,18 @@ class User : IUser, DatabaseEntity {
             it[active] = this@User.active
             it[admin] = this@User.admin
         }
+
+        val polls = this.polls
+        UserPolls.deleteWhere { UserPolls.userID eq id }
+        UserPolls.batchInsert(polls.map { it.id }) {
+            this[UserPolls.pollID] = it
+            this[UserPolls.userID] = id
+        }
+
+        session.forEach { it.save() }
+        challenges.forEach { it.save() }
+        authenticators.forEach { it.save() }
+        votes.forEach { it.save() }
     }
 
     companion object : Table("user") {

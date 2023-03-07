@@ -8,7 +8,13 @@ typealias tOptionID = Int
 enum class PollType(val id: Int){
     STRING(0),
     DATE(1),
-    DATETIME(2)
+    DATETIME(2);
+
+    companion object{
+        fun valueOf(value: Int): PollType{
+            return values().find { it.id == value } ?: STRING
+        }
+    }
 }
 
 enum class VoteValue(val id: Int){

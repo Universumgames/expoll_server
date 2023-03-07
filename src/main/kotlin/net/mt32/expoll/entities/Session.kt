@@ -32,7 +32,6 @@ class Session : DatabaseEntity {
 
 
     companion object : Table("session") {
-
         val loginKey = varchar("loginKey", UUIDLength)
         val expirationTimestamp = long("expirationTimestamp")
         val userAgent = varchar("userAgent", 512).nullable()

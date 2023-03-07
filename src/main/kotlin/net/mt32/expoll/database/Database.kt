@@ -118,12 +118,16 @@ object Transformer {
 /** Length of a uuid string*/
 const val UUIDLength = 36
 
-abstract class DatabaseEntity {
+interface IDatabaseEntity{
+    fun save()
+}
+
+abstract class DatabaseEntity: IDatabaseEntity {
 
     /**
      * Save current entity to database
      */
-    abstract fun save()
+    abstract override fun save()
 
     /**
      * OPTIONALLY IMPLEMENTED

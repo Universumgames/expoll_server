@@ -1,6 +1,7 @@
 package net.mt32.expoll.entities
 
 import net.mt32.expoll.database.DatabaseEntity
+import net.mt32.expoll.database.IDatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tOptionID
@@ -11,7 +12,7 @@ import org.jetbrains.exposed.sql.and
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
-interface PollOption {
+interface PollOption : IDatabaseEntity {
     val pollID: tPollID
     val id: tOptionID
 }
@@ -54,6 +55,14 @@ class PollOptionString : PollOption, DatabaseEntity {
                     PollOptionString.select { (PollOptionString.pollID eq pollID) and (PollOptionString.id eq optionID) }
                         .firstOrNull()
                 return@transaction result?.let { PollOptionString(it) }
+            }
+        }
+
+        fun fromPollID(pollID: tPollID): List<PollOptionString> {
+            return transaction {
+                val result =
+                    PollOptionString.select { PollOptionString.pollID eq pollID }
+                return@transaction result.map { PollOptionString(it) }
             }
         }
     }
@@ -104,6 +113,14 @@ class PollOptionDate : PollOption, DatabaseEntity {
                 return@transaction result?.let { PollOptionDate(it) }
             }
         }
+
+        fun fromPollID(pollID: tPollID): List<PollOptionDate> {
+            return transaction {
+                val result =
+                    PollOptionDate.select { PollOptionDate.pollID eq pollID }
+                return@transaction result.map { PollOptionDate(it) }
+            }
+        }
     }
 }
 
@@ -150,6 +167,14 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
                     PollOptionDateTime.select { (PollOptionDateTime.pollID eq pollID) and (PollOptionDateTime.id eq optionID) }
                         .firstOrNull()
                 return@transaction result?.let { PollOptionDateTime(it) }
+            }
+        }
+
+        fun fromPollID(pollID: tPollID): List<PollOptionDateTime> {
+            return transaction {
+                val result =
+                    PollOptionDateTime.select { PollOptionDateTime.pollID eq pollID }
+                return@transaction result.map { PollOptionDateTime(it) }
             }
         }
     }

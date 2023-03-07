@@ -3,10 +3,15 @@ package net.mt32.expoll.entities
 import net.mt32.expoll.PollType
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.upsert
+import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.transactions.transaction
 
-interface IPoll{
+interface IPoll {
     val admin: User
     val id: String
     var name: String
@@ -21,10 +26,10 @@ interface IPoll{
     var allowsEditing: Boolean
 }
 
-class Poll: DatabaseEntity, IPoll{
+class Poll : DatabaseEntity, IPoll {
 
     override val admin: User
-        get(){
+        get() {
             return User.loadFromID(adminID)!!
         }
     val adminID: tUserID
@@ -42,9 +47,22 @@ class Poll: DatabaseEntity, IPoll{
         get() {
             return PollUserNote.forPoll(id)
         }
+    val users: List<User>
+        get() {
+            return usersInPoll(id)
+        }
     override var maxPerUserVoteCount: Int
     override var allowsMaybe: Boolean
     override var allowsEditing: Boolean
+
+    val options: List<PollOption>
+        get() {
+            return when (type) {
+                PollType.STRING -> PollOptionString.fromPollID(id)
+                PollType.DATE -> PollOptionDate.fromPollID(id)
+                PollType.DATETIME -> PollOptionDateTime.fromPollID(id)
+            }
+        }
 
     constructor(
         adminID: tUserID,
@@ -71,20 +89,83 @@ class Poll: DatabaseEntity, IPoll{
     }
 
 
-    override fun save() {
-        TODO("Not yet implemented")
+    private constructor(pollRow: ResultRow) {
+        this.id = pollRow[Poll.id]
+        this.adminID = pollRow[Poll.adminID]
+        this.name = pollRow[Poll.name]
+        this.description = pollRow[Poll.description]
+        this.type = PollType.valueOf(pollRow[Poll.type])
+        this.createdTimestamp = pollRow[Poll.createdTimestamp]
+        this.updatedTimestamp = pollRow[Poll.createdTimestamp]
+        this.maxPerUserVoteCount = pollRow[Poll.maxPerUserVoteCount]
+        this.allowsMaybe = pollRow[Poll.allowsMaybe]
+        this.allowsEditing = pollRow[Poll.allowsEditing]
     }
 
-    companion object: Table("poll"){
+    override fun save() {
+        options.forEach { option ->
+            option.save()
+        }
+        notes.forEach { note ->
+            note.save()
+        }
+        votes.forEach { vote ->
+            vote.save()
+        }
+        transaction {
+            Poll.upsert(Poll.id) {
+                it[Poll.id] = this@Poll.id
+                it[Poll.adminID] = this@Poll.adminID
+                it[Poll.name] = this@Poll.name
+                it[Poll.description] = this@Poll.description
+                it[Poll.type] = this@Poll.type.id
+                it[Poll.createdTimestamp] = this@Poll.createdTimestamp
+                it[Poll.createdTimestamp] = this@Poll.updatedTimestamp
+                it[Poll.maxPerUserVoteCount] = this@Poll.maxPerUserVoteCount
+                it[Poll.allowsMaybe] = this@Poll.allowsMaybe
+                it[Poll.allowsEditing] = this@Poll.allowsEditing
+            }
+        }
+    }
 
+    companion object : Table("poll") {
+        const val MAX_DESCRIPTION_LENGTH = 65535
 
-        fun accessibleForUser(userID: tUserID): List<Poll>{
-            TODO()
+        val id = varchar("id", UUIDLength)
+        val adminID = varchar("adminId", UUIDLength)
+        val name = varchar("name", 255)
+        val createdTimestamp = long("createdTimestamp")
+        val updatedTimestamp = long("updatedTimestamp")
+        val description = varchar("description", MAX_DESCRIPTION_LENGTH)
+        val type = integer("type")
+        val maxPerUserVoteCount = integer("maxPerUserVoteCount")
+        val allowsMaybe = bool("allowsMaybe")
+        val allowsEditing = bool("allowsEditing")
+
+        fun fromID(pollID: tPollID): Poll? {
+            return transaction {
+                val pollRow = Poll.select { Poll.id eq pollID }.firstOrNull()
+                return@transaction pollRow?.let { Poll(it) }
+            }
+        }
+
+        fun accessibleForUser(userID: tUserID): List<Poll> {
+            return transaction {
+                val pollIDs = UserPolls.select { UserPolls.userID eq userID }.map { it[UserPolls.pollID] }
+                return@transaction pollIDs.map { Poll.fromID(it) }.requireNoNulls()
+            }
+        }
+
+        fun usersInPoll(pollID: tPollID): List<User> {
+            return transaction {
+                val userIDs = UserPolls.select { UserPolls.pollID eq pollID }.map { it[UserPolls.userID] }
+                return@transaction userIDs.map { User.loadFromID(it) }.requireNoNulls()
+            }
         }
     }
 }
 
-object UserPolls: Table("user_polls_poll"){
+object UserPolls : Table("user_polls_poll") {
     val userID = varchar("userId", UUIDLength)
     val pollID = varchar("pollId", UUIDLength)
 }

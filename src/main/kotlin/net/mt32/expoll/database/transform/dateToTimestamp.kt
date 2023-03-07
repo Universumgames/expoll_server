@@ -15,6 +15,8 @@ fun Transformer.dateToTimestamp() {
     pollOptionDateToTimestamp()
     apnDeviceDateToTimestamp()
     confirmationDateToTimestamp()
+    pollDateToTimestamp()
+    webauthnDateToTimestamp()
 }
 
 private fun changeDateColumnToTimestamp(
@@ -31,8 +33,9 @@ private fun changeDateColumnToTimestamp(
     if (!Transformer.columnExists(table.tableName, column.name)) {
         if (!Transformer.addColumn(table.tableName, column.name, "BIGINT $additionalTypeInfo"))
             throw Error("Couldn't create new column for ${table.tableName}.${column.name}")
-        DatabaseFactory.runRawSQL("UPDATE ${table.tableName} SET ${column.name}=UNIX_TIMESTAMP(${oldName});") {}
     }
+    if(Transformer.columnExists(table.tableName, oldName))
+        DatabaseFactory.runRawSQL("UPDATE ${table.tableName} SET ${column.name}=UNIX_TIMESTAMP(${oldName});") {}
 
     // TODO remove comment
     //if (Transformer.columnExists(table.tableName, oldName))
@@ -40,6 +43,15 @@ private fun changeDateColumnToTimestamp(
     // or change to computed column
     //Transformer.dropColumn(table.tableName, oldName)
     //Transformer.addColumn(table.tableName, oldName, "DATE GENERATED ALWAYS AS (FROM_UNIXTIME(${column.name}))")
+}
+
+private fun webauthnDateToTimestamp(){
+    changeDateColumnToTimestamp(Authenticator.Companion, Authenticator.createdTimestamp, "created")
+}
+
+private fun pollDateToTimestamp(){
+    changeDateColumnToTimestamp(Poll.Companion, Poll.createdTimestamp, "created")
+    changeDateColumnToTimestamp(Poll.Companion, Poll.updatedTimestamp, "updated")
 }
 
 private fun confirmationDateToTimestamp(){
