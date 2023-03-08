@@ -52,7 +52,9 @@ fun Route.apiRouting(){
                     "secure": "req.secure",
                     "subdomains": "req.subdomains",
                     "xhr": "req.xhr",
-                    "serverInfo": ${defaultJSON.encodeToString(ServerInfo.instance)}
+                    "serverInfo": ${defaultJSON.encodeToString(ServerInfo.instance)},
+                    "localport": ${call.request.local.localPort},
+                    "serverport": ${call.request.local.serverPort}
                 }
             """.trimIndent(), ContentType.Application.Json
             )

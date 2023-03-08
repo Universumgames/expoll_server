@@ -1,0 +1,25 @@
+/serverInfo:
+  get:
+    description: Get Meta info of backend server
+    responses:
+      "200":
+        description: Meta json object
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                version:
+                  type: "string"
+                minimumRequiredVersion:
+                  type: "string"
+                serverPort:
+                  type: "integer"
+                  format: "int32"
+                frontendPort:
+                  type: "integer"
+                  format: "int32"
+                loginLinkBase:
+                  type: "string"
+                mailSender:
+                  type: "string"

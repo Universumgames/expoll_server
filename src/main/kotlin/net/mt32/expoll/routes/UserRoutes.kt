@@ -5,13 +5,13 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import net.mt32.expoll.BasicSessionPrincipal
-import net.mt32.expoll.ExpollCookie
+import net.mt32.expoll.*
 import net.mt32.expoll.entities.MailRule
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
-import net.mt32.expoll.normalAuth
+import net.mt32.expoll.serializable.responses.CreateUserResponse
+import net.mt32.expoll.serializable.responses.UserDataResponse
 
 fun Route.userRoutes() {
     route("/user") {
@@ -23,6 +23,11 @@ fun Route.userRoutes() {
             createUser(call)
         }
         authenticate(normalAuth) {
+            get {
+                getUserData(call)
+            }
+            // TODO delete user
+            // TODO delete user confirmation
 
         }
         get("test") {
@@ -47,11 +52,6 @@ private suspend fun createUser(call: ApplicationCall) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
-
-    // TODO validate captcha
-
-    // TODO validate app attest
-
     // check user does not exist already
     if (User.byMail(mail) == null || User.byUsername(username) == null) {
         call.respond(ReturnCode.USER_EXISTS)
@@ -63,12 +63,58 @@ private suspend fun createUser(call: ApplicationCall) {
         call.respond(ReturnCode.NOT_ACCEPTABLE)
         return
     }
+
+    // TODO verify app attest or google captcha
+
     val user = User(username, firstName, lastName, mail, admin = false)
     user.save()
 
     val session = user.createSession()
-    // TODO send signup mail
 
+    val port = config.frontEndPort
+    val protocol = call.request.local.scheme
+    Mail.sendMail(
+        user.mail, "Thank you for registering in expoll",
+        "Thank you for creating an account at over at expoll (" +
+                protocol +
+                "://" +
+                config.loginLinkURL +
+                (if (port == 80 || port == 443) "" else ":$port") +
+                ")"
+    )
+
+    call.sessions.set(ExpollCookie(session.loginkey))
+    call.respond(CreateUserResponse(session.loginkey))
+}
+
+private suspend fun getUserData(call: ApplicationCall) {
+    val principal = call.principal<BasicSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+        return
+    }
+    val user = principal.user
+
+    val simpleUserResponse = UserDataResponse(
+        user.id,
+        user.username,
+        user.firstName,
+        user.lastName,
+        user.mail,
+        user.active,
+        principal.admin || principal.superUser,
+    )
+    call.respond(simpleUserResponse)
+}
+
+private suspend fun getPersonalizedData(call: ApplicationCall){
+    val principal = call.principal<BasicSessionPrincipal>()
+    if(principal == null){
+        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+        return
+    }
+    // TODO return personalized data
+    TODO("personalized data not implemented")
 }
 
 private suspend fun createChallenge(call: ApplicationCall) {

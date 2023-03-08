@@ -1,4 +1,4 @@
-openapi: "3.0.0"
+openapi: 3.0.0
 info:
   title: Expoll REST API
   summary: Simple poll backend server
@@ -18,32 +18,32 @@ paths:
     get:
       description: Get Meta info of backend server
       responses:
-        "200":
+        200:
           description: Meta json object
           content:
             application/json:
               schema:
-                type: "object"
+                type: object
                 properties:
                   version:
-                    type: "string"
+                    type: string
                   minimumRequiredVersion:
-                    type: "string"
+                    type: string
                   serverPort:
-                    type: "integer"
-                    format: "int32"
+                    type: integer
+                    format: int32
                   frontendPort:
-                    type: "integer"
-                    format: "int32"
+                    type: integer
+                    format: int32
                   loginLinkBase:
-                    type: "string"
+                    type: string
                   mailSender:
-                    type: "string"
+                    type: string
   /metaInfo:
     get:
       description: get various debugging information
       responses:
-        "200":
+        200:
           description: Meta info
           content:
             text/json:
@@ -51,28 +51,95 @@ paths:
     get:
       description: Check if your client version is supported by the backend
       parameters:
-        - name: "version"
+        - name: version
           description: The client version
-          in: "query"
+          in: query
           required: true
           schema:
-            type: "string"
+            type: string
       responses:
-        "200":
+        200:
           description: Value of version matching (1 if client > supported, -1 if client < supported, 0 if client == supported)
           content:
             text/plain:
               schema:
-                type: "integer"
+                type: integer
             examples:
               ExampleUnsupported:
-                value: "-1"
+                value: -1
               ExampleMatching:
-                value: "0"
+                value: 0
               ExampleAhead:
-                value: "1"
-        "400":
+                value: 1
+        400:
           description: Version parameter missing
+  /user:
+    post:
+      description: Create a new user
+      parameters:
+        - name: firstName
+          description: The first name
+          in: query
+          required: true
+        - name: lastName
+          description: The last name
+          in: query
+          required: true
+        - name: mail
+          description: The email
+          in: query
+          required: true
+        - name: username
+          description: the chosen username
+          in: query
+          required: true
+        - name: captcha
+          description: Google captcha's code
+          in: query
+          required: false
+        - name: appAttest
+          description: Apples app attest
+          in: query
+          required: false
+      responses:
+        200:
+          description: User was successfully created, returns a cookie and the first loginKey
+          content:
+            text/plain:
+              schema:
+                type: string
+        400:
+          description: Parameters are missing
+        406:
+          description: User with the same mail or username already exists or the mail is not valid
+    get:
+      description: get basic user data
+      responses:
+        200:
+          description: Basic userdata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  username:
+                    type: string
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+                  mail:
+                    type: string
+                  active:
+                    type: string
+                  admin:
+                    type: string
+
+        401:
+          description: Unauthorized
+
 
 
 

@@ -1,7 +1,6 @@
 package net.mt32.expoll.serializable.responses
 
 import kotlinx.serialization.Serializable
-import java.time.LocalDateTime
 
 @Serializable
 data class PollReceiveResponse(
@@ -20,10 +19,3 @@ data class SimplePoll(
     val editable: Boolean,
 )
 
-@Serializable
-data class SimpleUser(
-    val firstName: String,
-    val lastName: String,
-    val username: String,
-    val id: String,
-)

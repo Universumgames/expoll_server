@@ -12,3 +12,16 @@ data class UserDataResponse(
     val active: Boolean,
     val admin: Boolean,
 )
+
+@Serializable
+data class CreateUserResponse(
+    val loginKey: String
+)
+
+@Serializable
+data class SimpleUser(
+    val firstName: String,
+    val lastName: String,
+    val username: String,
+    val id: String,
+)

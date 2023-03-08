@@ -1,6 +1,5 @@
 package net.mt32.expoll
 
-import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
@@ -9,6 +8,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.User
+import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.toUnixTimestamp
@@ -48,20 +48,20 @@ class UserAuthentication internal constructor(val authConfig: Config) : Authenti
         val call = context.call
         val loginKey = getDataFromAny(call, "loginKey")
         if (loginKey == null) {
-            call.respond(HttpStatusCode.BadRequest)
+            call.respond(ReturnCode.BAD_REQUEST)
             return
         }
 
         val userFound = User.loadFromLoginKey(loginKey)
         if (userFound == null) {
-            call.respond(HttpStatusCode.Unauthorized)
+            call.respond(ReturnCode.UNAUTHORIZED)
             return
         }
 
         val session = Session.fromLoginKey(loginKey)
         if (session == null || session.expirationTimestamp < Date().toUnixTimestamp()) {
             call.sessions.set(ExpollCookie(""))
-            call.respond(HttpStatusCode.Unauthorized)
+            call.respond(ReturnCode.UNAUTHORIZED)
             return
         }
 
@@ -72,7 +72,7 @@ class UserAuthentication internal constructor(val authConfig: Config) : Authenti
         val anyAdmin = userFound.admin || superAdmin
 
         if (authConfig.checkAdmin && !anyAdmin) {
-            call.respond(HttpStatusCode.Unauthorized)
+            call.respond(ReturnCode.UNAUTHORIZED)
             return
         }
 
