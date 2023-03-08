@@ -114,6 +114,12 @@ class User : IUser, DatabaseEntity {
         votes.forEach { it.save() }
     }
 
+    fun createSession(): Session {
+        val session = Session.createSession(id)
+        session.save()
+        return session
+    }
+
     companion object : Table("user") {
         const val maxUserNameLength = 255
         const val maxNameComponentLength = 255
@@ -121,8 +127,8 @@ class User : IUser, DatabaseEntity {
 
 
         val id = varchar("id", UUIDLength).default(UUID.randomUUID().toString())
-        val username = varchar("username", maxUserNameLength)
-        val firstName = varchar("firstName", maxNameComponentLength)
+        val username = varchar("username", maxUserNameLength).uniqueIndex()
+        val firstName = varchar("firstName", maxNameComponentLength).uniqueIndex()
         val lastName = varchar("lastName", maxNameComponentLength)
         val mail = varchar("mail", maxMailLength)
         val active = bool("active")

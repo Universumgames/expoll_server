@@ -3,6 +3,8 @@ package net.mt32.expoll.entities
 import net.mt32.expoll.PollType
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.helper.toUnixTimestamp
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
@@ -15,8 +17,8 @@ interface IPoll {
     val admin: User
     val id: String
     var name: String
-    val createdTimestamp: Long
-    var updatedTimestamp: Long
+    val createdTimestamp: UnixTimestamp
+    var updatedTimestamp: UnixTimestamp
     var description: String
     val type: PollType
     val votes: List<Vote>
@@ -35,8 +37,8 @@ class Poll : DatabaseEntity, IPoll {
     val adminID: tUserID
     override val id: String
     override var name: String
-    override val createdTimestamp: Long
-    override var updatedTimestamp: Long
+    override val createdTimestamp: UnixTimestamp
+    override var updatedTimestamp: UnixTimestamp
     override var description: String
     override val type: PollType
     override val votes: List<Vote>
@@ -68,8 +70,8 @@ class Poll : DatabaseEntity, IPoll {
         adminID: tUserID,
         id: String,
         name: String,
-        createdTimestamp: Long,
-        updatedTimestamp: Long,
+        createdTimestamp: UnixTimestamp,
+        updatedTimestamp: UnixTimestamp,
         description: String,
         type: PollType,
         maxPerUserVoteCount: Int,
@@ -95,8 +97,8 @@ class Poll : DatabaseEntity, IPoll {
         this.name = pollRow[Poll.name]
         this.description = pollRow[Poll.description]
         this.type = PollType.valueOf(pollRow[Poll.type])
-        this.createdTimestamp = pollRow[Poll.createdTimestamp]
-        this.updatedTimestamp = pollRow[Poll.createdTimestamp]
+        this.createdTimestamp = pollRow[Poll.createdTimestamp].toUnixTimestamp()
+        this.updatedTimestamp = pollRow[Poll.createdTimestamp].toUnixTimestamp()
         this.maxPerUserVoteCount = pollRow[Poll.maxPerUserVoteCount]
         this.allowsMaybe = pollRow[Poll.allowsMaybe]
         this.allowsEditing = pollRow[Poll.allowsEditing]
@@ -119,8 +121,8 @@ class Poll : DatabaseEntity, IPoll {
                 it[Poll.name] = this@Poll.name
                 it[Poll.description] = this@Poll.description
                 it[Poll.type] = this@Poll.type.id
-                it[Poll.createdTimestamp] = this@Poll.createdTimestamp
-                it[Poll.createdTimestamp] = this@Poll.updatedTimestamp
+                it[Poll.createdTimestamp] = this@Poll.createdTimestamp.toLong()
+                it[Poll.createdTimestamp] = this@Poll.updatedTimestamp.toLong()
                 it[Poll.maxPerUserVoteCount] = this@Poll.maxPerUserVoteCount
                 it[Poll.allowsMaybe] = this@Poll.allowsMaybe
                 it[Poll.allowsEditing] = this@Poll.allowsEditing
@@ -141,6 +143,8 @@ class Poll : DatabaseEntity, IPoll {
         val maxPerUserVoteCount = integer("maxPerUserVoteCount")
         val allowsMaybe = bool("allowsMaybe")
         val allowsEditing = bool("allowsEditing")
+
+        override val primaryKey = PrimaryKey(id)
 
         fun fromID(pollID: tPollID): Poll? {
             return transaction {
@@ -168,4 +172,6 @@ class Poll : DatabaseEntity, IPoll {
 object UserPolls : Table("user_polls_poll") {
     val userID = varchar("userId", UUIDLength)
     val pollID = varchar("pollId", UUIDLength)
+
+    override val primaryKey = PrimaryKey(userID, pollID)
 }

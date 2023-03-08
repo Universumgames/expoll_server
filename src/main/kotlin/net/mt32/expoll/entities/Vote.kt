@@ -52,14 +52,14 @@ class Vote: DatabaseEntity {
     }
 
     companion object : Table("vote"){
-
-        val id = integer("id").autoIncrement()
+        val id = integer("id")
         val userID = varchar("userId", UUIDLength)
         val pollID = varchar("pollId", UUIDLength)
         val optionID = integer("optionId")
         val votedFor = integer("votedFor")
 
         override val primaryKey = PrimaryKey(id)
+
         fun fromUser(user: User): List<Vote> {
             return transaction {
                 val result = Vote.select { Vote.userID eq user.id }

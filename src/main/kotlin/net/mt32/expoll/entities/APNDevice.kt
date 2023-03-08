@@ -2,6 +2,8 @@ package net.mt32.expoll.entities
 
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.helper.toUnixTimestamp
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.ResultRow
@@ -13,9 +15,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 class APNDevice : DatabaseEntity {
     val deviceID: String
     val userID: tUserID
-    val creationTimestamp: Long
+    val creationTimestamp: UnixTimestamp
 
-    constructor(deviceID: String, userID: tUserID, creationTimestamp: Long) {
+    constructor(deviceID: String, userID: tUserID, creationTimestamp: UnixTimestamp) {
         this.deviceID = deviceID
         this.userID = userID
         this.creationTimestamp = creationTimestamp
@@ -24,14 +26,14 @@ class APNDevice : DatabaseEntity {
     private constructor(apnDeviceRow: ResultRow) {
         this.deviceID = apnDeviceRow[APNDevice.deviceID]
         this.userID = apnDeviceRow[APNDevice.userID]
-        this.creationTimestamp = apnDeviceRow[APNDevice.creationTimestamp]
+        this.creationTimestamp = apnDeviceRow[APNDevice.creationTimestamp].toUnixTimestamp()
     }
 
     override fun save() {
         APNDevice.upsert (APNDevice.deviceID){
             it[deviceID] = this@APNDevice.deviceID
             it[userID] = this@APNDevice.userID
-            it[creationTimestamp] = this@APNDevice.creationTimestamp
+            it[creationTimestamp] = this@APNDevice.creationTimestamp.toLong()
         }
     }
 

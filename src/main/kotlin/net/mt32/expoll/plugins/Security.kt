@@ -22,6 +22,7 @@ fun Application.configureSecurity() {
     install(Sessions) {
         cookie<ExpollCookie>(cookieName) {
             cookie.extensions["SameSite"] = "lax"
+            serializer = ExpollCookie.Companion
         }
         cookie<MySession>("MY_SESSION"){
             cookie.extensions["SameSite"] = "lax"

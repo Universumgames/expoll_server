@@ -13,6 +13,9 @@ import java.sql.ResultSet
 
 object DatabaseFactory {
 
+    /**
+     * Initialize database connection, create scheme and missing tables
+     */
     fun init() {
         val jdbcUrl = "jdbc:mariadb://${config.database.host}:${config.database.port}/expoll"
 
@@ -30,6 +33,10 @@ object DatabaseFactory {
         }
     }
 
+    /**
+     * run a raw sql statement
+     * WARNING not all statements return something, so the function may not be called
+     */
     fun <T : Any> runRawSQL(sql: String, transform: (ResultSet) -> T): T? {
         return transaction {
             return@transaction TransactionManager.current().exec(sql) {
@@ -76,6 +83,12 @@ object Transformer {
         return type
     }
 
+    /**
+     * Check if a column in a table exists
+     * @param table the table name
+     * @param column the column to check for
+     * @return true if column exists in table, false otherwise
+     */
     fun columnExists(table: String, column: String): Boolean{
         return getColumnType(table, column) != null
     }

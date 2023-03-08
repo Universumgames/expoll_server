@@ -2,6 +2,8 @@ package net.mt32.expoll.entities
 
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.helper.toUnixTimestamp
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.ResultRow
@@ -61,13 +63,15 @@ class Challenge : DatabaseEntity {
 
 class Authenticator : DatabaseEntity {
     val userID: tUserID
+    // TODO wrong type probably
     val credentialID: String
+    // TODO wrong type probably
     val credentialPublicKey: String
     var counter: Int
     val transports: String
     var name: String
     val initiatorPlatform: String
-    val createdTimestamp: Long
+    val createdTimestamp: UnixTimestamp
 
     constructor(
         userID: tUserID,
@@ -77,7 +81,7 @@ class Authenticator : DatabaseEntity {
         transports: String,
         name: String,
         initiatorPlatform: String,
-        createdTimestamp: Long
+        createdTimestamp: UnixTimestamp
     ) {
         this.userID = userID
         this.credentialID = credentialID
@@ -97,7 +101,7 @@ class Authenticator : DatabaseEntity {
         this.transports = authRow[Authenticator.transports]
         this.name = authRow[Authenticator.name]
         this.initiatorPlatform = authRow[Authenticator.initiatorPlatform]
-        this.createdTimestamp = authRow[Authenticator.createdTimestamp]
+        this.createdTimestamp = authRow[Authenticator.createdTimestamp].toUnixTimestamp()
     }
 
     override fun save() {
@@ -109,7 +113,7 @@ class Authenticator : DatabaseEntity {
             it[Authenticator.transports] = this@Authenticator.transports
             it[Authenticator.name] = this@Authenticator.name
             it[Authenticator.initiatorPlatform] = this@Authenticator.initiatorPlatform
-            it[Authenticator.createdTimestamp] = this@Authenticator.createdTimestamp
+            it[Authenticator.createdTimestamp] = this@Authenticator.createdTimestamp.toLong()
         }
     }
 

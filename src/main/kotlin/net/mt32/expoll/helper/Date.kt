@@ -3,8 +3,8 @@ package net.mt32.expoll.helper
 import java.text.SimpleDateFormat
 import java.util.*
 
-fun Date.toUnixTimestamp(): Long{
-    return this.time / 1000
+fun Date.toUnixTimestamp(): UnixTimestamp{
+    return UnixTimestamp(this.time / 1000)
 }
 
 fun dateFromUnixTimestamp(timestamp: Long): Date{

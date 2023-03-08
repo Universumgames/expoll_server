@@ -4,18 +4,33 @@ import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.User
+import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.toUnixTimestamp
 import java.util.*
 
 const val cookieName = "expoll_dat"
 
+@Serializable
 data class ExpollCookie(
     val loginKey: String,
     val originalLoginKey: String? = null
-)
+){
+    companion object: SessionSerializer<ExpollCookie>{
+        override fun deserialize(text: String): ExpollCookie {
+            return defaultJSON.decodeFromString(text)
+        }
+
+        override fun serialize(session: ExpollCookie): String {
+            return defaultJSON.encodeToString(session)
+        }
+    }
+}
 
 data class BasicSessionPrincipal(
     val loginKey: String,
@@ -45,6 +60,8 @@ class UserAuthentication internal constructor(config: Config): AuthenticationPro
             call.respond(HttpStatusCode.Unauthorized)
             return
         }
+
+        call.sessions.set(ExpollCookie(loginKey, getDataFromAny(call, "originalLoginKey")))
 
         context.principal(name, BasicSessionPrincipal(loginKey, userFound.id, session, userFound))
     }

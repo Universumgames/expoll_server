@@ -84,7 +84,7 @@ class NotificationPreferences : DatabaseEntity {
 
     companion object : Table("notification_preferences_entity") {
         val id = varchar("id", UUIDLength)
-        val userID = varchar("userId", UUIDLength)
+        val userID = varchar("userId", UUIDLength).uniqueIndex()
         val voteChange = bool("voteChange")
         val userAdded = bool("userAdded")
         val userRemoved = bool("userRemoved")

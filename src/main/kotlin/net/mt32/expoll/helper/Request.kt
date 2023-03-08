@@ -5,12 +5,17 @@ import io.ktor.server.request.*
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import net.mt32.expoll.cookieName
+import java.net.URLDecoder
 
 suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
     val request = call.request
-    val cookie = request.cookies[cookieName]
-    if (cookie != null)
-        return defaultJSON.parseToJsonElement(cookie).jsonObject[key]?.jsonPrimitive.toString()
+    var cookie = request.cookies[cookieName]
+    if (cookie != null) {
+        // TODO very error prone
+        if (cookie.startsWith("j:")) cookie = URLDecoder.decode(cookie.substring(2), "UTF-8")
+        if (cookie != null)
+            return defaultJSON.parseToJsonElement(cookie).jsonObject[key].toString().replace("\"", "")
+    }
     val query = request.queryParameters[key]
     if (query != null)
         return query

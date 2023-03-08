@@ -3,6 +3,8 @@ package net.mt32.expoll.entities
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.IDatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.helper.toUnixTimestamp
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tOptionID
 import net.mt32.expoll.tPollID
@@ -69,12 +71,12 @@ class PollOptionString : PollOption, DatabaseEntity {
 }
 
 class PollOptionDate : PollOption, DatabaseEntity {
-    val dateStartTimestamp: Long
-    val dateEndTimestamp: Long?
+    val dateStartTimestamp: UnixTimestamp
+    val dateEndTimestamp: UnixTimestamp?
     override val pollID: tPollID
     override val id: tOptionID
 
-    constructor(dateStartTimestamp: Long, dateEndTimestamp: Long?, pollID: tPollID, id: tOptionID) {
+    constructor(dateStartTimestamp: UnixTimestamp, dateEndTimestamp: UnixTimestamp?, pollID: tPollID, id: tOptionID) {
         this.dateStartTimestamp = dateStartTimestamp
         this.dateEndTimestamp = dateEndTimestamp
         this.pollID = pollID
@@ -84,16 +86,16 @@ class PollOptionDate : PollOption, DatabaseEntity {
     private constructor(optionRow: ResultRow) {
         id = optionRow[PollOptionDate.id]
         pollID = optionRow[PollOptionDate.pollID]
-        dateStartTimestamp = optionRow[PollOptionDate.dateStartTimestamp]
-        dateEndTimestamp = optionRow[PollOptionDate.dateEndTimestamp]
+        dateStartTimestamp = optionRow[PollOptionDate.dateStartTimestamp].toUnixTimestamp()
+        dateEndTimestamp = optionRow[PollOptionDate.dateEndTimestamp]?.toUnixTimestamp()
     }
 
     override fun save() {
         PollOptionDate.upsert(PollOptionDate.id) {
             it[id] = this@PollOptionDate.id
             it[pollID] = this@PollOptionDate.pollID
-            it[dateStartTimestamp] = this@PollOptionDate.dateStartTimestamp
-            it[dateEndTimestamp] = this@PollOptionDate.dateEndTimestamp
+            it[dateStartTimestamp] = this@PollOptionDate.dateStartTimestamp.toLong()
+            it[dateEndTimestamp] = this@PollOptionDate.dateEndTimestamp?.toLong()
         }
     }
 
@@ -125,12 +127,12 @@ class PollOptionDate : PollOption, DatabaseEntity {
 }
 
 class PollOptionDateTime : PollOption, DatabaseEntity {
-    val dateTimeStartTimestamp: Long
-    val dateTimeEndTimestamp: Long?
+    val dateTimeStartTimestamp: UnixTimestamp
+    val dateTimeEndTimestamp: UnixTimestamp?
     override val pollID: tPollID
     override val id: tOptionID
 
-    constructor(dateTimeStartTimestamp: Long, dateTImeEndTimestamp: Long?, pollID: tPollID, id: tOptionID) {
+    constructor(dateTimeStartTimestamp: UnixTimestamp, dateTImeEndTimestamp: UnixTimestamp?, pollID: tPollID, id: tOptionID) {
         this.dateTimeStartTimestamp = dateTimeStartTimestamp
         this.dateTimeEndTimestamp = dateTImeEndTimestamp
         this.pollID = pollID
@@ -140,16 +142,16 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
     private constructor(optionRow: ResultRow) {
         id = optionRow[PollOptionDateTime.id]
         pollID = optionRow[PollOptionDateTime.pollID]
-        dateTimeStartTimestamp = optionRow[PollOptionDateTime.dateTimeStartTimestamp]
-        dateTimeEndTimestamp = optionRow[PollOptionDateTime.dateTimeEndTimestamp]
+        dateTimeStartTimestamp = optionRow[PollOptionDateTime.dateTimeStartTimestamp].toUnixTimestamp()
+        dateTimeEndTimestamp = optionRow[PollOptionDateTime.dateTimeEndTimestamp]?.toUnixTimestamp()
     }
 
     override fun save() {
         PollOptionDateTime.upsert(PollOptionDateTime.id) {
             it[id] = this@PollOptionDateTime.id
             it[pollID] = this@PollOptionDateTime.pollID
-            it[dateTimeStartTimestamp] = this@PollOptionDateTime.dateTimeStartTimestamp
-            it[dateTimeEndTimestamp] = this@PollOptionDateTime.dateTimeEndTimestamp
+            it[dateTimeStartTimestamp] = this@PollOptionDateTime.dateTimeStartTimestamp.toLong()
+            it[dateTimeEndTimestamp] = this@PollOptionDateTime.dateTimeEndTimestamp?.toLong()
         }
     }
 
