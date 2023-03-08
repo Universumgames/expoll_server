@@ -12,6 +12,8 @@ servers:
     description: the production server api
   - url: http://localhost:7070/
     description: local test server
+  - url: http://192.168.178.68:7070
+    description: local network testing
 
 paths:
   /serverInfo:
@@ -76,31 +78,20 @@ paths:
   /user:
     post:
       description: Create a new user
-      parameters:
-        - name: firstName
-          description: The first name
-          in: query
-          required: true
-        - name: lastName
-          description: The last name
-          in: query
-          required: true
-        - name: mail
-          description: The email
-          in: query
-          required: true
-        - name: username
-          description: the chosen username
-          in: query
-          required: true
-        - name: captcha
-          description: Google captcha's code
-          in: query
-          required: false
-        - name: appAttest
-          description: Apples app attest
-          in: query
-          required: false
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+            examples:
+              max:
+                  value:
+                    firstName: Max
+                    lastName: Mustermann
+                    username: mamu
+                    mail: max.mustermann@example.de
+                    appAttest: "laskdfjhoidfjkhnsdfglkjh"
+        required: true
       responses:
         200:
           description: User was successfully created, returns a cookie and the first loginKey
@@ -108,6 +99,7 @@ paths:
             text/plain:
               schema:
                 type: string
+              example: "c77cff5f-e5eb-4939-be9e-d5fd577bb770"
         400:
           description: Parameters are missing
         406:
@@ -139,9 +131,62 @@ paths:
 
         401:
           description: Unauthorized
-
+  /vote:
+    post:
+      description: Vote for an option in a poll
+      requestBody:
+        description: The vote data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteChangeRequest"
+            example:
+              pollID: "ca63d9b6-fd62-4add-b8b5-e9696db21495"
+              optionID: 43
+              votedFor: 2
+        required: true
+      responses:
+        "200":
+          description: Vote was successfull
+        "406":
+          description: Poll or option does not exist, the votedFor value is invalid or 'maybe' is disabled
 
 
 
 components:
   schemas:
+    VoteChangeRequest:
+      type: object
+      properties:
+        pollID:
+          type: string
+          description: the id of the poll to vote on
+        optionID:
+          type: integer
+          description: the id of the option to vote
+        votedFor:
+          type: integer
+          format: "0, 1 or 2"
+          description: value of the vote NO(0), YES(1), MAYBE(2)
+        userID:
+          type: string
+          required: if admins want to change the vote for other users
+    CreateUserRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        username:
+          type: string
+        mail:
+          type: string
+        captcha:
+          type: string
+          description: The google captchas code
+          required: either this or appAttest
+        appAttest:
+          type: string
+          description: Apples app attest
+          required: either this or captcha
