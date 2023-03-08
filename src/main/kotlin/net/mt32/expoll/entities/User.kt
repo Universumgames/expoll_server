@@ -114,6 +114,9 @@ class User : IUser, DatabaseEntity {
         votes.forEach { it.save() }
     }
 
+    /**
+     * Creates a new session and saves it
+     */
     fun createSession(): Session {
         val session = Session.createSession(id)
         session.save()
@@ -149,6 +152,20 @@ class User : IUser, DatabaseEntity {
                 val sessionRow =
                     Session.select { Session.loginKey eq loginKey }.firstOrNull() ?: return@transaction null
                 val userRow = User.select { User.id eq sessionRow[Session.userID] }.firstOrNull()
+                return@transaction userRow?.let { User(it) }
+            }
+        }
+
+        fun byMail(mail: String): User? {
+            return transaction {
+                val userRow = User.select { User.mail eq mail }.firstOrNull()
+                return@transaction userRow?.let { User(it) }
+            }
+        }
+
+        fun byUsername(username: String): User? {
+            return transaction {
+                val userRow = User.select { User.username eq username }.firstOrNull()
                 return@transaction userRow?.let { User(it) }
             }
         }

@@ -15,13 +15,15 @@ import net.mt32.expoll.helper.toUnixTimestamp
 import java.util.*
 
 const val cookieName = "expoll_dat"
+val normalAuth: String? = null
+const val adminAuth = "admin"
 
 @Serializable
 data class ExpollCookie(
     val loginKey: String,
     val originalLoginKey: String? = null
-){
-    companion object: SessionSerializer<ExpollCookie>{
+) {
+    companion object : SessionSerializer<ExpollCookie> {
         override fun deserialize(text: String): ExpollCookie {
             return defaultJSON.decodeFromString(text)
         }
@@ -36,26 +38,28 @@ data class BasicSessionPrincipal(
     val loginKey: String,
     val userID: tUserID,
     val session: Session,
-    val user: User
-): Principal
+    val user: User,
+    val admin: Boolean,
+    val superUser: Boolean
+) : Principal
 
-class UserAuthentication internal constructor(config: Config): AuthenticationProvider(config){
+class UserAuthentication internal constructor(val authConfig: Config) : AuthenticationProvider(authConfig) {
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val call = context.call
         val loginKey = getDataFromAny(call, "loginKey")
-        if(loginKey == null) {
+        if (loginKey == null) {
             call.respond(HttpStatusCode.BadRequest)
             return
         }
 
         val userFound = User.loadFromLoginKey(loginKey)
-        if(userFound ==null) {
+        if (userFound == null) {
             call.respond(HttpStatusCode.Unauthorized)
             return
         }
 
         val session = Session.fromLoginKey(loginKey)
-        if(session == null || session.expirationTimestamp < Date().toUnixTimestamp()){
+        if (session == null || session.expirationTimestamp < Date().toUnixTimestamp()) {
             call.sessions.set(ExpollCookie(""))
             call.respond(HttpStatusCode.Unauthorized)
             return
@@ -63,18 +67,27 @@ class UserAuthentication internal constructor(config: Config): AuthenticationPro
 
         call.sessions.set(ExpollCookie(loginKey, getDataFromAny(call, "originalLoginKey")))
 
-        context.principal(name, BasicSessionPrincipal(loginKey, userFound.id, session, userFound))
+        val superAdmin =
+            userFound.mail.lowercase(Locale.getDefault()) == config.superAdminMail.lowercase(Locale.getDefault())
+        val anyAdmin = userFound.admin || superAdmin
+
+        if (authConfig.checkAdmin && !anyAdmin) {
+            call.respond(HttpStatusCode.Unauthorized)
+            return
+        }
+
+        context.principal(name, BasicSessionPrincipal(loginKey, userFound.id, session, userFound, anyAdmin, superAdmin))
     }
 
-    public class Config internal constructor(name: String?): AuthenticationProvider.Config(name){
-
+    public class Config internal constructor(name: String?) : AuthenticationProvider.Config(name) {
+        var checkAdmin = false
     }
 }
 
 fun AuthenticationConfig.checkLoggedIn(
     name: String? = null,
     configure: UserAuthentication.Config.() -> Unit
-){
+) {
     val provider = UserAuthentication(UserAuthentication.Config(name).apply(configure))
     register(provider)
 }

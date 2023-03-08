@@ -5,17 +5,18 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import net.mt32.expoll.ExpollCookie
-import net.mt32.expoll.checkLoggedIn
-import net.mt32.expoll.cookieName
+import net.mt32.expoll.*
 import kotlin.collections.set
 
 
 fun Application.configureSecurity() {
 
     authentication {
-        checkLoggedIn {
+        checkLoggedIn(normalAuth) {
 
+        }
+        checkLoggedIn(adminAuth){
+            checkAdmin = true
         }
     }
     data class MySession(val count: Int = 0)

@@ -33,3 +33,7 @@ suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
         return body
     return null
 }
+
+@JvmName("getDataFromAnyOnObj")
+suspend fun ApplicationCall.getDataFromAny(key: String): String?=
+    getDataFromAny(this, key)

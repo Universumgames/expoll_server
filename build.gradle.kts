@@ -60,5 +60,6 @@ dependencies {
     implementation("io.ktor:ktor-client-java:$ktor_version")
     implementation("io.arrow-kt:arrow-core:1.1.2")
     implementation("io.github.nefilim.kjwt:kjwt-core:0.8.0")
-
+    implementation("jakarta.mail:jakarta.mail-api:2.1.1")
+    implementation("org.eclipse.angus:angus-mail:2.0.1")
 }

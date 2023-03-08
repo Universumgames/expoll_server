@@ -2,15 +2,18 @@ package net.mt32.expoll.routes
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.encodeToString
+import net.mt32.expoll.adminAuth
 import net.mt32.expoll.config
 import net.mt32.expoll.helper.compareVersion
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.normalAuth
 import net.mt32.expoll.routes.auth.authRoutes
 import net.mt32.expoll.serializable.ServerInfo
 
@@ -54,12 +57,16 @@ fun Route.apiRouting(){
             """.trimIndent(), ContentType.Application.Json
             )
         }
-        userRoutes()
-        pollRoutes()
-        voteRoutes()
-        adminRoute()
         authRoutes()
-        simpleRoutes()
-        notificationRoutes()
+        authenticate(normalAuth) {
+            pollRoutes()
+            voteRoutes()
+            simpleRoutes()
+            notificationRoutes()
+            userRoutes()
+        }
+        authenticate(adminAuth) {
+            adminRoute()
+        }
     }
 }
