@@ -14,7 +14,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 class APNDevice : DatabaseEntity {
     val deviceID: String
-    val userID: tUserID
+    var userID: tUserID
     val creationTimestamp: UnixTimestamp
 
     constructor(deviceID: String, userID: tUserID, creationTimestamp: UnixTimestamp) {

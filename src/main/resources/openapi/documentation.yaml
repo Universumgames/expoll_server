@@ -243,6 +243,51 @@ paths:
                 type: array
                 items:
                     $ref: "#/components/schemas/MailRegexRule"
+  /notifications/preferences:
+    get:
+      description: Get notification preferences
+      responses:
+        200:
+          description: Notification preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferences"
+        401:
+          description: Unauthorized
+    post:
+      description: Set notification preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationPreferences"
+      responses:
+        200:
+          description: Setting new Notification preferences was successful
+        401:
+          description: Unauthorized
+  /notifications/apple:
+    post:
+      description: register a new apple device for push notifications
+      requestBody:
+        required: true
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceID:
+                  type: string
+            example: '{"deviceID":"the generated deviceid"}'
+      responses:
+        200:
+          description: Device was added (or moved) to user
+        400:
+          description: Unauthorized
+
+
 
 components:
   schemas:
@@ -292,3 +337,21 @@ components:
         blacklist:
           type: boolean
           description: indicates whether this is a rule that is not allowed or that must be followed
+    NotificationPreferences:
+      type: object
+      properties:
+        pollArchived:
+          type: boolean
+        pollDeleted:
+          type: boolean
+        pollEdited:
+          type: boolean
+        userAdded:
+          type: boolean
+        userRemoved:
+          type: boolean
+        voteChange:
+          type: boolean
+        userID:
+          type: string
+          readonly: true
