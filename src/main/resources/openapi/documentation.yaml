@@ -90,7 +90,7 @@ paths:
                     lastName: Mustermann
                     username: mamu
                     mail: max.mustermann@example.de
-                    appAttest: "laskdfjhoidfjkhnsdfglkjh"
+                    appAttest: "<app attest value>"
         required: true
       responses:
         200:
@@ -99,7 +99,7 @@ paths:
             text/plain:
               schema:
                 type: string
-              example: "c77cff5f-e5eb-4939-be9e-d5fd577bb770"
+              example: "<uuid>"
         400:
           description: Parameters are missing
         406:
@@ -141,7 +141,7 @@ paths:
             schema:
               $ref: "#/components/schemas/VoteChangeRequest"
             example:
-              pollID: "ca63d9b6-fd62-4add-b8b5-e9696db21495"
+              pollID: "<uuid>"
               optionID: 43
               votedFor: 2
         required: true
@@ -167,10 +167,22 @@ paths:
                   type: string
                   description: the mail address of the user
                   required: this or loginKey
+            examples:
+              Request:
+                summary: Requesting login mail
+                value: '{"mail": "max.mustermann@example.org"}'
+              LoginKey:
+                summary: Get auth cookie
+                value: '{"loginKey": "<uuid>"}'
         required: true
       responses:
         200:
           description: The login was successfull
+          content:
+            cookie:
+              schema:
+                type: string
+              example: '{"loginKey":"<uuid>"}'
         400:
           description: Parameter missing, user does not exist
         401:
