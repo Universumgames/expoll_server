@@ -187,8 +187,33 @@ paths:
           description: Parameter missing, user does not exist
         401:
           description: The loginKey is invalid
-
-
+  /auth/logout:
+    delete:
+      description: Logout the current session or a specified one
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shortKey:
+                  type: string
+                  description: the first 4 characters of a loginkey
+            example: '{"shortKey": "abcd"}'
+      responses:
+        200:
+          description: Session was deleted and cookie removed (if deleted SEssion is not the active one)
+        401:
+          description: Unauthorized
+  /auth/logoutAll:
+    delete:
+      description: Logout all sessions
+      responses:
+        200:
+          description: All sessions were deleted
+        401:
+          description: Unauthorized
 components:
   schemas:
     VoteChangeRequest:

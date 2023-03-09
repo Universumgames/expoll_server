@@ -142,4 +142,8 @@ abstract class DatabaseEntity: IDatabaseEntity {
      * save current Entity and child entities
      */
     //open fun saveRecursive() {}
+
+    open fun delete(){
+        TODO("Deleting database objects is not yet implemented")
+    }
 }
