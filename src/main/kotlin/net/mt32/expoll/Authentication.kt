@@ -48,7 +48,7 @@ class UserAuthentication internal constructor(val authConfig: Config) : Authenti
         val call = context.call
         val loginKey = getDataFromAny(call, "loginKey")
         if (loginKey == null) {
-            call.respond(ReturnCode.BAD_REQUEST)
+            call.respond(ReturnCode.UNAUTHORIZED)
             return
         }
 

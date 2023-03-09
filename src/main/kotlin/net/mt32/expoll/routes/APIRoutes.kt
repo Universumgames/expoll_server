@@ -60,10 +60,10 @@ fun Route.apiRouting(){
             )
         }
         authRoutes()
+        simpleRoutes()
         authenticate(normalAuth) {
             pollRoutes()
             voteRoutes()
-            simpleRoutes()
             notificationRoutes()
             userRoutes()
         }

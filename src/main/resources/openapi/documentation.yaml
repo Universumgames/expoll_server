@@ -214,6 +214,36 @@ paths:
           description: All sessions were deleted
         401:
           description: Unauthorized
+  /simple/poll/{pollId}/title:
+    get:
+      description: Get the name for a poll
+      parameters:
+        - name: pollId
+          in: path
+          required: true
+      responses:
+        200:
+          description: The name of the requested poll
+          content:
+            plain/text:
+              schema:
+                type: string
+              example: "This is a great pollname"
+        400:
+          description: PollID parameter missing or poll does not exist
+  /simple/mailregex:
+    get:
+      description: Get all regex rules the mail has to comply to
+      responses:
+        200:
+          description: List of all regex rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                    $ref: "#/components/schemas/MailRegexRule"
+
 components:
   schemas:
     VoteChangeRequest:
@@ -251,3 +281,14 @@ components:
           type: string
           description: Apples app attest
           required: either this or captcha
+    MailRegexRule:
+      type: object
+      properties:
+        id:
+          type: string
+        regex:
+          type: string
+          description: the regex rule
+        blacklist:
+          type: boolean
+          description: indicates whether this is a rule that is not allowed or that must be followed

@@ -1,5 +1,6 @@
 package net.mt32.expoll.entities
 
+import kotlinx.serialization.Serializable
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.upsert
@@ -8,6 +9,7 @@ import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
+@Serializable
 class MailRule : DatabaseEntity {
     val id: String
     val regex: String
