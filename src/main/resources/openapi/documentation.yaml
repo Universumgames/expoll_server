@@ -150,7 +150,31 @@ paths:
           description: Vote was successfull
         "406":
           description: Poll or option does not exist, the votedFor value is invalid or 'maybe' is disabled
-
+  /auth/simple:
+    post:
+      description: Login via loginkey or request a login mail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                loginKey:
+                  type: string
+                  description: the key to login
+                  required: this or mail
+                mail:
+                  type: string
+                  description: the mail address of the user
+                  required: this or loginKey
+        required: true
+      responses:
+        200:
+          description: The login was successfull
+        400:
+          description: Parameter missing, user does not exist
+        401:
+          description: The loginKey is invalid
 
 
 components:
