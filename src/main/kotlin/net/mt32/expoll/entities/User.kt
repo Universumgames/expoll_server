@@ -3,6 +3,7 @@ package net.mt32.expoll.entities
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.upsert
+import net.mt32.expoll.serializable.responses.SimpleUser
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -172,5 +173,14 @@ class User : IUser, DatabaseEntity {
                 return@transaction userRow?.let { User(it) }
             }
         }
+    }
+
+    fun asSimpleUser(): SimpleUser{
+        return SimpleUser(
+            firstName,
+            lastName,
+            username,
+            id
+        )
     }
 }

@@ -150,6 +150,8 @@ paths:
           description: Vote was successfull
         "406":
           description: Poll or option does not exist, the votedFor value is invalid or 'maybe' is disabled
+        403:
+          description: Maximum number on Yes/Maybe votes on this poll is too high
   /auth/simple:
     post:
       description: Login via loginkey or request a login mail
@@ -351,6 +353,35 @@ paths:
           description: Device was added (or moved) to user
         400:
           description: Unauthorized
+  /poll:
+    get:
+      description: Get poll list or poll details
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pollID:
+                  type: string
+                  required: false
+      responses:
+        200:
+          description: Poll list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SimplePoll"
+        200(alt):
+          description: Poll details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedPoll"
+
+
 
 
 
@@ -432,3 +463,99 @@ components:
         created:
           type: string
           format: DateTime
+    SimpleUser:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        username:
+          type: string
+        id:
+          type: string
+    SimplePoll:
+      type: object
+      properties:
+        pollID:
+          type: string
+        name:
+          type: string
+        admin:
+          $ref: "#/components/schemas/SimpleUser"
+        description:
+          type: string
+        userCount:
+          type: number
+        lastUpdated:
+          type: string
+        type:
+          type: number
+        editable:
+          type: boolean
+    ComplexOption:
+      type: object
+      properties:
+        id:
+          type: string
+        value:
+          type: string
+          optional: true
+        dateStart:
+          type: date
+          optional: true
+        dateEnd:
+          type: date
+          optional: true
+        dateTimeStart:
+          type: datetime
+          optional: true
+        dateTimeEnd:
+          type: datetime
+          optional: true
+    UserVote:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/SimpleUser"
+        votes:
+          type: array
+          items:
+            properties:
+              optionID:
+                type: number
+              votedFor:
+                type: number
+    UserNote:
+      type: object
+      properties:
+        userID:
+          type: string
+        note:
+          type: string
+    DetailedPoll:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/SimplePoll"
+        - type: object
+          properties:
+            created:
+              type: datetime
+            options:
+              type: array
+              items:
+                $ref: "#/components/schemas/ComplexOption"
+            userVotes:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserVote"
+            userNotes:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserNote"
+            allowedMaybe:
+              type: boolean
+            allowsEditing:
+              type: boolean
+            shareURL:
+              type: url

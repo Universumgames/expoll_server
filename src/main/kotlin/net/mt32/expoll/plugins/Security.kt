@@ -15,7 +15,7 @@ fun Application.configureSecurity() {
         checkLoggedIn(normalAuth) {
 
         }
-        checkLoggedIn(adminAuth){
+        checkLoggedIn(adminAuth) {
             checkAdmin = true
         }
     }
@@ -24,8 +24,9 @@ fun Application.configureSecurity() {
         cookie<ExpollCookie>(cookieName) {
             cookie.extensions["SameSite"] = "lax"
             serializer = ExpollCookie.Companion
+            cookie.maxAgeInSeconds = 60 * 60 * 24 * 120 // 120 days ?
         }
-        cookie<MySession>("MY_SESSION"){
+        cookie<MySession>("MY_SESSION") {
             cookie.extensions["SameSite"] = "lax"
         }
     }

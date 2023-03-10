@@ -9,6 +9,7 @@ import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.auth.ExpollCookie
 import net.mt32.expoll.auth.normalAuth
+import net.mt32.expoll.auth.verifyGoogleCAPTCHA
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.MailRule
 import net.mt32.expoll.entities.User
@@ -16,6 +17,7 @@ import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.serializable.responses.CreateUserResponse
 import net.mt32.expoll.serializable.responses.UserDataResponse
+import net.mt32.expoll.serializable.responses.asSimpleList
 
 fun Route.userRoutes() {
     route("/user") {
@@ -30,9 +32,11 @@ fun Route.userRoutes() {
             get {
                 getUserData(call)
             }
+            get("/personalizeddata"){
+                getPersonalizedData(call)
+            }
             // TODO delete user
             // TODO delete user confirmation
-
         }
         get("test") {
             val session = call.sessions.get<ExpollCookie>()
@@ -69,6 +73,13 @@ private suspend fun createUser(call: ApplicationCall) {
     }
 
     // TODO verify app attest or google captcha
+    if(captcha != null){
+        val verified = verifyGoogleCAPTCHA(captcha)
+        if(verified.score < 0.5){
+            call.respond(ReturnCode.CAPTCHA_INVALID)
+            return
+        }
+    }
 
     val user = User(username, firstName, lastName, mail, admin = false)
     user.save()
@@ -107,6 +118,7 @@ private suspend fun getUserData(call: ApplicationCall) {
         user.mail,
         user.active,
         principal.admin || principal.superUser,
+        user.polls.asSimpleList()
     )
     call.respond(simpleUserResponse)
 }

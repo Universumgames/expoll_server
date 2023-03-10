@@ -103,6 +103,17 @@ class Vote : DatabaseEntity {
             }
         }
 
+        fun fromUserPoll(userID: tUserID, pollID: tPollID): List<Vote> {
+            return transaction {
+                val result =
+                    Vote.select {
+                        (Vote.userID eq userID) and
+                                (Vote.pollID eq pollID)
+                    }
+                return@transaction result.map { Vote(it) }
+            }
+        }
+
         private fun newID(): Int {
             return transaction {
                 var id = 0

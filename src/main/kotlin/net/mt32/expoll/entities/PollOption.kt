@@ -6,6 +6,7 @@ import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestamp
 import net.mt32.expoll.helper.upsert
+import net.mt32.expoll.serializable.responses.ComplexOption
 import net.mt32.expoll.tOptionID
 import net.mt32.expoll.tPollID
 import org.jetbrains.exposed.sql.ResultRow
@@ -17,6 +18,8 @@ import org.jetbrains.exposed.sql.transactions.transaction
 interface PollOption : IDatabaseEntity {
     val pollID: tPollID
     val id: tOptionID
+
+    fun toComplexOption(): ComplexOption
 }
 
 class PollOptionString : PollOption, DatabaseEntity {
@@ -45,6 +48,12 @@ class PollOptionString : PollOption, DatabaseEntity {
             }
         }
         return true
+    }
+
+    override fun toComplexOption(): ComplexOption {
+        return ComplexOption(
+            id, value = value
+        )
     }
 
     companion object : Table("poll_option_date_time") {
@@ -105,7 +114,13 @@ class PollOptionDate : PollOption, DatabaseEntity {
         return true
     }
 
-    companion object : Table("poll_option_date_time") {
+    override fun toComplexOption(): ComplexOption {
+        return ComplexOption(
+            id, dateStart = dateStartTimestamp.toJSDate(), dateEnd = dateEndTimestamp?.toJSDate()
+        )
+    }
+
+    companion object : Table("poll_option_date") {
         val id = integer("id").autoIncrement()
         val dateStartTimestamp = long("dateStartTimestamp")
         val dateEndTimestamp = long("dateEndTimestamp").nullable()
@@ -138,7 +153,12 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
     override val pollID: tPollID
     override val id: tOptionID
 
-    constructor(dateTimeStartTimestamp: UnixTimestamp, dateTImeEndTimestamp: UnixTimestamp?, pollID: tPollID, id: tOptionID) {
+    constructor(
+        dateTimeStartTimestamp: UnixTimestamp,
+        dateTImeEndTimestamp: UnixTimestamp?,
+        pollID: tPollID,
+        id: tOptionID
+    ) {
         this.dateTimeStartTimestamp = dateTimeStartTimestamp
         this.dateTimeEndTimestamp = dateTImeEndTimestamp
         this.pollID = pollID
@@ -162,6 +182,12 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
             }
         }
         return true
+    }
+
+    override fun toComplexOption(): ComplexOption {
+        return ComplexOption(
+            id, dateTimeStamp = dateTimeStartTimestamp.toJSDate(), dateTimeEnd = dateTimeEndTimestamp?.toJSDate()
+        )
     }
 
     companion object : Table("poll_option_date_time") {

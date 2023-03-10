@@ -1,6 +1,9 @@
 package net.mt32.expoll.helper
 
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 import java.util.*
+
 
 class UnixTimestamp(timestamp: Long) {
 
@@ -73,6 +76,12 @@ class UnixTimestamp(timestamp: Long) {
 
     fun toLong(): Long {
         return value
+    }
+
+    fun toJSDate(): String{
+        val tz = TimeZone.getTimeZone("UTC")
+        val df: DateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
+        return  df.format(toDate())
     }
 
     companion object {

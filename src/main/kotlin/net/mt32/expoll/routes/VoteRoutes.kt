@@ -4,8 +4,8 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.VoteValue
+import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.Vote
 import net.mt32.expoll.helper.ReturnCode
@@ -41,11 +41,11 @@ suspend fun voteRoute(call: ApplicationCall) {
     }
 
     val poll = Poll.fromID(pollID)
-    val votedForReal = VoteValue.values().find { it.id == votedFor }
+    val votedForEnum = VoteValue.values().find { it.id == votedFor }
     if (poll == null ||
-        votedForReal == null ||
+        votedForEnum == null ||
         !poll.options.map { it.id }.contains(optionID) ||
-        (votedForReal == VoteValue.MAYBE && !poll.allowsMaybe)
+        (votedForEnum == VoteValue.MAYBE && !poll.allowsMaybe)
     ) {
         call.respond(ReturnCode.NOT_ACCEPTABLE)
         return
@@ -53,6 +53,12 @@ suspend fun voteRoute(call: ApplicationCall) {
 
     val userIDToUse = userID ?: principal.userID
 
-    Vote.setVote(userIDToUse, pollID, optionID, votedForReal)
+    val voteCount = Vote.fromUserPoll(principal.userID, pollID).filter { it.votedFor == VoteValue.MAYBE || it.votedFor == VoteValue.YES }.size
+    if(voteCount > poll.maxPerUserVoteCount && poll.maxPerUserVoteCount != -1){
+        call.respond(ReturnCode.CHANGE_NOT_ALLOWED)
+        return
+    }
+
+    Vote.setVote(userIDToUse, pollID, optionID, votedForEnum)
     call.respond(ReturnCode.OK)
 }

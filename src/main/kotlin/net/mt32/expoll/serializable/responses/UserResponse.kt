@@ -11,6 +11,7 @@ data class UserDataResponse(
     val mail: String,
     val active: Boolean,
     val admin: Boolean,
+    val polls: List<SimplePoll>
 )
 
 @Serializable

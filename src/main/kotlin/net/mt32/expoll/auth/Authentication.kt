@@ -62,7 +62,7 @@ class UserAuthentication internal constructor(val authConfig: Config) : Authenti
 
         val session = Session.fromLoginKey(loginKey)
         if (session == null || session.expirationTimestamp < Date().toUnixTimestamp()) {
-            call.sessions.set(ExpollCookie(""))
+            call.sessions.clear<ExpollCookie>()
             call.respond(ReturnCode.UNAUTHORIZED)
             return
         }

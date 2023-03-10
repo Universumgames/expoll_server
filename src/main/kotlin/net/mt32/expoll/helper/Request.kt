@@ -12,9 +12,11 @@ suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
     if (cookie != null) {
         // TODO very error prone
         if (cookie.startsWith("j:")) cookie = URLDecoder.decode(cookie.substring(2), "UTF-8")
-        if (cookie != null)
-            return defaultJSON.parseToJsonElement(cookie).jsonObject[key].toString().replace("\"", "")
+        if (cookie != null) {
+            val cookieVal = defaultJSON.parseToJsonElement(cookie).jsonObject[key]
+            if (cookieVal != null) return cookieVal.toString().replace("\"", "")
                 .removeNullString()
+        }
     }
     val query = request.queryParameters[key]
     if (query != null)
