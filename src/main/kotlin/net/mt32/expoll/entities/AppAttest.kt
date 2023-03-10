@@ -29,10 +29,12 @@ class AppAttest : DatabaseEntity {
     }
 
     override fun save() {
-        AppAttest.upsert(AppAttest.uuid){
-            it[uuid] = this@AppAttest.uuid
-            it[challenge] = this@AppAttest.challenge
-            it[createdAtTimestamp] = this@AppAttest.createdAtTimestamp.toLong()
+        transaction {
+            AppAttest.upsert(AppAttest.uuid) {
+                it[uuid] = this@AppAttest.uuid
+                it[challenge] = this@AppAttest.challenge
+                it[createdAtTimestamp] = this@AppAttest.createdAtTimestamp.toLong()
+            }
         }
     }
 

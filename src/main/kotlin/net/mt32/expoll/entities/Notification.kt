@@ -70,15 +70,17 @@ class NotificationPreferences : DatabaseEntity {
     }
 
     override fun save() {
-        NotificationPreferences.upsert(NotificationPreferences.id) {
-            it[id] = this@NotificationPreferences.id
-            it[userID] = this@NotificationPreferences.userID
-            it[voteChange] = this@NotificationPreferences.voteChange
-            it[userAdded] = this@NotificationPreferences.userAdded
-            it[userRemoved] = this@NotificationPreferences.userRemoved
-            it[pollDeleted] = this@NotificationPreferences.pollDeleted
-            it[pollEdited] = this@NotificationPreferences.pollEdited
-            it[pollArchived] = this@NotificationPreferences.pollArchived
+        transaction {
+            NotificationPreferences.upsert(NotificationPreferences.id) {
+                it[id] = this@NotificationPreferences.id
+                it[userID] = this@NotificationPreferences.userID
+                it[voteChange] = this@NotificationPreferences.voteChange
+                it[userAdded] = this@NotificationPreferences.userAdded
+                it[userRemoved] = this@NotificationPreferences.userRemoved
+                it[pollDeleted] = this@NotificationPreferences.pollDeleted
+                it[pollEdited] = this@NotificationPreferences.pollEdited
+                it[pollArchived] = this@NotificationPreferences.pollArchived
+            }
         }
     }
 

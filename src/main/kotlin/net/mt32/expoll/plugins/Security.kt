@@ -5,7 +5,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import net.mt32.expoll.*
+import net.mt32.expoll.auth.*
 import kotlin.collections.set
 
 

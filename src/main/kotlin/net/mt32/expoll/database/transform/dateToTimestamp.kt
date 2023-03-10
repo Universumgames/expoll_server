@@ -37,9 +37,8 @@ private fun changeDateColumnToTimestamp(
     if(Transformer.columnExists(table.tableName, oldName))
         DatabaseFactory.runRawSQL("UPDATE ${table.tableName} SET ${column.name}=UNIX_TIMESTAMP(${oldName});") {}
 
-    // TODO remove comment
-    //if (Transformer.columnExists(table.tableName, oldName))
-    //    Transformer.dropColumn(table.tableName, oldName)
+    if (Transformer.columnExists(table.tableName, oldName))
+        Transformer.dropColumn(table.tableName, oldName)
     // or change to computed column
     //Transformer.dropColumn(table.tableName, oldName)
     //Transformer.addColumn(table.tableName, oldName, "DATE GENERATED ALWAYS AS (FROM_UNIXTIME(${column.name}))")

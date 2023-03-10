@@ -5,7 +5,11 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import net.mt32.expoll.*
+import net.mt32.expoll.Mail
+import net.mt32.expoll.auth.BasicSessionPrincipal
+import net.mt32.expoll.auth.ExpollCookie
+import net.mt32.expoll.auth.normalAuth
+import net.mt32.expoll.config
 import net.mt32.expoll.entities.MailRule
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode

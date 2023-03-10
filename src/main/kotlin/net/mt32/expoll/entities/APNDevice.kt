@@ -30,10 +30,12 @@ class APNDevice : DatabaseEntity {
     }
 
     override fun save() {
-        APNDevice.upsert (APNDevice.deviceID){
-            it[deviceID] = this@APNDevice.deviceID
-            it[userID] = this@APNDevice.userID
-            it[creationTimestamp] = this@APNDevice.creationTimestamp.toLong()
+        transaction {
+            APNDevice.upsert(APNDevice.deviceID) {
+                it[deviceID] = this@APNDevice.deviceID
+                it[userID] = this@APNDevice.userID
+                it[creationTimestamp] = this@APNDevice.creationTimestamp.toLong()
+            }
         }
     }
 

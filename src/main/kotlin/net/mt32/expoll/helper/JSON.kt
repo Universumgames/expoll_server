@@ -1,9 +1,6 @@
 package net.mt32.expoll.helper
 
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.*
 
 val defaultJSON = Json {
     ignoreUnknownKeys = true
@@ -30,4 +27,18 @@ fun mergeJsonObjects(obj1: JsonObject, obj2: JsonObject?): JsonObject {
             merged.put(entry.key, entry.value)
     }
     return JsonObject(merged)
+}
+
+fun JsonObject.toMap(): Map<String, *> = keys.asSequence().associateWith {
+    when (val value = this[it])
+    {
+        is JsonArray ->
+        {
+            val map = (0 until value.size).associate { Pair(it.toString(), value[it]) }
+            JsonObject(map).toMap().values.toList()
+        }
+        is JsonObject -> value.toMap()
+        JsonNull -> null
+        else            -> value
+    }
 }

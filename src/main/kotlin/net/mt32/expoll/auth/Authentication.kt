@@ -1,4 +1,4 @@
-package net.mt32.expoll
+package net.mt32.expoll.auth
 
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
@@ -6,12 +6,14 @@ import io.ktor.server.sessions.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
+import net.mt32.expoll.config
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.toUnixTimestamp
+import net.mt32.expoll.tUserID
 import java.util.*
 
 const val cookieName = "expoll_dat"
@@ -91,3 +93,17 @@ fun AuthenticationConfig.checkLoggedIn(
     val provider = UserAuthentication(UserAuthentication.Config(name).apply(configure))
     register(provider)
 }
+
+@Serializable
+data class PublicKeyCredential(
+    val id: String,
+    val rawId: ByteArray,
+    val response: AuthenticatorAttestationResponse,
+    val type: String
+)
+
+@Serializable
+data class AuthenticatorAttestationResponse(
+    val clientDataJSON: ByteArray,
+    val attestationObject: ByteArray
+)

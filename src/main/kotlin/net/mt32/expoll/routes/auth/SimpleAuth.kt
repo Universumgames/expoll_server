@@ -4,8 +4,8 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import net.mt32.expoll.ExpollCookie
 import net.mt32.expoll.Mail
+import net.mt32.expoll.auth.ExpollCookie
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
@@ -24,12 +24,12 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
     val loginKey = call.getDataFromAny("loginKey")
     val mail = call.getDataFromAny("mail")
 
-    if (loginKey == null && mail == null) {
+    if (loginKey.isNullOrEmpty() && mail.isNullOrEmpty()) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
 
-    if (mail != null) {
+    if (!mail.isNullOrEmpty()) {
         val user = User.byMail(mail)
         if (user == null) {
             call.respond(ReturnCode.BAD_REQUEST)
@@ -43,9 +43,10 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
                     urlBuilder(call, session.loginkey)
         )
         call.respond(ReturnCode.OK)
+        return
     }
 
-    if(loginKey != null) {
+    if(!loginKey.isNullOrEmpty()) {
         val session = Session.fromLoginKey(loginKey)
         if(session == null){
             call.respond(ReturnCode.UNAUTHORIZED)
@@ -53,6 +54,7 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
         }
         call.sessions.set(ExpollCookie(session.loginkey))
         call.respond(ReturnCode.OK)
+        return
     }
     call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
 }

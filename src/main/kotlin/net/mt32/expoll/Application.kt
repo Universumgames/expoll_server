@@ -14,7 +14,7 @@ fun main(args: Array<String>) {
     DatabaseFactory.init()
 
     //embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)
-    embeddedServer(Netty, port = 7070, host = "0.0.0.0", module = Application::module)
+    embeddedServer(Netty, port = 6060, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 

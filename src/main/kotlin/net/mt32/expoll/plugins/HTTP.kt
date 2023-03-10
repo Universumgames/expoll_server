@@ -1,5 +1,6 @@
 package net.mt32.expoll.plugins
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
 import io.ktor.server.plugins.defaultheaders.*
@@ -11,7 +12,8 @@ import net.mt32.expoll.routes.userRoutes
 
 fun Application.configureHTTP() {
     install(DefaultHeaders) {
-        header("X-Engine", "Ktor") // will send this header with each response
+        //header("X-Engine", "Ktor") // will send this header with each response
+        header(HttpHeaders.Server, "expoll_backend")
     }
     routing {
         //openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml")

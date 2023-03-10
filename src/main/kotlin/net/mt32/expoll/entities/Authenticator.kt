@@ -13,12 +13,18 @@ import org.jetbrains.exposed.sql.transactions.transaction
 
 
 class Challenge : DatabaseEntity {
-    val id: String
+    val id: Int
     val challenge: String
     val userID: tUserID
 
-    constructor(id: String, challenge: String, userID: tUserID) {
+    constructor(id: Int, challenge: String, userID: tUserID) {
         this.id = id
+        this.challenge = challenge
+        this.userID = userID
+    }
+
+    constructor(challenge: String, userID: tUserID) {
+        this.id = newUnusedID()
         this.challenge = challenge
         this.userID = userID
     }
@@ -38,13 +44,13 @@ class Challenge : DatabaseEntity {
     }
 
     companion object : Table("challenge") {
-        val id = varchar("id", 255)
+        val id = integer("id").autoIncrement()
         val challenge = varchar("challenge", 255)
         val userID = varchar("userId", UUIDLength)
 
         override val primaryKey = PrimaryKey(id)
 
-        fun fromID(id: String): Challenge? {
+        fun fromID(id: Int): Challenge? {
             return transaction {
                 val challengeRow = Challenge.select { Challenge.id eq id }.firstOrNull()
                 return@transaction challengeRow?.let { Challenge(it) }
@@ -53,8 +59,18 @@ class Challenge : DatabaseEntity {
 
         fun forUser(userID: String): List<Challenge> {
             return transaction {
-                val challengeRow = Challenge.select { Challenge.id eq id }
+                val challengeRow = Challenge.select { Challenge.userID eq userID }
                 return@transaction challengeRow.map { Challenge(it) }
+            }
+        }
+
+        private fun newUnusedID(): Int {
+            return transaction {
+                var id = 0
+                do {
+                    id++
+                } while (fromID(id) != null)
+                return@transaction id
             }
         }
     }
@@ -63,12 +79,14 @@ class Challenge : DatabaseEntity {
 
 class Authenticator : DatabaseEntity {
     val userID: tUserID
+
     // TODO wrong type probably
     val credentialID: String
+
     // TODO wrong type probably
     val credentialPublicKey: String
     var counter: Int
-    val transports: String
+    val transports: List<String>
     var name: String
     val initiatorPlatform: String
     val createdTimestamp: UnixTimestamp
@@ -78,7 +96,7 @@ class Authenticator : DatabaseEntity {
         credentialID: String,
         credentialPublicKey: String,
         counter: Int,
-        transports: String,
+        transports: List<String>,
         name: String,
         initiatorPlatform: String,
         createdTimestamp: UnixTimestamp
@@ -98,22 +116,24 @@ class Authenticator : DatabaseEntity {
         this.credentialID = authRow[Authenticator.credentialID]
         this.credentialPublicKey = authRow[Authenticator.credentialPublicKey]
         this.counter = authRow[Authenticator.counter]
-        this.transports = authRow[Authenticator.transports]
+        this.transports = authRow[Authenticator.transports].split(",")
         this.name = authRow[Authenticator.name]
         this.initiatorPlatform = authRow[Authenticator.initiatorPlatform]
         this.createdTimestamp = authRow[Authenticator.createdTimestamp].toUnixTimestamp()
     }
 
     override fun save() {
-        Authenticator.upsert(Authenticator.credentialID) {
-            it[Authenticator.userID] = this@Authenticator.userID
-            it[Authenticator.credentialID] = this@Authenticator.credentialID
-            it[Authenticator.credentialPublicKey] = this@Authenticator.credentialPublicKey
-            it[Authenticator.counter] = this@Authenticator.counter
-            it[Authenticator.transports] = this@Authenticator.transports
-            it[Authenticator.name] = this@Authenticator.name
-            it[Authenticator.initiatorPlatform] = this@Authenticator.initiatorPlatform
-            it[Authenticator.createdTimestamp] = this@Authenticator.createdTimestamp.toLong()
+        transaction {
+            Authenticator.upsert(Authenticator.credentialID) {
+                it[Authenticator.userID] = this@Authenticator.userID
+                it[Authenticator.credentialID] = this@Authenticator.credentialID
+                it[Authenticator.credentialPublicKey] = this@Authenticator.credentialPublicKey
+                it[Authenticator.counter] = this@Authenticator.counter
+                it[Authenticator.transports] = this@Authenticator.transports.joinToString(",")
+                it[Authenticator.name] = this@Authenticator.name
+                it[Authenticator.initiatorPlatform] = this@Authenticator.initiatorPlatform
+                it[Authenticator.createdTimestamp] = this@Authenticator.createdTimestamp.toLong()
+            }
         }
     }
 
@@ -133,6 +153,13 @@ class Authenticator : DatabaseEntity {
             return transaction {
                 val result = Authenticator.select { Authenticator.userID eq userID }
                 return@transaction result.map { Authenticator(it) }
+            }
+        }
+
+        fun fromCredentialID(credentialID: String): Authenticator? {
+            return transaction {
+                val result = Authenticator.select { Authenticator.credentialID eq credentialID }.firstOrNull()
+                return@transaction result?.let { Authenticator(it) }
             }
         }
     }

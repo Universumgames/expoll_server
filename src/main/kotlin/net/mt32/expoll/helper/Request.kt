@@ -3,8 +3,7 @@ package net.mt32.expoll.helper
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
-import net.mt32.expoll.cookieName
+import net.mt32.expoll.auth.cookieName
 import java.net.URLDecoder
 
 suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
@@ -15,25 +14,26 @@ suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
         if (cookie.startsWith("j:")) cookie = URLDecoder.decode(cookie.substring(2), "UTF-8")
         if (cookie != null)
             return defaultJSON.parseToJsonElement(cookie).jsonObject[key].toString().replace("\"", "")
+                .removeNullString()
     }
     val query = request.queryParameters[key]
     if (query != null)
-        return query
+        return query.removeNullString()
     val form = try {
         call.receiveParameters()[key]
     } catch (e: Exception) {
         null
     }
     if (form != null)
-        return form
+        return form.removeNullString()
     val body = if (call.receiveText()
             .isNotEmpty()
-    ) defaultJSON.parseToJsonElement(call.receiveText()).jsonObject[key]?.jsonPrimitive.toString() else null
+    ) defaultJSON.parseToJsonElement(call.receiveText()).jsonObject.toMap()[key].toString().replace("\"", "") else null
     if (body != null)
-        return body
+        return body.removeNullString()
     return null
 }
 
 @JvmName("getDataFromAnyOnObj")
-suspend fun ApplicationCall.getDataFromAny(key: String): String?=
+suspend fun ApplicationCall.getDataFromAny(key: String): String? =
     getDataFromAny(this, key)

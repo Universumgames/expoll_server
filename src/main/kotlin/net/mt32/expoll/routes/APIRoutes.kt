@@ -8,12 +8,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.encodeToString
-import net.mt32.expoll.adminAuth
+import net.mt32.expoll.auth.adminAuth
 import net.mt32.expoll.config
 import net.mt32.expoll.helper.compareVersion
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.helper.getDataFromAny
-import net.mt32.expoll.normalAuth
+import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.routes.auth.authRoutes
 import net.mt32.expoll.serializable.ServerInfo
 

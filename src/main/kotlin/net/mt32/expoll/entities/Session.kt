@@ -85,11 +85,13 @@ class Session : DatabaseEntity {
     }
 
     override fun save() {
-        Session.upsert(Session.loginKey) {
-            it[loginKey] = this@Session.loginkey
-            it[expirationTimestamp] = this@Session.expirationTimestamp.toLong()
-            it[userAgent] = this@Session.userAgent
-            it[userID] = this@Session.userID
+        transaction {
+            Session.upsert(Session.loginKey) {
+                it[loginKey] = this@Session.loginkey
+                it[expirationTimestamp] = this@Session.expirationTimestamp.toLong()
+                it[userAgent] = this@Session.userAgent
+                it[userID] = this@Session.userID
+            }
         }
     }
 }

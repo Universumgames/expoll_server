@@ -6,7 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.decodeFromString
-import net.mt32.expoll.BasicSessionPrincipal
+import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.entities.APNDevice
 import net.mt32.expoll.entities.NotificationPreferences
 import net.mt32.expoll.helper.ReturnCode

@@ -35,11 +35,13 @@ class PollUserNote : DatabaseEntity {
     }
 
     override fun save() {
-        PollUserNote.upsert(PollUserNote.id) {
-            it[id] = this@PollUserNote.id
-            it[userID] = this@PollUserNote.userID
-            it[pollID] = this@PollUserNote.pollID
-            it[note] = this@PollUserNote.note
+        transaction {
+            PollUserNote.upsert(PollUserNote.id) {
+                it[id] = this@PollUserNote.id
+                it[userID] = this@PollUserNote.userID
+                it[pollID] = this@PollUserNote.pollID
+                it[note] = this@PollUserNote.note
+            }
         }
     }
 

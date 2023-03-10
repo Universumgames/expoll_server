@@ -28,10 +28,12 @@ class MailRule : DatabaseEntity {
     }
 
     override fun save() {
-        MailRule.upsert(MailRule.id){
-            it[id] = this@MailRule.id
-            it[regex] = this@MailRule.regex
-            it[blacklist] = this@MailRule.blacklist
+        transaction {
+            MailRule.upsert(MailRule.id) {
+                it[id] = this@MailRule.id
+                it[regex] = this@MailRule.regex
+                it[blacklist] = this@MailRule.blacklist
+            }
         }
     }
 

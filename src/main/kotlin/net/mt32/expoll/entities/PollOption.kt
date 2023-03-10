@@ -37,10 +37,12 @@ class PollOptionString : PollOption, DatabaseEntity {
     }
 
     override fun save() {
-        PollOptionString.upsert(PollOptionString.id) {
-            it[id] = this@PollOptionString.id
-            it[pollID] = this@PollOptionString.pollID
-            it[value] = this@PollOptionString.value
+        transaction {
+            PollOptionString.upsert(PollOptionString.id) {
+                it[id] = this@PollOptionString.id
+                it[pollID] = this@PollOptionString.pollID
+                it[value] = this@PollOptionString.value
+            }
         }
     }
 
@@ -91,11 +93,13 @@ class PollOptionDate : PollOption, DatabaseEntity {
     }
 
     override fun save() {
-        PollOptionDate.upsert(PollOptionDate.id) {
-            it[id] = this@PollOptionDate.id
-            it[pollID] = this@PollOptionDate.pollID
-            it[dateStartTimestamp] = this@PollOptionDate.dateStartTimestamp.toLong()
-            it[dateEndTimestamp] = this@PollOptionDate.dateEndTimestamp?.toLong()
+        transaction {
+            PollOptionDate.upsert(PollOptionDate.id) {
+                it[id] = this@PollOptionDate.id
+                it[pollID] = this@PollOptionDate.pollID
+                it[dateStartTimestamp] = this@PollOptionDate.dateStartTimestamp.toLong()
+                it[dateEndTimestamp] = this@PollOptionDate.dateEndTimestamp?.toLong()
+            }
         }
     }
 
@@ -147,11 +151,13 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
     }
 
     override fun save() {
-        PollOptionDateTime.upsert(PollOptionDateTime.id) {
-            it[id] = this@PollOptionDateTime.id
-            it[pollID] = this@PollOptionDateTime.pollID
-            it[dateTimeStartTimestamp] = this@PollOptionDateTime.dateTimeStartTimestamp.toLong()
-            it[dateTimeEndTimestamp] = this@PollOptionDateTime.dateTimeEndTimestamp?.toLong()
+        transaction {
+            PollOptionDateTime.upsert(PollOptionDateTime.id) {
+                it[id] = this@PollOptionDateTime.id
+                it[pollID] = this@PollOptionDateTime.pollID
+                it[dateTimeStartTimestamp] = this@PollOptionDateTime.dateTimeStartTimestamp.toLong()
+                it[dateTimeEndTimestamp] = this@PollOptionDateTime.dateTimeEndTimestamp?.toLong()
+            }
         }
     }
 

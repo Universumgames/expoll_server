@@ -105,27 +105,29 @@ class Poll : DatabaseEntity, IPoll {
     }
 
     override fun save() {
-        options.forEach { option ->
-            option.save()
-        }
-        notes.forEach { note ->
-            note.save()
-        }
-        votes.forEach { vote ->
-            vote.save()
-        }
         transaction {
-            Poll.upsert(Poll.id) {
-                it[Poll.id] = this@Poll.id
-                it[Poll.adminID] = this@Poll.adminID
-                it[Poll.name] = this@Poll.name
-                it[Poll.description] = this@Poll.description
-                it[Poll.type] = this@Poll.type.id
-                it[Poll.createdTimestamp] = this@Poll.createdTimestamp.toLong()
-                it[Poll.createdTimestamp] = this@Poll.updatedTimestamp.toLong()
-                it[Poll.maxPerUserVoteCount] = this@Poll.maxPerUserVoteCount
-                it[Poll.allowsMaybe] = this@Poll.allowsMaybe
-                it[Poll.allowsEditing] = this@Poll.allowsEditing
+            options.forEach { option ->
+                option.save()
+            }
+            notes.forEach { note ->
+                note.save()
+            }
+            votes.forEach { vote ->
+                vote.save()
+            }
+            transaction {
+                Poll.upsert(Poll.id) {
+                    it[Poll.id] = this@Poll.id
+                    it[Poll.adminID] = this@Poll.adminID
+                    it[Poll.name] = this@Poll.name
+                    it[Poll.description] = this@Poll.description
+                    it[Poll.type] = this@Poll.type.id
+                    it[Poll.createdTimestamp] = this@Poll.createdTimestamp.toLong()
+                    it[Poll.createdTimestamp] = this@Poll.updatedTimestamp.toLong()
+                    it[Poll.maxPerUserVoteCount] = this@Poll.maxPerUserVoteCount
+                    it[Poll.allowsMaybe] = this@Poll.allowsMaybe
+                    it[Poll.allowsEditing] = this@Poll.allowsEditing
+                }
             }
         }
     }

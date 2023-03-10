@@ -4,7 +4,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import net.mt32.expoll.BasicSessionPrincipal
+import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.VoteValue
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.Vote

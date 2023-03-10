@@ -14,6 +14,7 @@ fun Application.configureRouting() {
             call.respondText(text = "501: ${notImplementedError.message}", status = ReturnCode.NOT_IMPLEMENTED)
         }
         exception<Throwable> { call, cause ->
+            cause.printStackTrace()
             call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
         }
     }

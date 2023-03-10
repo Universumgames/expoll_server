@@ -5,8 +5,8 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import net.mt32.expoll.BasicSessionPrincipal
-import net.mt32.expoll.ExpollCookie
+import net.mt32.expoll.auth.BasicSessionPrincipal
+import net.mt32.expoll.auth.ExpollCookie
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny

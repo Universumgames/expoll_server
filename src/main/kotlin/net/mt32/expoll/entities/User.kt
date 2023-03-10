@@ -91,27 +91,29 @@ class User : IUser, DatabaseEntity {
     }
 
     override fun save() {
-        User.upsert(User.id) {
-            it[id] = this@User.id
-            it[username] = this@User.username
-            it[mail] = this@User.mail
-            it[firstName] = this@User.firstName
-            it[lastName] = this@User.lastName
-            it[active] = this@User.active
-            it[admin] = this@User.admin
-        }
+        transaction {
+            User.upsert(User.id) {
+                it[id] = this@User.id
+                it[username] = this@User.username
+                it[mail] = this@User.mail
+                it[firstName] = this@User.firstName
+                it[lastName] = this@User.lastName
+                it[active] = this@User.active
+                it[admin] = this@User.admin
+            }
 
-        val polls = this.polls
-        UserPolls.deleteWhere { UserPolls.userID eq id }
-        UserPolls.batchInsert(polls.map { it.id }) {
-            this[UserPolls.pollID] = it
-            this[UserPolls.userID] = id
-        }
+            val polls = this@User.polls
+            UserPolls.deleteWhere { UserPolls.userID eq id }
+            UserPolls.batchInsert(polls.map { poll -> poll.id }) { pollID ->
+                this[UserPolls.pollID] = pollID
+                this[UserPolls.userID] = id
+            }
 
-        session.forEach { it.save() }
-        challenges.forEach { it.save() }
-        authenticators.forEach { it.save() }
-        votes.forEach { it.save() }
+            session.forEach { it.save() }
+            challenges.forEach { it.save() }
+            authenticators.forEach { it.save() }
+            votes.forEach { it.save() }
+        }
     }
 
     /**
