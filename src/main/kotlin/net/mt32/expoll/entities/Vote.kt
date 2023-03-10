@@ -36,7 +36,7 @@ class Vote : DatabaseEntity {
         this.votedFor = VoteValue.values()[voteRow[Vote.votedFor]]
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             Vote.upsert(Vote.id) {
                 it[id] = this@Vote.id
@@ -46,6 +46,7 @@ class Vote : DatabaseEntity {
                 it[votedFor] = this@Vote.votedFor.id
             }
         }
+        return true
     }
 
     override fun toString(): String {

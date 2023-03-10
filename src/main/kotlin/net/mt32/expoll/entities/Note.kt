@@ -34,7 +34,7 @@ class PollUserNote : DatabaseEntity {
         this.note = noteRow[PollUserNote.note]
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             PollUserNote.upsert(PollUserNote.id) {
                 it[id] = this@PollUserNote.id
@@ -43,6 +43,7 @@ class PollUserNote : DatabaseEntity {
                 it[note] = this@PollUserNote.note
             }
         }
+        return true
     }
 
     companion object : Table("poll_user_note") {

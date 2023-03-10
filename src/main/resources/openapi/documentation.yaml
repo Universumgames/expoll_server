@@ -10,9 +10,9 @@ info:
 servers:
   - url: https://expoll.mt32.net/api
     description: the production server api
-  - url: http://localhost:7070/
+  - url: http://localhost:6060/
     description: local test server
-  - url: http://192.168.178.68:7070
+  - url: http://192.168.178.68:6060
     description: local network testing
 
 paths:
@@ -214,6 +214,71 @@ paths:
           description: All sessions were deleted
         401:
           description: Unauthorized
+  /auth/webauthn/register:
+    get:
+      description: Undocumented endpoint to start webauthn registration
+    post:
+      description: Undocumented endpoint to save webauthn
+  /auth/webauthn/authenticate:
+    get:
+      description: Undocumented endpoint to start authentication
+    post:
+      description: Undocumented endpoint to start authentication
+  /auth/webauthn/list:
+    get:
+      description: get list of all webauthn authenticators
+      responses:
+        200:
+          description: list of the authenticators
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimpleAuthenticator'
+        401:
+          description: Unauthorized
+  /auth/webauthn/edit:
+    post:
+      description: edit an authenticator (currently only changing its name)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                credentialID:
+                  type: string
+                newName:
+                  type: string
+                  description: The new name for the authenticator
+      responses:
+        200:
+          description: Renaming successfull
+        401:
+          description: Unauthorized
+        403:
+          description: Authenticator does not exist
+  /auth/webauthn/:
+    delete:
+      description: delete an authenticator TODO
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                credentialID:
+                  type: string
+                  description: the authenticator you want to delete
+      responses:
+        200:
+          description: Deletion was successfull
+        401:
+          description: Unauthorized
+        403:
+          description: Authenticator does not exist
   /simple/poll/{pollId}/title:
     get:
       description: Get the name for a poll
@@ -355,3 +420,15 @@ components:
         userID:
           type: string
           readonly: true
+    SimpleAuthenticator:
+      type: object
+      properties:
+        credentialID:
+          type: string
+        name:
+          type: string
+        initiatorPlatform:
+          type: string
+        created:
+          type: string
+          format: DateTime

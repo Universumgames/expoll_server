@@ -29,7 +29,7 @@ class APNDevice : DatabaseEntity {
         this.creationTimestamp = apnDeviceRow[APNDevice.creationTimestamp].toUnixTimestamp()
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             APNDevice.upsert(APNDevice.deviceID) {
                 it[deviceID] = this@APNDevice.deviceID
@@ -37,6 +37,7 @@ class APNDevice : DatabaseEntity {
                 it[creationTimestamp] = this@APNDevice.creationTimestamp.toLong()
             }
         }
+        return true
     }
 
     companion object : Table("apn_devices") {

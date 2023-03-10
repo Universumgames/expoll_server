@@ -127,7 +127,7 @@ object Transformer {
 const val UUIDLength = 36
 
 interface IDatabaseEntity{
-    fun save()
+    fun save(): Boolean
 }
 
 abstract class DatabaseEntity: IDatabaseEntity {
@@ -135,7 +135,7 @@ abstract class DatabaseEntity: IDatabaseEntity {
     /**
      * Save current entity to database
      */
-    abstract override fun save()
+    abstract override fun save(): Boolean
 
     /**
      * OPTIONALLY IMPLEMENTED
@@ -143,7 +143,7 @@ abstract class DatabaseEntity: IDatabaseEntity {
      */
     //open fun saveRecursive() {}
 
-    open fun delete(){
+    open fun delete(): Boolean{
         TODO("Deleting database objects is not yet implemented")
     }
 }

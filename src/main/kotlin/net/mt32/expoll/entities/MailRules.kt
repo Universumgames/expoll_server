@@ -27,7 +27,7 @@ class MailRule : DatabaseEntity {
         this.blacklist = ruleRow[MailRule.blacklist]
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             MailRule.upsert(MailRule.id) {
                 it[id] = this@MailRule.id
@@ -35,6 +35,7 @@ class MailRule : DatabaseEntity {
                 it[blacklist] = this@MailRule.blacklist
             }
         }
+        return true
     }
 
     companion object : Table("mail_regex_rules") {

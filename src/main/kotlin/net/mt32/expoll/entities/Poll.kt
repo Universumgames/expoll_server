@@ -104,7 +104,7 @@ class Poll : DatabaseEntity, IPoll {
         this.allowsEditing = pollRow[Poll.allowsEditing]
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             options.forEach { option ->
                 option.save()
@@ -130,6 +130,7 @@ class Poll : DatabaseEntity, IPoll {
                 }
             }
         }
+        return true
     }
 
     companion object : Table("poll") {

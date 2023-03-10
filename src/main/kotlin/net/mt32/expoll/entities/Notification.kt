@@ -69,7 +69,7 @@ class NotificationPreferences : DatabaseEntity {
         this.pollArchived = notificationRow[NotificationPreferences.pollArchived]
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             NotificationPreferences.upsert(NotificationPreferences.id) {
                 it[id] = this@NotificationPreferences.id
@@ -82,6 +82,7 @@ class NotificationPreferences : DatabaseEntity {
                 it[pollArchived] = this@NotificationPreferences.pollArchived
             }
         }
+        return true
     }
 
     companion object : Table("notification_preferences_entity") {

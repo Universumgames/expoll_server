@@ -23,6 +23,8 @@ import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.toBase64
+import net.mt32.expoll.serializable.responses.SimpleAuthenticator
+import net.mt32.expoll.serializable.responses.SimpleAuthenticatorList
 import net.mt32.expoll.tUserID
 
 fun Route.webauthnRoutes() {
@@ -36,9 +38,15 @@ fun Route.webauthnRoutes() {
                     registerResponse(call)
                 }
             }
-            // TODO list endpoint
-            // TODO rename endpoint
-            // TODO delete endpoint
+            get("/list"){
+                getAuthenticatorList(call)
+            }
+            post("/edit"){
+                editAuthenticator(call)
+            }
+            delete {
+                deleteAuthenticator(call)
+            }
         }
         route("authenticate") {
             get {
@@ -179,4 +187,63 @@ private suspend fun authRes(call: ApplicationCall) {
         e.printStackTrace()
         call.respond(ReturnCode.UNAUTHORIZED)
     }
+}
+
+private suspend fun getAuthenticatorList(call: ApplicationCall) {
+    val principal = call.principal<BasicSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.UNAUTHORIZED)
+        return
+    }
+    val simpleAuths = Authenticator.fromUser(principal.userID).map {
+        SimpleAuthenticator(
+            it.credentialID,
+            it.name,
+            it.initiatorPlatform,
+            it.createdTimestamp.toDate().toLocaleString()
+        )
+    }
+    call.respond(SimpleAuthenticatorList(simpleAuths))
+}
+
+private suspend fun editAuthenticator(call: ApplicationCall){
+    val principal = call.principal<BasicSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.UNAUTHORIZED)
+        return
+    }
+    val credentialID = call.getDataFromAny("credentialID")
+    val newName = call.getDataFromAny("newName")
+    if(credentialID == null || newName == null){
+        call.respond(ReturnCode.MISSING_PARAMS)
+        return
+    }
+    val auth = Authenticator.fromCredentialID(credentialID)
+    if(auth == null){
+        call.respond(ReturnCode.CHANGE_NOT_ALLOWED)
+        return
+    }
+    auth.name = newName
+    auth.save()
+    call.respond(ReturnCode.OK)
+}
+
+private suspend fun deleteAuthenticator(call: ApplicationCall){
+    val principal = call.principal<BasicSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.UNAUTHORIZED)
+        return
+    }
+    val credentialID = call.getDataFromAny("credentialID")
+    if(credentialID == null){
+        call.respond(ReturnCode.MISSING_PARAMS)
+        return
+    }
+    val auth = Authenticator.fromCredentialID(credentialID)
+    if(auth == null){
+        call.respond(ReturnCode.CHANGE_NOT_ALLOWED)
+        return
+    }
+    auth.delete()
+    call.respond(ReturnCode.OK)
 }

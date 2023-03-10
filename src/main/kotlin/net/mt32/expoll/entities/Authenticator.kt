@@ -35,12 +35,13 @@ class Challenge : DatabaseEntity {
         this.userID = challengeRow[Challenge.userID]
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         Challenge.upsert(Challenge.id) {
             it[id] = this@Challenge.id
             it[challenge] = this@Challenge.challenge
             it[userID] = this@Challenge.userID
         }
+        return true
     }
 
     companion object : Table("challenge") {
@@ -122,7 +123,7 @@ class Authenticator : DatabaseEntity {
         this.createdTimestamp = authRow[Authenticator.createdTimestamp].toUnixTimestamp()
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             Authenticator.upsert(Authenticator.credentialID) {
                 it[Authenticator.userID] = this@Authenticator.userID
@@ -135,6 +136,7 @@ class Authenticator : DatabaseEntity {
                 it[Authenticator.createdTimestamp] = this@Authenticator.createdTimestamp.toLong()
             }
         }
+        return true
     }
 
     companion object : Table("authenticator") {

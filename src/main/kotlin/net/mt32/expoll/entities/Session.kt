@@ -84,7 +84,7 @@ class Session : DatabaseEntity {
         }
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             Session.upsert(Session.loginKey) {
                 it[loginKey] = this@Session.loginkey
@@ -93,5 +93,6 @@ class Session : DatabaseEntity {
                 it[userID] = this@Session.userID
             }
         }
+        return true
     }
 }

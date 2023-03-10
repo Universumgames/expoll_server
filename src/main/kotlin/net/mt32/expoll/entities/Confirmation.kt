@@ -18,10 +18,11 @@ class DeleteConfirmation : DatabaseEntity {
         this.expirationTimestamp = expirationTimestamp
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             TODO("Not yet implemented")
         }
+        return true
     }
 
     companion object : Table("delete_confirmation") {

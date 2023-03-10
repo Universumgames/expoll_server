@@ -36,7 +36,7 @@ class PollOptionString : PollOption, DatabaseEntity {
         value = optionRow[PollOptionString.value]
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             PollOptionString.upsert(PollOptionString.id) {
                 it[id] = this@PollOptionString.id
@@ -44,6 +44,7 @@ class PollOptionString : PollOption, DatabaseEntity {
                 it[value] = this@PollOptionString.value
             }
         }
+        return true
     }
 
     companion object : Table("poll_option_date_time") {
@@ -92,7 +93,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
         dateEndTimestamp = optionRow[PollOptionDate.dateEndTimestamp]?.toUnixTimestamp()
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             PollOptionDate.upsert(PollOptionDate.id) {
                 it[id] = this@PollOptionDate.id
@@ -101,6 +102,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
                 it[dateEndTimestamp] = this@PollOptionDate.dateEndTimestamp?.toLong()
             }
         }
+        return true
     }
 
     companion object : Table("poll_option_date_time") {
@@ -150,7 +152,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
         dateTimeEndTimestamp = optionRow[PollOptionDateTime.dateTimeEndTimestamp]?.toUnixTimestamp()
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             PollOptionDateTime.upsert(PollOptionDateTime.id) {
                 it[id] = this@PollOptionDateTime.id
@@ -159,6 +161,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
                 it[dateTimeEndTimestamp] = this@PollOptionDateTime.dateTimeEndTimestamp?.toLong()
             }
         }
+        return true
     }
 
     companion object : Table("poll_option_date_time") {

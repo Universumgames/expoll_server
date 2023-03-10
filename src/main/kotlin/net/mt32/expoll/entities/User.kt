@@ -90,7 +90,7 @@ class User : IUser, DatabaseEntity {
         this.admin = userRow[User.admin]
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             User.upsert(User.id) {
                 it[id] = this@User.id
@@ -114,6 +114,7 @@ class User : IUser, DatabaseEntity {
             authenticators.forEach { it.save() }
             votes.forEach { it.save() }
         }
+        return true
     }
 
     /**

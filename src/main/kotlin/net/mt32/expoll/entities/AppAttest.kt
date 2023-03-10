@@ -28,7 +28,7 @@ class AppAttest : DatabaseEntity {
         this.createdAtTimestamp = attestRow[AppAttest.createdAtTimestamp].toUnixTimestamp()
     }
 
-    override fun save() {
+    override fun save(): Boolean {
         transaction {
             AppAttest.upsert(AppAttest.uuid) {
                 it[uuid] = this@AppAttest.uuid
@@ -36,6 +36,7 @@ class AppAttest : DatabaseEntity {
                 it[createdAtTimestamp] = this@AppAttest.createdAtTimestamp.toLong()
             }
         }
+        return true
     }
 
     companion object : Table("appleAppAttests") {
