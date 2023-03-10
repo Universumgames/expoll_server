@@ -16,7 +16,6 @@ fun Route.simpleRoutes(){
         get("/poll/{pollid}/title"){
             getPollTitle(call)
         }
-// TODO add simple routes
     }
 }
 

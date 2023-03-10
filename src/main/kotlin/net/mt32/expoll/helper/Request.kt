@@ -10,7 +10,6 @@ suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
     val request = call.request
     var cookie = request.cookies[cookieName]
     if (cookie != null) {
-        // TODO very error prone
         if (cookie.startsWith("j:")) cookie = URLDecoder.decode(cookie.substring(2), "UTF-8")
         if (cookie != null) {
             val cookieVal = defaultJSON.parseToJsonElement(cookie).jsonObject[key]

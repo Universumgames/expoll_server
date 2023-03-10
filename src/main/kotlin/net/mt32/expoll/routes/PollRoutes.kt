@@ -16,16 +16,21 @@ fun Route.pollRoutes() {
         get{
             getPolls(call)
         }
-//TODO add poll routes
+        post{
+            createPoll(call)
+        }
+        put{
+            editPoll(call)
+        }
     }
 }
 
 private suspend fun editPoll(call: ApplicationCall) {
-    TODO()
+    TODO("editing polls not yet implemented")
 }
 
 private suspend fun createPoll(call: ApplicationCall) {
-    TODO()
+    TODO("creating polls not yet implemented")
 }
 
 private suspend fun getPolls(call: ApplicationCall) {

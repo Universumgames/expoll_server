@@ -89,7 +89,7 @@ object Transformer {
      * @param column the column to check for
      * @return true if column exists in table, false otherwise
      */
-    fun columnExists(table: String, column: String): Boolean{
+    fun columnExists(table: String, column: String): Boolean {
         return getColumnType(table, column) != null
     }
 
@@ -99,7 +99,7 @@ object Transformer {
      */
     fun addColumn(table: String, columnName: String, type: String): Boolean {
         DatabaseFactory.runRawSQL("ALTER TABLE $table ADD $columnName ${type};") {
-        // not called
+            // not called
         }
         return true
     }
@@ -126,11 +126,12 @@ object Transformer {
 /** Length of a uuid string*/
 const val UUIDLength = 36
 
-interface IDatabaseEntity{
+interface IDatabaseEntity {
     fun save(): Boolean
+    fun delete(): Boolean
 }
 
-abstract class DatabaseEntity: IDatabaseEntity {
+abstract class DatabaseEntity : IDatabaseEntity {
 
     /**
      * Save current entity to database
@@ -138,12 +139,9 @@ abstract class DatabaseEntity: IDatabaseEntity {
     abstract override fun save(): Boolean
 
     /**
-     * OPTIONALLY IMPLEMENTED
-     * save current Entity and child entities
+     * Delete the current entity from the database and all child objects
      */
-    //open fun saveRecursive() {}
-
-    open fun delete(): Boolean{
+    override fun delete(): Boolean {
         TODO("Deleting database objects is not yet implemented")
     }
 }

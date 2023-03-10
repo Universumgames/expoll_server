@@ -80,11 +80,7 @@ class Challenge : DatabaseEntity {
 
 class Authenticator : DatabaseEntity {
     val userID: tUserID
-
-    // TODO wrong type probably
     val credentialID: String
-
-    // TODO wrong type probably
     val credentialPublicKey: String
     var counter: Int
     val transports: List<String>
