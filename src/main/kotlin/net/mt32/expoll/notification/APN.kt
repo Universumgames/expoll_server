@@ -31,6 +31,12 @@ data class APNsPriority(var priority: Int) {
     init {
         this.priority = minmax(priority, 0, 10)
     }
+
+    companion object {
+        val low = APNsPriority(0)
+        val medium = APNsPriority(5)
+        val high = APNsPriority(10)
+    }
 }
 
 @Serializable
@@ -40,11 +46,11 @@ data class APNsNotification(
     val body: String?,
     @SerialName("launch-image") val launchImageName: String? = null,
     @SerialName("title-loc-key") val titleLocalisationKey: String? = null,
-    @SerialName("title-loc-args") val titleLocalisationArgs: Array<String>? = null,
+    @SerialName("title-loc-args") val titleLocalisationArgs: List<String>? = null,
     @SerialName("subtitle-loc-key") val subtitleLocalisationKey: String? = null,
-    @SerialName("subtitle-loc-args") val subtitleLocalisationArgs: Array<String>? = null,
+    @SerialName("subtitle-loc-args") val subtitleLocalisationArgs: List<String>? = null,
     @SerialName("loc-key") val bodyLocalisationKey: String? = null,
-    @SerialName("loc-args") val bodyLocalisationArgs: Array<String>? = null
+    @SerialName("loc-args") val bodyLocalisationArgs: List<String>? = null
 )
 
 @Serializable
@@ -54,6 +60,7 @@ data class APS(
     val sound: String? = null
     // TODO add interruption level
 )
+
 @Serializable
 data class APNsPayload(
     val aps: APS

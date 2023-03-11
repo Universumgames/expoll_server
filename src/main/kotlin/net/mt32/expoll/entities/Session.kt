@@ -6,10 +6,8 @@ import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestamp
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tUserID
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
@@ -65,20 +63,21 @@ class Session : DatabaseEntity {
          * @param forUserID the user the session should be created for
          * @return new Session object with an predefined expiration
          */
-        fun createSession(forUserID: tUserID): Session{
+        fun createSession(forUserID: tUserID): Session {
             var loginKey = ""
             transaction {
-                do{
+                do {
                     loginKey = UUID.randomUUID().toString()
-                }
-                while(fromLoginKey(loginKey) != null)
+                } while (fromLoginKey(loginKey) != null)
             }
             return Session(loginKey, forUserID, UnixTimestamp.now().addDays(120))
         }
 
-        fun fromShortKey(shortKey: String, userID: tUserID): Session?{
+        fun fromShortKey(shortKey: String, userID: tUserID): Session? {
             return transaction {
-                val sessionRow = Session.select { (Session.loginKey like ("$shortKey%")) and (Session.userID eq userID) }.firstOrNull()
+                val sessionRow =
+                    Session.select { (Session.loginKey like ("$shortKey%")) and (Session.userID eq userID) }
+                        .firstOrNull()
                 return@transaction sessionRow?.let { Session(it) }
             }
         }
@@ -88,9 +87,18 @@ class Session : DatabaseEntity {
         transaction {
             Session.upsert(Session.loginKey) {
                 it[loginKey] = this@Session.loginkey
-                it[expirationTimestamp] = this@Session.expirationTimestamp.toLong()
+                it[expirationTimestamp] = this@Session.expirationTimestamp.toDB()
                 it[userAgent] = this@Session.userAgent
                 it[userID] = this@Session.userID
+            }
+        }
+        return true
+    }
+
+    override fun delete(): Boolean {
+        transaction {
+            Session.deleteWhere {
+                Session.loginKey eq this@Session.loginkey
             }
         }
         return true

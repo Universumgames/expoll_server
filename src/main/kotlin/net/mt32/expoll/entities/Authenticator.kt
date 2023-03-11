@@ -7,7 +7,9 @@ import net.mt32.expoll.helper.toUnixTimestamp
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -40,6 +42,15 @@ class Challenge : DatabaseEntity {
             it[id] = this@Challenge.id
             it[challenge] = this@Challenge.challenge
             it[userID] = this@Challenge.userID
+        }
+        return true
+    }
+
+    override fun delete(): Boolean {
+        transaction {
+            Challenge.deleteWhere{
+                Challenge.id eq this@Challenge.id
+            }
         }
         return true
     }
@@ -129,7 +140,16 @@ class Authenticator : DatabaseEntity {
                 it[Authenticator.transports] = this@Authenticator.transports.joinToString(",")
                 it[Authenticator.name] = this@Authenticator.name
                 it[Authenticator.initiatorPlatform] = this@Authenticator.initiatorPlatform
-                it[Authenticator.createdTimestamp] = this@Authenticator.createdTimestamp.toLong()
+                it[Authenticator.createdTimestamp] = this@Authenticator.createdTimestamp.toDB()
+            }
+        }
+        return true
+    }
+
+    override fun delete(): Boolean {
+        transaction {
+            Authenticator.deleteWhere {
+                Authenticator.credentialID eq this@Authenticator.credentialID
             }
         }
         return true

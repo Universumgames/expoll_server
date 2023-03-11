@@ -3,6 +3,7 @@ package net.mt32.expoll.database
 import net.mt32.expoll.config
 import net.mt32.expoll.database.transform.dateToTimestamp
 import net.mt32.expoll.database.transform.dropAllForeignKeys
+import net.mt32.expoll.database.transform.dropUnnecessaryColumns
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.Vote
 import org.jetbrains.exposed.sql.Database
@@ -55,6 +56,7 @@ object Transformer {
     fun transformTables() {
         dropAllForeignKeys()
         dateToTimestamp()
+        dropUnnecessaryColumns()
     }
 
     /**
@@ -141,7 +143,5 @@ abstract class DatabaseEntity : IDatabaseEntity {
     /**
      * Delete the current entity from the database and all child objects
      */
-    override fun delete(): Boolean {
-        TODO("Deleting database objects is not yet implemented")
-    }
+    abstract override fun delete(): Boolean
 }

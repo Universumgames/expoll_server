@@ -10,8 +10,8 @@ import io.ktor.util.*
 import kotlinx.serialization.encodeToString
 import net.mt32.expoll.auth.adminAuth
 import net.mt32.expoll.auth.normalAuth
-import net.mt32.expoll.config
-import net.mt32.expoll.helper.compareVersion
+import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.helper.checkVersionCompatibility
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.routes.auth.authRoutes
@@ -28,7 +28,9 @@ fun Route.apiRouting() {
                 call.respond(HttpStatusCode.BadRequest)
                 return@get
             }
-            call.respond(HttpStatusCode.OK, "${compareVersion(clientVersion, config.minimumRequiredClientVersion)}")
+            val compatable = checkVersionCompatibility(clientVersion)
+            if(compatable) call.respond(ReturnCode.OK)
+            else call.respond(ReturnCode.CONFLICT)
         }
         get("serverInfo") {
             call.respond(ServerInfo.instance)

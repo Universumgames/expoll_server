@@ -9,25 +9,48 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 
 
 // source from https://github.com/JetBrains/Exposed/issues/167#issuecomment-514558435
-class UpsertStatement<Key : Any>(table: Table, conflictColumn: Column<*>? = null, conflictIndex: Index? = null) :
-    InsertStatement<Key>(table, false) {
+class UpsertStatement<Key : Any> :
+    InsertStatement<Key> {
 
     private val indexName: String
     private val indexColumns: List<Column<*>>
     private val index: Boolean
 
-    init {
+    constructor(table: Table, conflictColumn: Column<*>? = null, conflictIndex: Index? = null) : super(table, false) {
         when {
             conflictIndex != null -> {
                 index = true
                 indexName = conflictIndex.indexName
                 indexColumns = conflictIndex.columns
             }
+
             conflictColumn != null -> {
                 index = false
                 indexName = conflictColumn.name
                 indexColumns = listOf(conflictColumn)
             }
+
+            else -> throw IllegalArgumentException()
+        }
+    }
+
+    constructor(table: Table, conflictColumns: List<Column<*>>? = null, conflictIndex: Index? = null) : super(
+        table,
+        false
+    ) {
+        when {
+            conflictIndex != null -> {
+                index = true
+                indexName = conflictIndex.indexName
+                indexColumns = conflictIndex.columns
+            }
+
+            conflictColumns != null -> {
+                index = false
+                indexName = ""
+                indexColumns = conflictColumns
+            }
+
             else -> throw IllegalArgumentException()
         }
     }
@@ -67,6 +90,17 @@ inline fun <T : Table> T.upsert(
     body: T.(UpsertStatement<Number>) -> Unit
 ) =
     UpsertStatement<Number>(this, conflictColumn, conflictIndex).apply {
+        body(this)
+        execute(TransactionManager.current())
+    }
+
+inline fun <T : Table> T.upsert(
+    vararg
+    conflictColumns: Column<*>,
+    conflictIndex: Index? = null,
+    body: T.(UpsertStatement<Number>) -> Unit
+) =
+    UpsertStatement<Number>(this, conflictColumns.toList(), conflictIndex).apply {
         body(this)
         execute(TransactionManager.current())
     }

@@ -8,6 +8,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.encodeToString
 import net.mt32.expoll.config
+import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.defaultJSON
 import java.io.File
 import java.security.KeyFactory
@@ -81,11 +82,11 @@ object APNsNotificationHandler {
 
     suspend fun sendAPN(
         deviceToken: String,
-        expiration: Date,
+        expiration: UnixTimestamp,
         payload: APNsPayload,
         priority: APNsPriority,
         pushType: APNsPushType = APNsPushType.ALERT,
-        collapseID: String?
+        collapseID: String? = null
     ) {
         val bearer = getAPNSBearer()?.asToken() ?: return
 

@@ -6,29 +6,24 @@ import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
 @Serializable
 class PollUserNote : DatabaseEntity {
-    val id: Int
     val userID: tUserID
     val pollID: tPollID
     var note: String
 
-    constructor(id: Int, userID: tUserID, pollID: tPollID, note: String) {
-        this.id = id
+    constructor(userID: tUserID, pollID: tPollID, note: String) {
         this.userID = userID
         this.pollID = pollID
         this.note = note
     }
 
     private constructor(noteRow: ResultRow) {
-        this.id = noteRow[PollUserNote.id]
         this.userID = noteRow[PollUserNote.userID]
         this.pollID = noteRow[PollUserNote.pollID]
         this.note = noteRow[PollUserNote.note]
@@ -36,8 +31,7 @@ class PollUserNote : DatabaseEntity {
 
     override fun save(): Boolean {
         transaction {
-            PollUserNote.upsert(PollUserNote.id) {
-                it[id] = this@PollUserNote.id
+            PollUserNote.upsert(PollUserNote.userID, PollUserNote.pollID) {
                 it[userID] = this@PollUserNote.userID
                 it[pollID] = this@PollUserNote.pollID
                 it[note] = this@PollUserNote.note
@@ -46,13 +40,22 @@ class PollUserNote : DatabaseEntity {
         return true
     }
 
+    override fun delete(): Boolean {
+        transaction {
+            PollUserNote.deleteWhere {
+                (PollUserNote.userID eq this@PollUserNote.userID) and
+                        (PollUserNote.pollID eq this@PollUserNote.pollID)
+            }
+        }
+        return true
+    }
+
     companion object : Table("poll_user_note") {
-        val id = integer("id").autoIncrement()
         val userID = varchar("userId", UUIDLength)
         val pollID = varchar("pollId", UUIDLength)
         val note = varchar("note", 255)
 
-        override val primaryKey = PrimaryKey(id)
+        override val primaryKey = PrimaryKey(userID, pollID)
 
         fun forUserAndPoll(userID: tUserID, pollID: tPollID): PollUserNote? {
             return transaction {

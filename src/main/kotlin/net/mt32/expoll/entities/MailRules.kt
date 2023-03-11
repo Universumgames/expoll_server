@@ -5,7 +5,9 @@ import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.upsert
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -33,6 +35,15 @@ class MailRule : DatabaseEntity {
                 it[id] = this@MailRule.id
                 it[regex] = this@MailRule.regex
                 it[blacklist] = this@MailRule.blacklist
+            }
+        }
+        return true
+    }
+
+    override fun delete(): Boolean {
+        transaction {
+            MailRule.deleteWhere {
+                MailRule.id eq this@MailRule.id
             }
         }
         return true

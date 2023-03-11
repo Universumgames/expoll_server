@@ -7,10 +7,8 @@ import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tOptionID
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class Vote : DatabaseEntity {
@@ -51,6 +49,17 @@ class Vote : DatabaseEntity {
 
     override fun toString(): String {
         return "Vote(id=$id, userID='$userID', pollID='$pollID', optionID=$optionID, votedFor=$votedFor)"
+    }
+
+    override fun delete(): Boolean {
+        transaction {
+            Vote.deleteWhere {
+                (Vote.userID eq this@Vote.userID) and
+                        (Vote.pollID eq this@Vote.pollID) and
+                        (Vote.optionID eq this@Vote.optionID)
+            }
+        }
+        return true
     }
 
     companion object : Table("vote") {

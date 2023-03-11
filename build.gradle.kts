@@ -64,4 +64,5 @@ dependencies {
     implementation("org.eclipse.angus:angus-mail:2.0.1")
     //implementation("com.webauthn4j:webauthn4j-core:0.21.0.RELEASE")
     implementation("com.yubico:webauthn-server-core:2.4.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
 }

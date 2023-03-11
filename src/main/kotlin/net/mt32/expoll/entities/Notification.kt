@@ -6,7 +6,9 @@ import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -85,6 +87,15 @@ class NotificationPreferences : DatabaseEntity {
         return true
     }
 
+    override fun delete(): Boolean {
+        transaction {
+            NotificationPreferences.deleteWhere {
+                id eq this@NotificationPreferences.id
+            }
+        }
+        return true
+    }
+
     companion object : Table("notification_preferences_entity") {
         val id = varchar("id", UUIDLength)
         val userID = varchar("userId", UUIDLength).uniqueIndex()
@@ -93,7 +104,7 @@ class NotificationPreferences : DatabaseEntity {
         val userRemoved = bool("userRemoved")
         val pollDeleted = bool("pollDeleted")
         val pollEdited = bool("pollEdited")
-        val pollArchived = bool("pollArchoved")
+        val pollArchived = bool("pollArchived")
 
         override val primaryKey = PrimaryKey(id)
 

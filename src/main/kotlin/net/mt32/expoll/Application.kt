@@ -13,6 +13,7 @@ fun main(args: Array<String>) {
     ConfigLoader.load(environment)
     DatabaseFactory.init()
 
+
     //embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)
     embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)
         .start(wait = true)

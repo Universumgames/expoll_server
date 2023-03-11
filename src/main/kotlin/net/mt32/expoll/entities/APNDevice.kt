@@ -7,7 +7,9 @@ import net.mt32.expoll.helper.toUnixTimestamp
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -34,7 +36,16 @@ class APNDevice : DatabaseEntity {
             APNDevice.upsert(APNDevice.deviceID) {
                 it[deviceID] = this@APNDevice.deviceID
                 it[userID] = this@APNDevice.userID
-                it[creationTimestamp] = this@APNDevice.creationTimestamp.toLong()
+                it[creationTimestamp] = this@APNDevice.creationTimestamp.toDB()
+            }
+        }
+        return true
+    }
+
+    override fun delete(): Boolean {
+        transaction {
+            APNDevice.deleteWhere {
+                APNDevice.deviceID eq this@APNDevice.deviceID
             }
         }
         return true

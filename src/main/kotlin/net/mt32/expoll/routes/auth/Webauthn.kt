@@ -200,7 +200,7 @@ private suspend fun getAuthenticatorList(call: ApplicationCall) {
             it.credentialID,
             it.name,
             it.initiatorPlatform,
-            it.createdTimestamp.toDate().toLocaleString()
+            it.createdTimestamp.toClient()
         )
     }
     call.respond(SimpleAuthenticatorList(simpleAuths))

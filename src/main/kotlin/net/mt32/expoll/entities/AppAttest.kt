@@ -6,7 +6,9 @@ import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestamp
 import net.mt32.expoll.helper.upsert
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
@@ -33,7 +35,16 @@ class AppAttest : DatabaseEntity {
             AppAttest.upsert(AppAttest.uuid) {
                 it[uuid] = this@AppAttest.uuid
                 it[challenge] = this@AppAttest.challenge
-                it[createdAtTimestamp] = this@AppAttest.createdAtTimestamp.toLong()
+                it[createdAtTimestamp] = this@AppAttest.createdAtTimestamp.toDB()
+            }
+        }
+        return true
+    }
+
+    override fun delete(): Boolean {
+        transaction {
+            AppAttest.deleteWhere {
+                AppAttest.uuid eq this@AppAttest.uuid
             }
         }
         return true

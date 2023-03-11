@@ -4,6 +4,9 @@ typealias tUserID = String
 typealias tPollID = String
 typealias tOptionID = Int
 
+typealias tClientDateTime = Long
+typealias tClientDate = Long
+
 
 enum class PollType(val id: Int){
     STRING(0),

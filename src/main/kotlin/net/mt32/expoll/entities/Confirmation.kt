@@ -25,6 +25,10 @@ class DeleteConfirmation : DatabaseEntity {
         return true
     }
 
+    override fun delete(): Boolean {
+        TODO("Not yet implemented")
+    }
+
     companion object : Table("delete_confirmation") {
         val id = varchar("id", UUIDLength)
         val userID = varchar("userId", UUIDLength)

@@ -52,6 +52,13 @@ data class TestUserConfig(
 )
 
 @Serializable
+data class CompatibleVersionDescriptor(
+    val from: String? = null,
+    val to: String? = null,
+    val exact: String? = null
+)
+
+@Serializable
 data class ConfigData(
     val mail: MailConfig = MailConfig(),
     val serverPort: Int = 0,
@@ -66,7 +73,8 @@ data class ConfigData(
     val shareURLPrefix: String = "",
     val notifications: NotificationConfig = NotificationConfig(),
     val testUser: TestUserConfig = TestUserConfig(),
-    val minimumRequiredClientVersion: String = ""
+    val minimumRequiredClientVersion: String = "",
+    val compatibleVersions: List<CompatibleVersionDescriptor> = listOf()
 )
 
 var config: ConfigData = ConfigData()

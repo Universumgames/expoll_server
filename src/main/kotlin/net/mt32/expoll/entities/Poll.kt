@@ -10,10 +10,10 @@ import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.serializable.responses.*
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.util.*
 
 interface IPoll {
     val admin: User
@@ -45,15 +45,18 @@ class Poll : DatabaseEntity, IPoll {
     override val type: PollType
     override val votes: List<Vote>
         get() {
-            return Vote.fromPoll(id)
+            return Vote.fromPoll(id).filter { vote -> users.map { it.id }.contains(vote.userID) }
         }
     override val notes: List<PollUserNote>
         get() {
             return PollUserNote.forPoll(id)
         }
-    val users: List<User>
+    var users: List<User>
         get() {
             return usersInPoll(id)
+        }
+        set(value) {
+            setUsersInPoll(id, value.map { it.id })
         }
     override var maxPerUserVoteCount: Int
     override var allowsMaybe: Boolean
@@ -122,14 +125,26 @@ class Poll : DatabaseEntity, IPoll {
                     it[Poll.id] = this@Poll.id
                     it[Poll.adminID] = this@Poll.adminID
                     it[Poll.name] = this@Poll.name
-                    it[Poll.description] = this@Poll.description
+                    it[Poll.description] = this@Poll.description.replace("\\n", "\n").replace("\\t", "\t")
                     it[Poll.type] = this@Poll.type.id
-                    it[Poll.createdTimestamp] = this@Poll.createdTimestamp.toLong()
-                    it[Poll.createdTimestamp] = this@Poll.updatedTimestamp.toLong()
+                    it[Poll.createdTimestamp] = this@Poll.createdTimestamp.toDB()
+                    it[Poll.createdTimestamp] = this@Poll.updatedTimestamp.toDB()
                     it[Poll.maxPerUserVoteCount] = this@Poll.maxPerUserVoteCount
                     it[Poll.allowsMaybe] = this@Poll.allowsMaybe
                     it[Poll.allowsEditing] = this@Poll.allowsEditing
                 }
+            }
+        }
+        return true
+    }
+
+    override fun delete(): Boolean {
+        transaction {
+            options.forEach { option -> option.delete() }
+            notes.forEach { note -> note.delete() }
+            votes.forEach { vote -> vote.delete() }
+            Poll.deleteWhere {
+                Poll.id eq this@Poll.id
             }
         }
         return true
@@ -171,6 +186,49 @@ class Poll : DatabaseEntity, IPoll {
                 return@transaction userIDs.map { User.loadFromID(it) }.requireNoNulls()
             }
         }
+
+        fun setUsersInPoll(pollID: tPollID, userIDs: List<tUserID>) {
+            transaction {
+                UserPolls.deleteWhere { UserPolls.pollID eq pollID }
+                UserPolls.batchInsert(userIDs) { userID ->
+                    this[UserPolls.userID] = userID
+                    this[UserPolls.pollID] = pollID
+                }
+            }
+        }
+
+        fun newID(): tPollID {
+            return transaction {
+                var id: String
+                do {
+                    id = UUID.randomUUID().toString()
+                } while (fromID(id) != null)
+                return@transaction id
+            }
+        }
+
+        fun createPoll(
+            adminID: tUserID,
+            name: String,
+            description: String,
+            type: PollType,
+            maxPerUserVoteCount: Int,
+            allowsMaybe: Boolean,
+            allowsEditing: Boolean
+        ): Poll {
+            return Poll(
+                adminID,
+                newID(),
+                name,
+                UnixTimestamp.now(),
+                UnixTimestamp.now(),
+                description,
+                type,
+                maxPerUserVoteCount,
+                allowsMaybe,
+                allowsEditing
+            )
+        }
     }
 
     fun asDetailedPoll(): DetailedPollResponse {
@@ -181,8 +239,8 @@ class Poll : DatabaseEntity, IPoll {
             description,
             maxPerUserVoteCount,
             users.size,
-            updatedTimestamp.toJSDate(),
-            createdTimestamp.toJSDate(),
+            updatedTimestamp.toClient(),
+            createdTimestamp.toClient(),
             type.id,
             options.map { it.toComplexOption() },
             users.map { user ->
@@ -217,10 +275,46 @@ class Poll : DatabaseEntity, IPoll {
             admin.asSimpleUser(),
             description,
             users.size,
-            updatedTimestamp.toJSDate(),
+            updatedTimestamp.toClient(),
             type.id,
             allowsEditing
         )
+    }
+
+    /**
+     * adds a new option, if type of complex option does not match the one of the poll, nothing changes
+     * @return true when types match, false otherwise
+     */
+    fun addOption(option: ComplexOption): Boolean {
+        when (type) {
+            PollType.STRING -> {
+                if (option.value == null) return false
+                PollOptionString(option.value, id, PollOptionString.newID(id)).save()
+                return true
+            }
+
+            PollType.DATE -> {
+                if (option.dateStart == null) return false
+                PollOptionDate(
+                    option.dateStart.toUnixTimestamp(),
+                    option.dateEnd?.toUnixTimestamp(),
+                    id,
+                    PollOptionDate.newID(id)
+                ).save()
+                return true
+            }
+
+            PollType.DATETIME -> {
+                if (option.dateTimeStart == null) return false
+                PollOptionDateTime(
+                    option.dateTimeStart.toUnixTimestamp(),
+                    option.dateTimeEnd?.toUnixTimestamp(),
+                    id,
+                    PollOptionDateTime.newID(id)
+                ).save()
+                return true
+            }
+        }
     }
 }
 

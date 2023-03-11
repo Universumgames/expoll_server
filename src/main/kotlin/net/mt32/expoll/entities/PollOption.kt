@@ -9,10 +9,8 @@ import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.serializable.responses.ComplexOption
 import net.mt32.expoll.tOptionID
 import net.mt32.expoll.tPollID
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.and
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
 interface PollOption : IDatabaseEntity {
@@ -50,6 +48,15 @@ class PollOptionString : PollOption, DatabaseEntity {
         return true
     }
 
+    override fun delete(): Boolean {
+        transaction {
+            PollOptionString.deleteWhere {
+                id eq this@PollOptionString.id
+            }
+        }
+        return true
+    }
+
     override fun toComplexOption(): ComplexOption {
         return ComplexOption(
             id, value = value
@@ -77,6 +84,16 @@ class PollOptionString : PollOption, DatabaseEntity {
                 val result =
                     PollOptionString.select { PollOptionString.pollID eq pollID }
                 return@transaction result.map { PollOptionString(it) }
+            }
+        }
+
+        fun newID(pollID: tPollID): Int {
+            return transaction {
+                var id = 0
+                while (fromPollIDAndID(pollID, id) != null) {
+                    id++
+                }
+                return@transaction id
             }
         }
     }
@@ -107,8 +124,17 @@ class PollOptionDate : PollOption, DatabaseEntity {
             PollOptionDate.upsert(PollOptionDate.id) {
                 it[id] = this@PollOptionDate.id
                 it[pollID] = this@PollOptionDate.pollID
-                it[dateStartTimestamp] = this@PollOptionDate.dateStartTimestamp.toLong()
-                it[dateEndTimestamp] = this@PollOptionDate.dateEndTimestamp?.toLong()
+                it[dateStartTimestamp] = this@PollOptionDate.dateStartTimestamp.toDB()
+                it[dateEndTimestamp] = this@PollOptionDate.dateEndTimestamp?.toDB()
+            }
+        }
+        return true
+    }
+
+    override fun delete(): Boolean {
+        transaction {
+            PollOptionDate.deleteWhere {
+                id eq this@PollOptionDate.id
             }
         }
         return true
@@ -116,7 +142,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
 
     override fun toComplexOption(): ComplexOption {
         return ComplexOption(
-            id, dateStart = dateStartTimestamp.toJSDate(), dateEnd = dateEndTimestamp?.toJSDate()
+            id, dateStart = dateStartTimestamp.toClient(), dateEnd = dateEndTimestamp?.toClient()
         )
     }
 
@@ -142,6 +168,16 @@ class PollOptionDate : PollOption, DatabaseEntity {
                 val result =
                     PollOptionDate.select { PollOptionDate.pollID eq pollID }
                 return@transaction result.map { PollOptionDate(it) }
+            }
+        }
+
+        fun newID(pollID: tPollID): Int {
+            return transaction {
+                var id = 0
+                while (PollOptionString.fromPollIDAndID(pollID, id) != null) {
+                    id++
+                }
+                return@transaction id
             }
         }
     }
@@ -177,8 +213,17 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
             PollOptionDateTime.upsert(PollOptionDateTime.id) {
                 it[id] = this@PollOptionDateTime.id
                 it[pollID] = this@PollOptionDateTime.pollID
-                it[dateTimeStartTimestamp] = this@PollOptionDateTime.dateTimeStartTimestamp.toLong()
-                it[dateTimeEndTimestamp] = this@PollOptionDateTime.dateTimeEndTimestamp?.toLong()
+                it[dateTimeStartTimestamp] = this@PollOptionDateTime.dateTimeStartTimestamp.toDB()
+                it[dateTimeEndTimestamp] = this@PollOptionDateTime.dateTimeEndTimestamp?.toDB()
+            }
+        }
+        return true
+    }
+
+    override fun delete(): Boolean {
+        transaction {
+            PollOptionDateTime.deleteWhere {
+                id eq this@PollOptionDateTime.id
             }
         }
         return true
@@ -186,7 +231,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
 
     override fun toComplexOption(): ComplexOption {
         return ComplexOption(
-            id, dateTimeStamp = dateTimeStartTimestamp.toJSDate(), dateTimeEnd = dateTimeEndTimestamp?.toJSDate()
+            id, dateTimeStart = dateTimeStartTimestamp.toClient(), dateTimeEnd = dateTimeEndTimestamp?.toClient()
         )
     }
 
@@ -212,6 +257,16 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
                 val result =
                     PollOptionDateTime.select { PollOptionDateTime.pollID eq pollID }
                 return@transaction result.map { PollOptionDateTime(it) }
+            }
+        }
+
+        fun newID(pollID: tPollID): Int {
+            return transaction {
+                var id = 0
+                while (PollOptionString.fromPollIDAndID(pollID, id) != null) {
+                    id++
+                }
+                return@transaction id
             }
         }
     }

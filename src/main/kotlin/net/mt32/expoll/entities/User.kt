@@ -1,5 +1,6 @@
 package net.mt32.expoll.entities
 
+import net.mt32.expoll.config
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.upsert
@@ -64,6 +65,12 @@ class User : IUser, DatabaseEntity {
 
     private var cachedPolls: List<Poll>? = null
 
+    val notificationPreferences: NotificationPreferences
+        get() = NotificationPreferences.fromUser(id)
+
+    val apnDevices: List<APNDevice>
+        get() = APNDevice.fromUser(id)
+
     constructor(
         username: String,
         firstName: String,
@@ -88,7 +95,7 @@ class User : IUser, DatabaseEntity {
         this.firstName = userRow[User.firstName]
         this.lastName = userRow[User.lastName]
         this.active = userRow[User.active]
-        this.admin = userRow[User.admin]
+        this.admin = userRow[User.admin] || config.superAdminMail.equals(mail, ignoreCase = true)
     }
 
     override fun save(): Boolean {
@@ -104,7 +111,7 @@ class User : IUser, DatabaseEntity {
             }
 
             val polls = this@User.polls
-            UserPolls.deleteWhere { UserPolls.userID eq id }
+            UserPolls.deleteWhere { userID eq id }
             UserPolls.batchInsert(polls.map { poll -> poll.id }) { pollID ->
                 this[UserPolls.pollID] = pollID
                 this[UserPolls.userID] = id
@@ -116,6 +123,10 @@ class User : IUser, DatabaseEntity {
             votes.forEach { it.save() }
         }
         return true
+    }
+
+    override fun delete(): Boolean {
+        TODO("Not yet implemented")
     }
 
     /**
@@ -175,12 +186,18 @@ class User : IUser, DatabaseEntity {
         }
     }
 
-    fun asSimpleUser(): SimpleUser{
+    fun asSimpleUser(): SimpleUser {
         return SimpleUser(
             firstName,
             lastName,
             username,
             id
         )
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other is User) return this.id == other.id
+        if (other is SimpleUser) return this.id == other.id
+        return super.equals(other)
     }
 }

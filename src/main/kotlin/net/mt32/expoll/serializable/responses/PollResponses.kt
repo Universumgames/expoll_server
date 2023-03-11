@@ -2,6 +2,8 @@ package net.mt32.expoll.serializable.responses
 
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.entities.Poll
+import net.mt32.expoll.tClientDate
+import net.mt32.expoll.tClientDateTime
 import net.mt32.expoll.tUserID
 
 @Serializable
@@ -12,8 +14,8 @@ data class DetailedPollResponse(
     val description: String,
     val maxPerUserVoteCount: Int,
     val userCount: Int,
-    val lastUpdate: String,
-    val created: String,
+    val lastUpdated: tClientDateTime,
+    val created: tClientDateTime,
     val type: Int,
     val options: List<ComplexOption>,
     val userVotes: List<UserVote>,
@@ -37,14 +39,15 @@ data class UserNote(
 
 @Serializable
 data class ComplexOption(
-    val id: Int,
+    val id: Int? = null,
     val value: String? = null,
-    val dateStart: String? = null,
-    val dateEnd: String? = null,
-    val dateTimeStamp: String? = null,
-    val dateTimeEnd: String? = null,
+    val dateStart: tClientDate? = null,
+    val dateEnd: tClientDate? = null,
+    val dateTimeStart: tClientDateTime? = null,
+    val dateTimeEnd: tClientDateTime? = null,
 )
 
+// TODO duplicate of VoteChange?
 @Serializable
 data class PollVote(
     val optionID: Int,
@@ -79,7 +82,12 @@ data class SimplePoll(
     val admin: SimpleUser,
     val description: String,
     val userCount: Int,
-    val lastUpdated: String,
+    val lastUpdated: tClientDateTime,
     val type: Int,
     val editable: Boolean,
+)
+
+@Serializable
+data class PollCreatedResponse(
+    val pollID: String
 )
