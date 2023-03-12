@@ -184,6 +184,12 @@ class User : IUser, DatabaseEntity {
                 return@transaction userRow?.let { User(it) }
             }
         }
+
+        fun all(): List<User>{
+            return transaction {
+                return@transaction User.selectAll().toList().map { User(it) }
+            }
+        }
     }
 
     fun asSimpleUser(): SimpleUser {
