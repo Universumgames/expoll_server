@@ -1,7 +1,6 @@
 package net.mt32.expoll.serializable.request
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonElement
 import net.mt32.expoll.serializable.responses.ComplexOption
 import net.mt32.expoll.serializable.responses.UserNote
 import net.mt32.expoll.tPollID
@@ -13,7 +12,7 @@ data class CreatePollRequest(
     val maxPerUserVoteCount: Int,
     val description: String,
     val type: Int,
-    val options: JsonElement,
+    val options: List<ComplexOption>,
     val allowsMaybe: Boolean,
     val allowsEditing: Boolean,
 )

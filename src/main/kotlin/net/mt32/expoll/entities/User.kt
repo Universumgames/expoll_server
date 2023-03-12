@@ -5,6 +5,7 @@ import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.serializable.responses.SimpleUser
+import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -188,7 +189,7 @@ class User : IUser, DatabaseEntity {
             }
         }
 
-        fun all(): List<User>{
+        fun all(): List<User> {
             return transaction {
                 return@transaction User.selectAll().toList().map { User(it) }
             }
@@ -208,5 +209,9 @@ class User : IUser, DatabaseEntity {
         if (other is User) return this.id == other.id
         if (other is SimpleUser) return this.id == other.id
         return super.equals(other)
+    }
+
+    fun addPoll(pollID: tPollID) {
+        UserPolls.addConnection(id, pollID)
     }
 }

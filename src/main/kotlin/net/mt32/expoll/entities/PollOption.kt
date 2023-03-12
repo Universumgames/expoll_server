@@ -157,7 +157,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
         fun fromPollIDAndID(pollID: tPollID, optionID: tOptionID): PollOptionDate? {
             return transaction {
                 val result =
-                    PollOptionDate.select { (PollOptionDate.pollID eq pollID) and (PollOptionDate.id eq optionID) }
+                    select { (PollOptionDate.pollID eq pollID) and (PollOptionDate.id eq optionID) }
                         .firstOrNull()
                 return@transaction result?.let { PollOptionDate(it) }
             }
@@ -166,7 +166,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
         fun fromPollID(pollID: tPollID): List<PollOptionDate> {
             return transaction {
                 val result =
-                    PollOptionDate.select { PollOptionDate.pollID eq pollID }
+                    select { PollOptionDate.pollID eq pollID }
                 return@transaction result.map { PollOptionDate(it) }
             }
         }
@@ -174,7 +174,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
         fun newID(pollID: tPollID): Int {
             return transaction {
                 var id = 0
-                while (PollOptionString.fromPollIDAndID(pollID, id) != null) {
+                while (fromPollIDAndID(pollID, id) != null) {
                     id++
                 }
                 return@transaction id
@@ -210,7 +210,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
 
     override fun save(): Boolean {
         transaction {
-            PollOptionDateTime.upsert(PollOptionDateTime.id) {
+            upsert(PollOptionDateTime.id) {
                 it[id] = this@PollOptionDateTime.id
                 it[pollID] = this@PollOptionDateTime.pollID
                 it[dateTimeStartTimestamp] = this@PollOptionDateTime.dateTimeStartTimestamp.toDB()
@@ -222,7 +222,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
 
     override fun delete(): Boolean {
         transaction {
-            PollOptionDateTime.deleteWhere {
+            deleteWhere {
                 id eq this@PollOptionDateTime.id
             }
         }
@@ -246,7 +246,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
         fun fromPollIDAndID(pollID: tPollID, optionID: tOptionID): PollOptionDateTime? {
             return transaction {
                 val result =
-                    PollOptionDateTime.select { (PollOptionDateTime.pollID eq pollID) and (PollOptionDateTime.id eq optionID) }
+                    select { (PollOptionDateTime.pollID eq pollID) and (PollOptionDateTime.id eq optionID) }
                         .firstOrNull()
                 return@transaction result?.let { PollOptionDateTime(it) }
             }
@@ -255,7 +255,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
         fun fromPollID(pollID: tPollID): List<PollOptionDateTime> {
             return transaction {
                 val result =
-                    PollOptionDateTime.select { PollOptionDateTime.pollID eq pollID }
+                    select { PollOptionDateTime.pollID eq pollID }
                 return@transaction result.map { PollOptionDateTime(it) }
             }
         }
@@ -263,7 +263,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
         fun newID(pollID: tPollID): Int {
             return transaction {
                 var id = 0
-                while (PollOptionString.fromPollIDAndID(pollID, id) != null) {
+                while (fromPollIDAndID(pollID, id) != null) {
                     id++
                 }
                 return@transaction id

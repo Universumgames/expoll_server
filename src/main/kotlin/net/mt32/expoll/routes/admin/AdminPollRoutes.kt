@@ -13,6 +13,6 @@ internal fun Route.adminPollRoutes() {
 }
 
 private suspend fun getPolls(call: ApplicationCall) {
-    val polls = Poll.all().map { it.asSimplePoll() }
+    val polls = Poll.all().map { it.asSimplePoll() }.sortedBy { -it.lastUpdated }
     call.respond(AdminPollResponse(polls, polls.size))
 }

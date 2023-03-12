@@ -105,6 +105,10 @@ fun Long.toUnixTimestamp(): UnixTimestamp {
     return UnixTimestamp(this)
 }
 
+fun Long.toUnixTimestampFromClient(): UnixTimestamp{
+    return UnixTimestamp(this/1000)
+}
+
 fun String.toUnixTimestamp(): UnixTimestamp {
     val tz = TimeZone.getTimeZone("UTC")
     val df: DateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")

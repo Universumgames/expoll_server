@@ -6,6 +6,7 @@ import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestamp
+import net.mt32.expoll.helper.toUnixTimestampFromClient
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.serializable.responses.*
 import net.mt32.expoll.tPollID
@@ -176,14 +177,14 @@ class Poll : DatabaseEntity, IPoll {
         fun accessibleForUser(userID: tUserID): List<Poll> {
             return transaction {
                 val pollIDs = UserPolls.select { UserPolls.userID eq userID }.map { it[UserPolls.pollID] }
-                return@transaction pollIDs.map { Poll.fromID(it) }.requireNoNulls()
+                return@transaction pollIDs.map { Poll.fromID(it) }.filterNotNull()
             }
         }
 
         fun usersInPoll(pollID: tPollID): List<User> {
             return transaction {
                 val userIDs = UserPolls.select { UserPolls.pollID eq pollID }.map { it[UserPolls.userID] }
-                return@transaction userIDs.map { User.loadFromID(it) }.requireNoNulls()
+                return@transaction userIDs.map { User.loadFromID(it) }.filterNotNull()
             }
         }
 
@@ -302,8 +303,8 @@ class Poll : DatabaseEntity, IPoll {
             PollType.DATE -> {
                 if (option.dateStart == null) return false
                 PollOptionDate(
-                    option.dateStart.toUnixTimestamp(),
-                    option.dateEnd?.toUnixTimestamp(),
+                    option.dateStart.toUnixTimestampFromClient(),
+                    option.dateEnd?.toUnixTimestampFromClient(),
                     id,
                     PollOptionDate.newID(id)
                 ).save()
@@ -313,8 +314,8 @@ class Poll : DatabaseEntity, IPoll {
             PollType.DATETIME -> {
                 if (option.dateTimeStart == null) return false
                 PollOptionDateTime(
-                    option.dateTimeStart.toUnixTimestamp(),
-                    option.dateTimeEnd?.toUnixTimestamp(),
+                    option.dateTimeStart.toUnixTimestampFromClient(),
+                    option.dateTimeEnd?.toUnixTimestampFromClient(),
                     id,
                     PollOptionDateTime.newID(id)
                 ).save()
@@ -329,4 +330,23 @@ object UserPolls : Table("user_polls_poll") {
     val pollID = varchar("pollId", UUIDLength)
 
     override val primaryKey = PrimaryKey(userID, pollID)
+
+    fun connectionExists(userID: tUserID, pollID: tPollID): Boolean {
+        return transaction {
+            return@transaction !UserPolls.select {
+                (UserPolls.userID eq userID) and
+                        (UserPolls.pollID eq pollID)
+            }.empty()
+        }
+    }
+
+    fun addConnection(userID: tUserID, pollID: tPollID) {
+        if (connectionExists(userID, pollID)) return
+        transaction {
+            UserPolls.insert {
+                it[UserPolls.pollID] = pollID
+                it[UserPolls.userID] = userID
+            }
+        }
+    }
 }

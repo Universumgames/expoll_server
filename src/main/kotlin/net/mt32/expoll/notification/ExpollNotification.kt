@@ -26,7 +26,7 @@ enum class ExpollNotificationType(val body: String) {
                     this == VoteChange
         val pollString = if (pollUpdate) poll.name else null
         val userString = if (userUpdate) (user?.firstName + " " + user?.lastName) else null
-        return listOf(userString, pollString).requireNoNulls()
+        return listOf(userString, pollString).filterNotNull()
     }
 }
 

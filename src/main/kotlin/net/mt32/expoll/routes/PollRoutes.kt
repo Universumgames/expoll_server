@@ -130,8 +130,7 @@ private suspend fun joinPoll(call: ApplicationCall) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
-    principal.user.polls = principal.user.polls + poll
-    principal.user.save()
+    principal.user.addPoll(poll.id)
     call.respond(ReturnCode.OK)
 }
 
@@ -168,7 +167,13 @@ private suspend fun createPoll(call: ApplicationCall) {
         createPollRequest.allowsEditing
     )
 
+
     poll.save()
+    createPollRequest.options.forEach { option ->
+        poll.addOption(option)
+    }
+    principal.user.addPoll(poll.id)
+
     call.respond(PollCreatedResponse(poll.id))
 }
 
