@@ -4,12 +4,10 @@ import kotlinx.serialization.Serializable
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.upsert
-import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
+import java.util.*
 
 @Serializable
 class MailRule : DatabaseEntity {
@@ -17,7 +15,17 @@ class MailRule : DatabaseEntity {
     val regex: String
     val blacklist: Boolean
 
-    constructor(id: String, regex: String, blacklist: Boolean) : super() {
+    constructor(id: String, regex: String, blacklist: Boolean){
+        this.id = id
+        this.regex = regex
+        this.blacklist = blacklist
+    }
+
+    constructor(regex: String, blacklist: Boolean){
+        var id: String
+        do {
+            id = UUID.randomUUID().toString()
+        } while (MailRule.fromID(id) == null)
         this.id = id
         this.regex = regex
         this.blacklist = blacklist
@@ -82,6 +90,13 @@ class MailRule : DatabaseEntity {
                 }
             }
             return res
+        }
+
+        fun fromID(id: String): MailRule? {
+            return transaction {
+                val row = MailRule.select { MailRule.id eq id }.firstOrNull()
+                return@transaction row?.let { MailRule(it) }
+            }
         }
     }
 }

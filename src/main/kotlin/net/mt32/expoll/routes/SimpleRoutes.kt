@@ -3,10 +3,10 @@ package net.mt32.expoll.routes
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
 import net.mt32.expoll.entities.MailRule
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.serializable.responses.MailRegexRules
 
 fun Route.simpleRoutes(){
     route("simple"){
@@ -33,10 +33,6 @@ private suspend fun getPollTitle(call: ApplicationCall){
     call.respond(poll.name)
 }
 
-@Serializable
-data class MailRegexRules(
-    val regex: List<MailRule>
-)
 
 private suspend fun getMailRegexRules(call:ApplicationCall){
     call.respond(MailRegexRules(MailRule.all()))

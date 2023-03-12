@@ -1,4 +1,4 @@
-package net.mt32.expoll.routes
+package net.mt32.expoll.routes.admin
 
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -11,14 +11,20 @@ import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.serializable.admin.responses.UserInfo
 import net.mt32.expoll.serializable.admin.responses.UserListResponse
 
-fun Route.adminRoute() {
-    route("/admin") {
-        route("/users") {
-            get {
-                getUsers(call)
-            }
+internal fun Route.adminUserRoutes(){
+    route("/users") {
+        get {
+            getUsers(call)
         }
-// TODO add admin routes
+        put{
+            TODO("edit user")
+        }
+        delete {
+            TODO("delete user")
+        }
+    }
+    post("/createUser"){
+        TODO("create user")
     }
 }
 

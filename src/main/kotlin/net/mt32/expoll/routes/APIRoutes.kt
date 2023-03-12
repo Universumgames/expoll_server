@@ -8,12 +8,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.encodeToString
-import net.mt32.expoll.auth.adminAuth
 import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.checkVersionCompatibility
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.routes.admin.adminRoute
 import net.mt32.expoll.routes.auth.authRoutes
 import net.mt32.expoll.serializable.ServerInfo
 
@@ -28,8 +28,8 @@ fun Route.apiRouting() {
                 call.respond(HttpStatusCode.BadRequest)
                 return@get
             }
-            val compatable = checkVersionCompatibility(clientVersion)
-            if(compatable) call.respond(ReturnCode.OK)
+            val compatible = checkVersionCompatibility(clientVersion)
+            if (compatible) call.respond(ReturnCode.OK)
             else call.respond(ReturnCode.CONFLICT)
         }
         get("serverInfo") {
@@ -70,8 +70,7 @@ fun Route.apiRouting() {
             notificationRoutes()
             userRoutes()
         }
-        authenticate(adminAuth) {
-            adminRoute()
-        }
+        adminRoute()
+
     }
 }

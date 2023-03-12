@@ -75,12 +75,12 @@ paths:
               $ref: "#/components/schemas/CreateUserRequest"
             examples:
               max:
-                  value:
-                    firstName: Max
-                    lastName: Mustermann
-                    username: mamu
-                    mail: max.mustermann@example.de
-                    appAttest: "<app attest value>"
+                value:
+                  firstName: Max
+                  lastName: Mustermann
+                  username: mamu
+                  mail: max.mustermann@example.de
+                  appAttest: "<app attest value>"
         required: true
       responses:
         200:
@@ -299,7 +299,7 @@ paths:
               schema:
                 type: array
                 items:
-                    $ref: "#/components/schemas/MailRegexRule"
+                  $ref: "#/components/schemas/MailRegexRule"
   /notifications/preferences:
     get:
       description: Get notification preferences
@@ -330,7 +330,7 @@ paths:
       description: register a new apple device for push notifications
       requestBody:
         required: true
-        content: 
+        content:
           application/json:
             schema:
               type: object
@@ -424,8 +424,139 @@ paths:
           description: Left poll if it exists
         400:
           description: pollID parameter missing
+  /admin/isImpersonating:
+    get:
+      description: Check if you are currently impersonating a user
+      parameters:
+        - name: loginKey
+          in: cookie
+          required: true
+        - name: originalLoginKey
+          in: cookie
+          required: true
+      responses:
+        200:
+          description: you are currently impersonating a user
+        400:
+          description: Parameters missing or you are not impersonating someone
+  /admin/impersonate:
+    post:
+      description: Impersonate a user
+      parameters:
+        - name: userID
+          in: query
+          required: true
+      responses:
+        200:
+          description: Impersonation successfull
+          content:
+            cookie:
+              schema:
+                type: object
+                properties:
+                  loginKey:
+                    type: string
+                    description: a new session key of the user you impersonate
+                  originalLoginKey:
+                    type: string
+                    description: your original session key, used for unimpersonate
+            plain/text:
+              schema:
+                type: string
+                description: the new session key
+        400:
+          description: parameter missing or the user does not exist
+        401:
+          description: you are not allowed to impersonate someone
 
-# TODO add loginKey parameter to all authorized endpoints
+
+
+          # TODO add loginKey parameter to all authorized endpoints
+  /admin/unimpersonate:
+    post:
+      description: give up the impersonation
+      parameters:
+        - name: loginKey
+          in: query
+          required: true
+        - name: originalLoginKey
+          in: query
+          required: true
+      responses:
+        200:
+          description: successfully removed impersonation
+          content:
+            cookie:
+              schema:
+                type: object
+                properties:
+                  loginKey:
+                    type: string
+                    description: your old session key
+        400:
+          description: you are currently not impersonating someone
+  /admin/users:
+    get:
+      description: get list of all users
+      responses:
+        200:
+          description: list of all users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserInfo"
+        401:
+          description: you are not allowed to view the userlist
+  /admin/polls:
+    get:
+      description: List of all polls
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalCount:
+                    type: number
+                  polls:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SimplePoll"
+        401:
+          description: you are not allowed to view all polls
+  /admin/mailregex:
+    get:
+      description: Get list of all regex rules (basically a duplicate of "/simple/mailregex")
+      responses:
+        200:
+          description: List of all regex rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MailRegexRule"
+    post:
+      description: edit mail regex rules, replaces all existing rules with the ones sent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mailRegex:
+                  type: array
+                  items:
+                    properties:
+                      regex:
+                        type: string
+                      blacklist:
+                        type: boolean
+                        summary: is this regex rule one which should be followed or avoided
+                        description: if any of the blacklisted rules match, the mail is rejected; all whitelisted rules have to match
 
 components:
   schemas:
@@ -673,3 +804,22 @@ components:
           description: list of notes for users
           items:
             $ref: "#/components/schemas/UserNote"
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        mail:
+          type: string
+        admin:
+          type: boolean
+        superAdmin:
+          type: boolean
+        active:
+          type: boolean

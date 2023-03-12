@@ -229,6 +229,12 @@ class Poll : DatabaseEntity, IPoll {
                 allowsEditing
             )
         }
+
+        fun all(): List<Poll> {
+            return transaction {
+                return@transaction Poll.selectAll().toList().map { Poll(it) }
+            }
+        }
     }
 
     fun asDetailedPoll(): DetailedPollResponse {

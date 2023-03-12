@@ -54,6 +54,9 @@ class User : IUser, DatabaseEntity {
         }
     override var active: Boolean
     override var admin: Boolean
+
+    val superAdmin: Boolean
+        get() = mail.equals(config.superAdminMail, ignoreCase = true)
     override val challenges: List<Challenge>
         get() {
             return Challenge.forUser(id)
