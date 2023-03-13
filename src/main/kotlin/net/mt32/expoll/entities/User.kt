@@ -77,7 +77,7 @@ class User : IUser, DatabaseEntity {
     val apnDevices: List<APNDevice>
         get() = APNDevice.fromUser(id)
 
-    val created: UnixTimestamp?
+    val created: UnixTimestamp
 
     constructor(
         username: String,
@@ -105,7 +105,7 @@ class User : IUser, DatabaseEntity {
         this.lastName = userRow[User.lastName]
         this.active = userRow[User.active]
         this.admin = userRow[User.admin] || config.superAdminMail.equals(mail, ignoreCase = true)
-        this.created = userRow[User.created]?.toUnixTimestampFromDB()
+        this.created = userRow[User.created].toUnixTimestampFromDB()
     }
 
     override fun save(): Boolean {
@@ -118,7 +118,7 @@ class User : IUser, DatabaseEntity {
                 it[lastName] = this@User.lastName
                 it[active] = this@User.active
                 it[admin] = this@User.admin
-                it[created] = this@User.created?.toDB()
+                it[created] = this@User.created.toDB()
             }
 
             val polls = this@User.polls
@@ -162,7 +162,7 @@ class User : IUser, DatabaseEntity {
         val mail = varchar("mail", maxMailLength).uniqueIndex()
         val active = bool("active")
         val admin = bool("admin")
-        val created = long("createdTimestamp").nullable()
+        val created = long("createdTimestamp")
 
 
         override val primaryKey = PrimaryKey(id)

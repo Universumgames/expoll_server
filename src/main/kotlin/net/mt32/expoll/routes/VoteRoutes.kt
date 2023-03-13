@@ -9,6 +9,7 @@ import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.Vote
 import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDataFromAny
 
 fun Route.voteRoutes() {
@@ -60,5 +61,7 @@ suspend fun voteRoute(call: ApplicationCall) {
     }
 
     Vote.setVote(userIDToUse, pollID, optionID, votedForEnum)
+    poll.updatedTimestamp = UnixTimestamp.now()
+    poll.save()
     call.respond(ReturnCode.OK)
 }

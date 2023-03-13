@@ -19,6 +19,16 @@ fun Transformer.dateToTimestamp() {
     webauthnDateToTimestamp()
 }
 
+private fun removeAutoUpdate(table: Table, oldName: String) {
+    DatabaseFactory.runRawSQL(
+        """
+        ALTER TABLE ${table.tableName}
+             CHANGE $oldName
+                    $oldName TIMESTAMP NOT NULL
+        """.trimIndent()
+    ) {}
+}
+
 private fun changeDateColumnToTimestamp(
     table: Table,
     column: Column<*>,
@@ -30,11 +40,13 @@ private fun changeDateColumnToTimestamp(
     val columnToChangeIsDate = Transformer.getColumnType(table.tableName, oldName)
     if (columnToChangeIsDate == null || !columnToChangeIsDate.lowercase(Locale.getDefault()).contains("date"))
         return
+    if (Transformer.columnExists(table.tableName, oldName))
+        removeAutoUpdate(table, oldName)
     if (!Transformer.columnExists(table.tableName, column.name)) {
         if (!Transformer.addColumn(table.tableName, column.name, "BIGINT $additionalTypeInfo"))
             throw Error("Couldn't create new column for ${table.tableName}.${column.name}")
     }
-    if(Transformer.columnExists(table.tableName, oldName))
+    if (Transformer.columnExists(table.tableName, oldName))
         DatabaseFactory.runRawSQL("UPDATE ${table.tableName} SET ${column.name}=UNIX_TIMESTAMP(${oldName});") {}
 
     if (Transformer.columnExists(table.tableName, oldName))
@@ -44,16 +56,16 @@ private fun changeDateColumnToTimestamp(
     //Transformer.addColumn(table.tableName, oldName, "DATE GENERATED ALWAYS AS (FROM_UNIXTIME(${column.name}))")
 }
 
-private fun webauthnDateToTimestamp(){
+private fun webauthnDateToTimestamp() {
     changeDateColumnToTimestamp(Authenticator.Companion, Authenticator.createdTimestamp, "created")
 }
 
-private fun pollDateToTimestamp(){
-    changeDateColumnToTimestamp(Poll.Companion, Poll.createdTimestamp, "created")
+private fun pollDateToTimestamp() {
     changeDateColumnToTimestamp(Poll.Companion, Poll.updatedTimestamp, "updated")
+    changeDateColumnToTimestamp(Poll.Companion, Poll.createdTimestamp, "created")
 }
 
-private fun confirmationDateToTimestamp(){
+private fun confirmationDateToTimestamp() {
     changeDateColumnToTimestamp(DeleteConfirmation.Companion, DeleteConfirmation.expirationTimestamp, "expiration")
 }
 

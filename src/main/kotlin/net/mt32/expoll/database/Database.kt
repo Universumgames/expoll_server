@@ -1,9 +1,7 @@
 package net.mt32.expoll.database
 
 import net.mt32.expoll.config
-import net.mt32.expoll.database.transform.dateToTimestamp
-import net.mt32.expoll.database.transform.dropAllForeignKeys
-import net.mt32.expoll.database.transform.dropUnnecessaryColumns
+import net.mt32.expoll.database.transform.*
 import net.mt32.expoll.entities.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -71,6 +69,8 @@ object Transformer {
         dropAllForeignKeys()
         dateToTimestamp()
         dropUnnecessaryColumns()
+        addUserCreationColumn()
+        removeGhostVotes()
     }
 
     /**

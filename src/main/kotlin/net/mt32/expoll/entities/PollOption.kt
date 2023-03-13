@@ -63,7 +63,7 @@ class PollOptionString : PollOption, DatabaseEntity {
         )
     }
 
-    companion object : Table("poll_option_date_time") {
+    companion object : Table("poll_option_string") {
         val id = integer("id").autoIncrement()
         val value = varchar("value", 255)
         val pollID = varchar("pollId", UUIDLength)
@@ -213,8 +213,8 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
             upsert(PollOptionDateTime.id) {
                 it[id] = this@PollOptionDateTime.id
                 it[pollID] = this@PollOptionDateTime.pollID
-                it[dateTimeStartTimestamp] = this@PollOptionDateTime.dateTimeStartTimestamp.toDB()
-                it[dateTimeEndTimestamp] = this@PollOptionDateTime.dateTimeEndTimestamp?.toDB()
+                it[PollOptionDateTime.dateTimeStartTimestamp] = this@PollOptionDateTime.dateTimeStartTimestamp.toDB()
+                it[PollOptionDateTime.dateTimeEndTimestamp] = this@PollOptionDateTime.dateTimeEndTimestamp?.toDB()
             }
         }
         return true

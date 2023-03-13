@@ -56,7 +56,7 @@ data class PollVote(
 
 fun List<Poll>.asSimpleList(): List<SimplePoll> {
     return sortedBy {
-        it.updatedTimestamp.toLong()
+        it.updatedTimestamp.secondsSince1970
     }
         .reversed()
         .map { poll ->

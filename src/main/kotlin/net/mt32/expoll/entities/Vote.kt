@@ -71,6 +71,12 @@ class Vote : DatabaseEntity {
 
         override val primaryKey = PrimaryKey(id)
 
+        fun all():List<Vote>{
+            return transaction {
+                return@transaction Vote.selectAll().map { Vote(it) }
+            }
+        }
+
         fun fromID(id: Int): Vote? {
             return transaction {
                 val vote = Vote.select { Vote.id eq id }.firstOrNull()

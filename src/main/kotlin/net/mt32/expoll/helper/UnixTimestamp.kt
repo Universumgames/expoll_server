@@ -6,17 +6,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-class UnixTimestamp{
+class UnixTimestamp {
 
-    var secondsSince1970: Long
+    val secondsSince1970: Long
         get() = millisSince1970 / 1000
-        set(value){
-            millisSince1970 = (millisSince1970 % 1000) + value * 1000
-        }
 
     var millisSince1970: Long = 0
 
-    private constructor(){
+    private constructor() {
 
     }
 
@@ -70,11 +67,11 @@ class UnixTimestamp{
         return Date(millisSince1970)
     }
 
-    fun toLong(): Long {
+    fun asSecondsSince1970(): Long {
         return secondsSince1970
     }
 
-    fun highRes(): Long{
+    fun asMillisSince1970(): Long {
         return millisSince1970
     }
 
@@ -98,19 +95,19 @@ class UnixTimestamp{
             return Date().toUnixTimestamp()
         }
 
-        fun fromSecondsSince1970(seconds: Long): UnixTimestamp{
+        fun fromSecondsSince1970(seconds: Long): UnixTimestamp {
             val ts = UnixTimestamp()
-            ts.secondsSince1970 = seconds
+            ts.millisSince1970 = seconds * 1000
             return ts
         }
 
-        fun fromMillisSince1970(millis: Long): UnixTimestamp{
+        fun fromMillisSince1970(millis: Long): UnixTimestamp {
             val ts = UnixTimestamp()
             ts.millisSince1970 = millis
             return ts
         }
 
-        fun fromDate(date: Date): UnixTimestamp{
+        fun fromDate(date: Date): UnixTimestamp {
             val ts = UnixTimestamp()
             ts.millisSince1970 = date.time
             return ts
@@ -122,11 +119,11 @@ fun Long.toUnixTimestampAsSecondsSince1970(): UnixTimestamp {
     return UnixTimestamp.fromSecondsSince1970(this)
 }
 
-fun Long.toUnixTimestampFromDB():UnixTimestamp{
+fun Long.toUnixTimestampFromDB(): UnixTimestamp {
     return toUnixTimestampAsSecondsSince1970()
 }
 
-fun Long.toUnixTimestampFromClient(): UnixTimestamp{
+fun Long.toUnixTimestampFromClient(): UnixTimestamp {
     return UnixTimestamp.fromMillisSince1970(this)
 }
 

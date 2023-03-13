@@ -5,8 +5,8 @@ import net.mt32.expoll.config
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.toUnixTimestampFromClient
+import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.serializable.responses.*
 import net.mt32.expoll.tPollID
@@ -59,6 +59,12 @@ class Poll : DatabaseEntity, IPoll {
         set(value) {
             setUsersInPoll(id, value.map { it.id })
         }
+    val userCount: Int
+        get() = UserPolls.userCount(id)
+
+    val userIDs: List<tUserID>
+        get() = UserPolls.userIDs(id)
+
     override var maxPerUserVoteCount: Int
     override var allowsMaybe: Boolean
     override var allowsEditing: Boolean
@@ -104,7 +110,7 @@ class Poll : DatabaseEntity, IPoll {
         this.description = pollRow[Poll.description]
         this.type = PollType.valueOf(pollRow[Poll.type])
         this.createdTimestamp = pollRow[Poll.createdTimestamp].toUnixTimestampFromDB()
-        this.updatedTimestamp = pollRow[Poll.createdTimestamp].toUnixTimestampFromDB()
+        this.updatedTimestamp = pollRow[Poll.updatedTimestamp].toUnixTimestampFromDB()
         this.maxPerUserVoteCount = pollRow[Poll.maxPerUserVoteCount]
         this.allowsMaybe = pollRow[Poll.allowsMaybe]
         this.allowsEditing = pollRow[Poll.allowsEditing]
@@ -129,7 +135,7 @@ class Poll : DatabaseEntity, IPoll {
                     it[Poll.description] = this@Poll.description.replace("\\n", "\n").replace("\\t", "\t")
                     it[Poll.type] = this@Poll.type.id
                     it[Poll.createdTimestamp] = this@Poll.createdTimestamp.toDB()
-                    it[Poll.createdTimestamp] = this@Poll.updatedTimestamp.toDB()
+                    it[Poll.updatedTimestamp] = this@Poll.updatedTimestamp.toDB()
                     it[Poll.maxPerUserVoteCount] = this@Poll.maxPerUserVoteCount
                     it[Poll.allowsMaybe] = this@Poll.allowsMaybe
                     it[Poll.allowsEditing] = this@Poll.allowsEditing
@@ -241,19 +247,22 @@ class Poll : DatabaseEntity, IPoll {
     }
 
     fun asDetailedPoll(): DetailedPollResponse {
+        val userIDs = this.userIDs
+        val users = this.users
+        val options = this.options
         return DetailedPollResponse(
             id,
             name,
             admin.asSimpleUser(),
             description,
             maxPerUserVoteCount,
-            users.size,
+            userCount,
             updatedTimestamp.toClient(),
             createdTimestamp.toClient(),
             type.id,
             options.map { it.toComplexOption() },
             users.map { user ->
-                val votes = Vote.fromUserPoll(user.id, id)
+                val votes = Vote.fromUserPoll(user.id, id)//.filter { options.map { it.id }.contains(it.optionID) }
                 val existingVotesOptionIds = votes.map { it.optionID }
                 val missingVotes = options.map { it.id }.filterNot { existingVotesOptionIds.contains(it) }
                 UserVote(
@@ -267,9 +276,9 @@ class Poll : DatabaseEntity, IPoll {
                                 )
                             })
             },
-            users.map { user ->
-                val note = notes.find { note -> note.userID == user.id }
-                UserNote(user.id, note?.note)
+            userIDs.map { userID ->
+                val note = notes.find { note -> note.userID == userID }
+                UserNote(userID, note?.note)
             }.filterNot { it.note == null },
             allowsMaybe,
             allowsEditing,
@@ -283,7 +292,7 @@ class Poll : DatabaseEntity, IPoll {
             name,
             admin.asSimpleUser(),
             description,
-            users.size,
+            userCount,
             updatedTimestamp.toClient(),
             type.id,
             allowsEditing
@@ -350,5 +359,17 @@ object UserPolls : Table("user_polls_poll") {
                 it[UserPolls.userID] = userID
             }
         }
+    }
+
+    fun userIDs(pollID: tPollID): List<tUserID> {
+        return transaction {
+            return@transaction UserPolls.select {
+                UserPolls.pollID eq pollID
+            }.toList().map { it[UserPolls.userID] }
+        }
+    }
+
+    fun userCount(pollID: tPollID): Int {
+        return userIDs(pollID).size
     }
 }

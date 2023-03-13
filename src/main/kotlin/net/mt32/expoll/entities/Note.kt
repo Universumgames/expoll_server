@@ -31,6 +31,10 @@ class PollUserNote : DatabaseEntity {
 
     override fun save(): Boolean {
         transaction {
+            if(note.isEmpty()){
+                delete()
+                return@transaction
+            }
             PollUserNote.upsert(PollUserNote.userID, PollUserNote.pollID) {
                 it[userID] = this@PollUserNote.userID
                 it[pollID] = this@PollUserNote.pollID

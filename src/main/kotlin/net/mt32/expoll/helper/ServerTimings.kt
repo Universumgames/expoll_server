@@ -13,7 +13,7 @@ class ServerTimings {
     ) {
         override fun toString(): String {
             val endTime = this.endTime ?: return ""
-            val duration = (endTime - startTime).highRes()
+            val duration = (endTime - startTime).asMillisSince1970()
             return key + ";desc=\"" + description + "\";dur=" + duration
         }
     }
@@ -46,5 +46,5 @@ class ServerTimings {
 
 fun ApplicationCall.addServerTiming(timing: ServerTimings) {
     timing.finishTiming()
-    this.response.header("Server-Timing", timing.timings.sortedBy { it.startTime.toLong() }.map { it.toString() }.joinToString(","))
+    this.response.header("Server-Timing", timing.timings.sortedBy { it.startTime.millisSince1970 }.map { it.toString() }.joinToString(","))
 }
