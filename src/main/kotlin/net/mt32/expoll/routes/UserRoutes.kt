@@ -2,7 +2,6 @@ package net.mt32.expoll.routes
 
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -53,13 +52,7 @@ fun Route.userRoutes() {
 
 private suspend fun createUser(call: ApplicationCall) {
     val timings = ServerTimings("user.create.parse", "Parse create user data")
-    val createUserRequest: CreateUserRequest?
-    try {
-        createUserRequest = call.receive()
-    } catch (e: BadRequestException) {
-        call.respond(ReturnCode.MISSING_PARAMS)
-        return
-    }
+    val createUserRequest: CreateUserRequest = call.receive()
     val firstName = createUserRequest.firstName
     val lastName = createUserRequest.lastName
     val mail = createUserRequest.mail

@@ -6,6 +6,10 @@ import kotlinx.serialization.json.jsonObject
 import net.mt32.expoll.auth.cookieName
 import java.net.URLDecoder
 
+@Deprecated(
+    "Don't use this Method anymore, use the ktor serializer instead for serialising the request body",
+    ReplaceWith("ktor serializer and call.receive()")
+)
 suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
     val request = call.request
     var cookie = request.cookies[cookieName]
@@ -36,5 +40,9 @@ suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
 }
 
 @JvmName("getDataFromAnyOnObj")
+@Deprecated(
+    "Don't use this Method anymore, use the ktor serializer instead for serialising the request body",
+    ReplaceWith("ktor serializer and call.receive()")
+)
 suspend fun ApplicationCall.getDataFromAny(key: String): String? =
     getDataFromAny(this, key)

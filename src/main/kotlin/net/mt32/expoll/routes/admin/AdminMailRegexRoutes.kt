@@ -21,13 +21,7 @@ internal fun Route.adminRegexRoutes() {
 }
 
 private suspend fun editMailRegexRules(call: ApplicationCall) {
-    val rules: MailRegexEditRequest
-    try {
-        rules = call.receive()
-    } catch (e: ContentTransformationException) {
-        call.respond(ReturnCode.MISSING_PARAMS)
-        return
-    }
+    val rules: MailRegexEditRequest = call.receive()
     // clear all rules
     MailRule.all().forEach { it.delete() }
     // save new rules

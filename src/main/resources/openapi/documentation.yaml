@@ -511,6 +511,45 @@ paths:
                   $ref: "#/components/schemas/UserInfo"
         401:
           description: you are not allowed to view the userlist
+    post:
+      description: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUserCreateRequest"
+      responses:
+        200:
+          description: Created user successfully
+        406:
+          description: Username or mail is already used
+        401:
+          description: You are not allowed to to this
+    put:
+      description: edit a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUserEditRequest"
+      responses:
+        200:
+          description: User edited successfully
+        400:
+          description: parameters missing or user does not exist
+    delete:
+      description: Delete user
+      parameters:
+        - name: userID
+          in: query
+          required: true
+      responses:
+        200:
+          description: User deleted successfully
+        400:
+          description: User id missing or user does not exist
   /admin/polls:
     get:
       description: List of all polls
@@ -559,6 +598,7 @@ paths:
                         type: boolean
                         summary: is this regex rule one which should be followed or avoided
                         description: if any of the blacklisted rules match, the mail is rejected; all whitelisted rules have to match
+
 
 components:
   schemas:
@@ -825,3 +865,27 @@ components:
           type: boolean
         active:
           type: boolean
+    AdminUserCreateRequest:
+      type: object
+      properties:
+        mail:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        username:
+          type: string
+    AdminUserEditRequest:
+      type: object
+      required:
+        - userID
+      properties:
+        userID:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        mail:
+          type: string

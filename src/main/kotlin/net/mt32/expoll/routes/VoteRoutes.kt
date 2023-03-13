@@ -2,7 +2,6 @@ package net.mt32.expoll.routes
 
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -35,13 +34,7 @@ suspend fun voteRoute(call: ApplicationCall) {
         return
     }
     val timings = ServerTimings("vote.parse", "Parse request data")
-    val voteChange: VoteChange?
-    try {
-        voteChange = call.receive()
-    } catch (e: BadRequestException) {
-        call.respond(ReturnCode.MISSING_PARAMS)
-        return
-    }
+    val voteChange: VoteChange = call.receive()
 
     if (voteChange.userID != null && !principal.admin) {
         call.respond(ReturnCode.UNAUTHORIZED)
@@ -63,7 +56,7 @@ suspend fun voteRoute(call: ApplicationCall) {
 
     timings.startNewTiming("vote.check", "Check that votes count does not exceed maximum")
 
-    if(!poll.allowsEditing){
+    if (!poll.allowsEditing) {
         call.respond(ReturnCode.CHANGE_NOT_ALLOWED)
         return
     }

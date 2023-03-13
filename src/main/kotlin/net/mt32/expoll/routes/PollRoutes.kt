@@ -2,7 +2,6 @@ package net.mt32.expoll.routes
 
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -52,13 +51,7 @@ private suspend fun editPoll(call: ApplicationCall) {
         return
     }
     val timings = ServerTimings("poll.edit.parse", "Parsing poll edit request")
-    val editPollRequest: EditPollRequest?
-    try {
-        editPollRequest = call.receive()
-    } catch (e: BadRequestException) {
-        call.respond(ReturnCode.MISSING_PARAMS)
-        return
-    }
+    val editPollRequest: EditPollRequest = call.receive()
 
     timings.startNewTiming("poll.load.basic", "load basic poll data from database")
     val poll = Poll.fromID(editPollRequest.pollID)
@@ -177,13 +170,8 @@ private suspend fun createPoll(call: ApplicationCall) {
     }
 
     val timings = ServerTimings("poll.create.parse", "Parse poll creation data")
-    val createPollRequest: CreatePollRequest?
-    try {
-        createPollRequest = call.receive()
-    } catch (e: BadRequestException) {
-        call.respond(ReturnCode.MISSING_PARAMS)
-        return
-    }
+    val createPollRequest: CreatePollRequest = call.receive()
+
 
     timings.startNewTiming("poll.create", "Create poll")
     val pollCount = principal.user.polls.count { it.adminID == principal.userID }
