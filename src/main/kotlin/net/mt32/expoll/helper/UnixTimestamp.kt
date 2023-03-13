@@ -6,56 +6,51 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-class UnixTimestamp(timestamp: Long) {
+class UnixTimestamp{
 
-    var value: Long = timestamp
+    var secondsSince1970: Long
+        get() = millisSince1970 / 1000
+        set(value){
+            millisSince1970 = (millisSince1970 % 1000) + value * 1000
+        }
 
-    constructor(date: Date) : this(date.time) {
+    var millisSince1970: Long = 0
+
+    private constructor(){
 
     }
 
     operator fun plus(timestamp: UnixTimestamp): UnixTimestamp {
-        return UnixTimestamp(value + timestamp.value)
-    }
-
-    operator fun plus(timestamp: Long): UnixTimestamp {
-        return UnixTimestamp(value + timestamp)
+        return fromMillisSince1970(millisSince1970 + timestamp.millisSince1970)
     }
 
     operator fun plusAssign(timestamp: UnixTimestamp) {
-        value += timestamp.value
+        millisSince1970 += timestamp.millisSince1970
     }
 
     operator fun plusAssign(timestamp: Long) {
-        value += timestamp
+        millisSince1970 += timestamp * 1000
     }
 
     operator fun minus(timestamp: UnixTimestamp): UnixTimestamp {
-        return UnixTimestamp(value - timestamp.value)
-    }
-
-    operator fun minus(timestamp: Long): UnixTimestamp {
-        return UnixTimestamp(value - timestamp)
+        return fromMillisSince1970(millisSince1970 - timestamp.millisSince1970)
     }
 
     operator fun minusAssign(timestamp: UnixTimestamp) {
-        value -= timestamp.value
+        millisSince1970 -= timestamp.millisSince1970
     }
 
-    operator fun minusAssign(timestamp: Long) {
-        value -= timestamp
-    }
 
     fun equals(timestamp: UnixTimestamp): Boolean {
-        return value == timestamp.value
+        return millisSince1970 == timestamp.millisSince1970
     }
 
     operator fun compareTo(timestamp: UnixTimestamp): Int {
-        return (value - timestamp.value).toInt()
+        return (millisSince1970 - timestamp.millisSince1970).toInt()
     }
 
     fun addSeconds(seconds: Int): UnixTimestamp {
-        value += seconds
+        millisSince1970 += seconds * 1000
         return this
     }
 
@@ -72,11 +67,15 @@ class UnixTimestamp(timestamp: Long) {
     }
 
     fun toDate(): Date {
-        return dateFromUnixTimestamp(value)
+        return Date(millisSince1970)
     }
 
     fun toLong(): Long {
-        return value
+        return secondsSince1970
+    }
+
+    fun highRes(): Long{
+        return millisSince1970
     }
 
     @Deprecated("Use toClient instead")
@@ -87,29 +86,51 @@ class UnixTimestamp(timestamp: Long) {
     }
 
     fun toDB(): Long {
-        return value
+        return secondsSince1970
     }
 
     fun toClient(): tClientDateTime {
-        return value * 1000
+        return millisSince1970
     }
 
     companion object {
         fun now(): UnixTimestamp {
             return Date().toUnixTimestamp()
         }
+
+        fun fromSecondsSince1970(seconds: Long): UnixTimestamp{
+            val ts = UnixTimestamp()
+            ts.secondsSince1970 = seconds
+            return ts
+        }
+
+        fun fromMillisSince1970(millis: Long): UnixTimestamp{
+            val ts = UnixTimestamp()
+            ts.millisSince1970 = millis
+            return ts
+        }
+
+        fun fromDate(date: Date): UnixTimestamp{
+            val ts = UnixTimestamp()
+            ts.millisSince1970 = date.time
+            return ts
+        }
     }
 }
 
-fun Long.toUnixTimestamp(): UnixTimestamp {
-    return UnixTimestamp(this)
+fun Long.toUnixTimestampAsSecondsSince1970(): UnixTimestamp {
+    return UnixTimestamp.fromSecondsSince1970(this)
+}
+
+fun Long.toUnixTimestampFromDB():UnixTimestamp{
+    return toUnixTimestampAsSecondsSince1970()
 }
 
 fun Long.toUnixTimestampFromClient(): UnixTimestamp{
-    return UnixTimestamp(this/1000)
+    return UnixTimestamp.fromMillisSince1970(this)
 }
 
-fun String.toUnixTimestamp(): UnixTimestamp {
+fun String.toUnixTimestampAsJSONDateString(): UnixTimestamp {
     val tz = TimeZone.getTimeZone("UTC")
     val df: DateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
     return df.parse(this).toUnixTimestamp()

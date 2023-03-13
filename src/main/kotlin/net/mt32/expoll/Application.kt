@@ -14,7 +14,8 @@ fun main(args: Array<String>) {
     DatabaseFactory.init()
 
 
-    //embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)
+    // TODO add server timings headers
+    // TODO add async where possible https://kotlinlang.org/docs/composing-suspending-functions.html#lazily-started-async
     embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }

@@ -11,6 +11,8 @@ import net.mt32.expoll.config
 import net.mt32.expoll.entities.MailRule
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.helper.ServerTimings
+import net.mt32.expoll.helper.addServerTiming
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.serializable.request.VoteChange
 import net.mt32.expoll.serializable.responses.CreateUserResponse
@@ -129,6 +131,7 @@ private suspend fun getUserData(call: ApplicationCall) {
 }
 
 private suspend fun getPersonalizedData(call: ApplicationCall){
+    val timings = ServerTimings("user.basic", "Gather user and session data")
     val principal = call.principal<BasicSessionPrincipal>()
     if(principal == null){
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
@@ -137,21 +140,32 @@ private suspend fun getPersonalizedData(call: ApplicationCall){
 
     val user = principal.user
 
+    timings.startNewTiming("user.polls", "Gather polls")
+    val polls = user.polls.map { it.asSimplePoll() }
+    timings.startNewTiming("user.votes", "Gather votes")
+    val votes = user.votes.map { VoteChange(it.pollID, it.optionID, it.votedFor.id) }
+    timings.startNewTiming("user.sessions", "Gather sessions")
+    val sessions = user.sessions.map { it.asSafeSession(principal.loginKey) }
+    timings.startNewTiming("user.auths", "Gather authenticators")
+    val auths = user.authenticators.map { it.asSimpleAuthenticator() }
+
+
     val personalizedData = UserPersonalizeResponse(
         user.id,
         user.username,
         user.firstName,
         user.lastName,
         user.mail,
-        user.polls.map { it.asSimplePoll() },
-        user.votes.map { VoteChange(it.pollID, it.optionID, it.votedFor.id) },
-        user.sessions.map { it.asSafeSession(principal.loginKey) },
+        polls,
+        votes,
+        sessions,
         user.notes,
         user.active,
         user.admin,
         user.superAdmin,
-        user.authenticators.map { it.asSimpleAuthenticator() }
+        auths
     )
+    call.addServerTiming(timings)
     call.respond(personalizedData)
 }
 

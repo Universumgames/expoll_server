@@ -3,7 +3,7 @@ package net.mt32.expoll.entities
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.toUnixTimestamp
+import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.ResultRow
@@ -28,7 +28,7 @@ class APNDevice : DatabaseEntity {
     private constructor(apnDeviceRow: ResultRow) {
         this.deviceID = apnDeviceRow[APNDevice.deviceID]
         this.userID = apnDeviceRow[APNDevice.userID]
-        this.creationTimestamp = apnDeviceRow[APNDevice.creationTimestamp].toUnixTimestamp()
+        this.creationTimestamp = apnDeviceRow[APNDevice.creationTimestamp].toUnixTimestampFromDB()
     }
 
     override fun save(): Boolean {

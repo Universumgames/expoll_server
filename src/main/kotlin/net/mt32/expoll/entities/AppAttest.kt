@@ -3,7 +3,7 @@ package net.mt32.expoll.entities
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.toUnixTimestamp
+import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsert
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -27,7 +27,7 @@ class AppAttest : DatabaseEntity {
     private constructor(attestRow: ResultRow) {
         this.uuid = attestRow[AppAttest.uuid]
         this.challenge = attestRow[AppAttest.challenge]
-        this.createdAtTimestamp = attestRow[AppAttest.createdAtTimestamp].toUnixTimestamp()
+        this.createdAtTimestamp = attestRow[AppAttest.createdAtTimestamp].toUnixTimestampFromDB()
     }
 
     override fun save(): Boolean {

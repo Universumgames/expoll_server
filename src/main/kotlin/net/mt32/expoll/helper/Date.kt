@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 fun Date.toUnixTimestamp(): UnixTimestamp{
-    return UnixTimestamp(this.time / 1000)
+    return UnixTimestamp.fromDate(this)
 }
 
 fun dateFromUnixTimestamp(timestamp: Long): Date{

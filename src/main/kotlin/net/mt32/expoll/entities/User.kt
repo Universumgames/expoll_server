@@ -3,6 +3,8 @@ package net.mt32.expoll.entities
 import net.mt32.expoll.config
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.serializable.responses.SimpleUser
 import net.mt32.expoll.tPollID
@@ -75,6 +77,8 @@ class User : IUser, DatabaseEntity {
     val apnDevices: List<APNDevice>
         get() = APNDevice.fromUser(id)
 
+    val created: UnixTimestamp?
+
     constructor(
         username: String,
         firstName: String,
@@ -90,6 +94,7 @@ class User : IUser, DatabaseEntity {
         this.mail = mail
         this.active = active
         this.admin = admin
+        this.created = UnixTimestamp.now()
     }
 
     private constructor(userRow: ResultRow) {
@@ -100,6 +105,7 @@ class User : IUser, DatabaseEntity {
         this.lastName = userRow[User.lastName]
         this.active = userRow[User.active]
         this.admin = userRow[User.admin] || config.superAdminMail.equals(mail, ignoreCase = true)
+        this.created = userRow[User.created]?.toUnixTimestampFromDB()
     }
 
     override fun save(): Boolean {
@@ -112,6 +118,7 @@ class User : IUser, DatabaseEntity {
                 it[lastName] = this@User.lastName
                 it[active] = this@User.active
                 it[admin] = this@User.admin
+                it[created] = this@User.created?.toDB()
             }
 
             val polls = this@User.polls
@@ -155,6 +162,7 @@ class User : IUser, DatabaseEntity {
         val mail = varchar("mail", maxMailLength).uniqueIndex()
         val active = bool("active")
         val admin = bool("admin")
+        val created = long("createdTimestamp").nullable()
 
 
         override val primaryKey = PrimaryKey(id)

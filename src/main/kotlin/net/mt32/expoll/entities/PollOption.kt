@@ -4,7 +4,7 @@ import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.IDatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.toUnixTimestamp
+import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.serializable.responses.ComplexOption
 import net.mt32.expoll.tOptionID
@@ -115,8 +115,8 @@ class PollOptionDate : PollOption, DatabaseEntity {
     private constructor(optionRow: ResultRow) {
         id = optionRow[PollOptionDate.id]
         pollID = optionRow[PollOptionDate.pollID]
-        dateStartTimestamp = optionRow[PollOptionDate.dateStartTimestamp].toUnixTimestamp()
-        dateEndTimestamp = optionRow[PollOptionDate.dateEndTimestamp]?.toUnixTimestamp()
+        dateStartTimestamp = optionRow[PollOptionDate.dateStartTimestamp].toUnixTimestampFromDB()
+        dateEndTimestamp = optionRow[PollOptionDate.dateEndTimestamp]?.toUnixTimestampFromDB()
     }
 
     override fun save(): Boolean {
@@ -204,8 +204,8 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
     private constructor(optionRow: ResultRow) {
         id = optionRow[PollOptionDateTime.id]
         pollID = optionRow[PollOptionDateTime.pollID]
-        dateTimeStartTimestamp = optionRow[PollOptionDateTime.dateTimeStartTimestamp].toUnixTimestamp()
-        dateTimeEndTimestamp = optionRow[PollOptionDateTime.dateTimeEndTimestamp]?.toUnixTimestamp()
+        dateTimeStartTimestamp = optionRow[PollOptionDateTime.dateTimeStartTimestamp].toUnixTimestampFromDB()
+        dateTimeEndTimestamp = optionRow[PollOptionDateTime.dateTimeEndTimestamp]?.toUnixTimestampFromDB()
     }
 
     override fun save(): Boolean {
