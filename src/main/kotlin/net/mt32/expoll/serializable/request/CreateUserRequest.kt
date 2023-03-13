@@ -3,7 +3,7 @@ package net.mt32.expoll.serializable.request
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class UserCreateRequest (
+data class CreateUserRequest (
     val firstName: String,
     val lastName: String,
     val mail: String,

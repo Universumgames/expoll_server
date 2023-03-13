@@ -2,6 +2,8 @@ package net.mt32.expoll.routes
 
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.plugins.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
@@ -14,6 +16,7 @@ import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.ServerTimings
 import net.mt32.expoll.helper.addServerTiming
 import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.serializable.request.CreateUserRequest
 import net.mt32.expoll.serializable.request.VoteChange
 import net.mt32.expoll.serializable.responses.CreateUserResponse
 import net.mt32.expoll.serializable.responses.UserDataResponse
@@ -33,7 +36,7 @@ fun Route.userRoutes() {
             get {
                 getUserData(call)
             }
-            get("/personalizeddata"){
+            get("/personalizeddata") {
                 getPersonalizedData(call)
             }
             // TODO implement delete user endpoint
@@ -49,15 +52,24 @@ fun Route.userRoutes() {
 }
 
 private suspend fun createUser(call: ApplicationCall) {
-    val firstName = call.getDataFromAny("firstName")
-    val lastName = call.getDataFromAny("lastName")
-    val mail = call.getDataFromAny("mail")
-    val username = call.getDataFromAny("username")
-    val captcha = call.getDataFromAny("captcha")
-    val appAttest = call.getDataFromAny("appAttest")
+    val timings = ServerTimings("user.create.parse", "Parse create user data")
+    val createUserRequest: CreateUserRequest?
+    try {
+        createUserRequest = call.receive()
+    } catch (e: BadRequestException) {
+        call.respond(ReturnCode.MISSING_PARAMS)
+        return
+    }
+    val firstName = createUserRequest.firstName
+    val lastName = createUserRequest.lastName
+    val mail = createUserRequest.mail
+    val username = createUserRequest.username
+    val captcha = createUserRequest.captcha
+    val appAttest = createUserRequest.appAttest
 
+    timings.startNewTiming("user.create.checks", "Check that dat complies with policies")
     // null check
-    if (firstName == null || lastName == null || mail == null || username == null || (captcha == null && appAttest == null)) {
+    if (captcha == null && appAttest == null) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
@@ -73,26 +85,33 @@ private suspend fun createUser(call: ApplicationCall) {
         return
     }
 
-    if(captcha != null){
+    timings.startNewTiming("captcha.validate", "Validate Captcha or app attest")
+
+    if (captcha != null) {
         val verified = verifyGoogleCAPTCHA(captcha)
-        if(verified.score < 0.5){
+        if (verified.score < 0.5) {
             call.respond(ReturnCode.CAPTCHA_INVALID)
             return
         }
-    }
-    if(appAttest != null){
+    } else if (appAttest != null) {
         val verified = verifyAppAttest(appAttest)
-        if(!verified){
+        if (!verified) {
             call.respond(ReturnCode.CAPTCHA_INVALID)
             return
         }
+    } else {
+        call.respond(ReturnCode.INVALID_PARAMS)
+        return
     }
 
+    timings.startNewTiming("user.create", "Create User and save to database")
     val user = User(username, firstName, lastName, mail, admin = false)
     user.save()
 
+    timings.startNewTiming("session.create", "Create new Session")
     val session = user.createSession()
 
+    timings.startNewTiming("user.create.welcomeMail", "Send welcome mail")
     val port = config.frontEndPort
     val protocol = call.request.local.scheme
     Mail.sendMail(
@@ -106,6 +125,7 @@ private suspend fun createUser(call: ApplicationCall) {
     )
 
     call.sessions.set(ExpollCookie(session.loginkey))
+    call.addServerTiming(timings)
     call.respond(CreateUserResponse(session.loginkey))
 }
 
@@ -130,10 +150,10 @@ private suspend fun getUserData(call: ApplicationCall) {
     call.respond(simpleUserResponse)
 }
 
-private suspend fun getPersonalizedData(call: ApplicationCall){
+private suspend fun getPersonalizedData(call: ApplicationCall) {
     val timings = ServerTimings("user.basic", "Gather user and session data")
     val principal = call.principal<BasicSessionPrincipal>()
-    if(principal == null){
+    if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }

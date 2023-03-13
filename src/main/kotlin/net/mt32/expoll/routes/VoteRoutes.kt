@@ -2,15 +2,23 @@ package net.mt32.expoll.routes
 
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.plugins.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import net.mt32.expoll.VoteValue
 import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.entities.Poll
+import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.Vote
 import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.helper.ServerTimings
 import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.helper.addServerTiming
+import net.mt32.expoll.notification.ExpollNotification
+import net.mt32.expoll.notification.ExpollNotificationType
+import net.mt32.expoll.notification.sendNotification
+import net.mt32.expoll.serializable.request.VoteChange
 
 fun Route.voteRoutes() {
     route("vote") {
@@ -26,42 +34,56 @@ suspend fun voteRoute(call: ApplicationCall) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    val pollID = call.getDataFromAny("pollID")
-    val optionID = call.getDataFromAny("optionID")?.toIntOrNull()
-    val votedFor = call.getDataFromAny("votedFor")?.toIntOrNull()
-    val userID = call.getDataFromAny("userID")
-
-    if (pollID == null || optionID == null || votedFor == null) {
+    val timings = ServerTimings("vote.parse", "Parse request data")
+    val voteChange: VoteChange?
+    try {
+        voteChange = call.receive()
+    } catch (e: BadRequestException) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
 
-    if (userID != null && !principal.admin) {
+    if (voteChange.userID != null && !principal.admin) {
         call.respond(ReturnCode.UNAUTHORIZED)
         return
     }
 
-    val poll = Poll.fromID(pollID)
-    val votedForEnum = VoteValue.values().find { it.id == votedFor }
+    timings.startNewTiming("poll.load", "Load basic poll data")
+
+    val poll = Poll.fromID(voteChange.pollID)
+    val votedForEnum = VoteValue.values().find { it.id == voteChange.votedFor }
     if (poll == null ||
         votedForEnum == null ||
-        !poll.options.map { it.id }.contains(optionID) ||
+        !poll.options.map { it.id }.contains(voteChange.optionID) ||
         (votedForEnum == VoteValue.MAYBE && !poll.allowsMaybe)
     ) {
         call.respond(ReturnCode.NOT_ACCEPTABLE)
         return
     }
 
-    val userIDToUse = userID ?: principal.userID
+    timings.startNewTiming("vote.check", "Check that votes count does not exceed maximum")
 
-    val voteCount = Vote.fromUserPoll(principal.userID, pollID).filter { it.votedFor == VoteValue.MAYBE || it.votedFor == VoteValue.YES }.size
-    if(voteCount > poll.maxPerUserVoteCount && poll.maxPerUserVoteCount != -1){
+    if(!poll.allowsEditing){
         call.respond(ReturnCode.CHANGE_NOT_ALLOWED)
         return
     }
 
-    Vote.setVote(userIDToUse, pollID, optionID, votedForEnum)
+    val userIDToUse = voteChange.userID ?: principal.userID
+
+    val voteCount = Vote.fromUserPoll(userIDToUse, voteChange.pollID)
+        .filter { it.votedFor == VoteValue.MAYBE || it.votedFor == VoteValue.YES }.size
+    if (voteCount > poll.maxPerUserVoteCount && poll.maxPerUserVoteCount != -1) {
+        call.respond(ReturnCode.CHANGE_NOT_ALLOWED)
+        return
+    }
+
+    timings.startNewTiming("vote.save", "Save data to database")
+
+    Vote.setVote(userIDToUse, voteChange.pollID, voteChange.optionID, votedForEnum)
     poll.updatedTimestamp = UnixTimestamp.now()
     poll.save()
+
+    sendNotification(ExpollNotification(ExpollNotificationType.VoteChange, poll, User.loadFromID(userIDToUse)))
+    call.addServerTiming(timings)
     call.respond(ReturnCode.OK)
 }

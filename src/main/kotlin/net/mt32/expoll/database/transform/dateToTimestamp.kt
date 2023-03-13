@@ -24,7 +24,7 @@ private fun removeAutoUpdate(table: Table, oldName: String) {
         """
         ALTER TABLE ${table.tableName}
              CHANGE $oldName
-                    $oldName TIMESTAMP NOT NULL
+                    $oldName Date null
         """.trimIndent()
     ) {}
 }
@@ -47,7 +47,7 @@ private fun changeDateColumnToTimestamp(
             throw Error("Couldn't create new column for ${table.tableName}.${column.name}")
     }
     if (Transformer.columnExists(table.tableName, oldName))
-        DatabaseFactory.runRawSQL("UPDATE ${table.tableName} SET ${column.name}=UNIX_TIMESTAMP(${oldName});") {}
+        DatabaseFactory.runRawSQL("UPDATE ${table.tableName} SET ${column.name} = case when $oldName is null then null else UNIX_TIMESTAMP(${oldName}) end;") {}
 
     if (Transformer.columnExists(table.tableName, oldName))
         Transformer.dropColumn(table.tableName, oldName)
@@ -80,10 +80,10 @@ private fun pollOptionDateToTimestamp() {
         PollOptionDateTime.dateTimeStartTimestamp,
         "dateTimeStart"
     )
-    changeDateColumnToTimestamp(PollOptionDateTime.Companion, PollOptionDateTime.dateTimeEndTimestamp, "dateTimeEnd")
+    changeDateColumnToTimestamp(PollOptionDateTime.Companion, PollOptionDateTime.dateTimeEndTimestamp, "dateTimeEnd", "NULL")
 
     changeDateColumnToTimestamp(PollOptionDate.Companion, PollOptionDate.dateStartTimestamp, "dateStart")
-    changeDateColumnToTimestamp(PollOptionDate.Companion, PollOptionDate.dateEndTimestamp, "dateEnd")
+    changeDateColumnToTimestamp(PollOptionDate.Companion, PollOptionDate.dateEndTimestamp, "dateEnd", "NULL")
 }
 
 // Session

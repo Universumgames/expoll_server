@@ -11,12 +11,18 @@ import net.mt32.expoll.config
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.defaultJSON
 import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.security.KeyFactory
+import java.security.NoSuchAlgorithmException
 import java.security.PrivateKey
 import java.security.interfaces.ECPrivateKey
 import java.security.spec.ECPrivateKeySpec
+import java.security.spec.InvalidKeySpecException
 import java.security.spec.PKCS8EncodedKeySpec
 import java.util.*
+
 
 fun PrivateKey.toECPrivateKey(): ECPrivateKey? {
     var ecPrivateKey: ECPrivateKey? = null
@@ -58,12 +64,30 @@ object APNsNotificationHandler {
     private var _apnsBearer: SignedJWT<JWSES256Algorithm>? = null
     private var _apnsAge: Date? = null
 
+    @Throws(IOException::class)
+    fun getPrivateKey(filename: String?, algorithm: String): PrivateKey? {
+        val content = String(Files.readAllBytes(Paths.get(filename)))
+        return try {
+            val privateKey = content.replace("-----BEGIN PRIVATE KEY-----", "")
+                .replace("-----END PRIVATE KEY-----", "")
+                .replace("\\s+".toRegex(), "")
+            val kf = KeyFactory.getInstance(algorithm)
+            kf.generatePrivate(PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKey)))
+        } catch (e: NoSuchAlgorithmException) {
+            throw RuntimeException("Java did not support the algorithm:$algorithm", e)
+        } catch (e: InvalidKeySpecException) {
+            throw RuntimeException("Invalid key format")
+        }
+    }
+
+
     private fun getAPNsKey(): PrivateKey {
         val file = File(config.notifications.apnsKeyPath)
-        val content = file.readText().replace("-----BEGIN RSA PRIVATE KEY-----\n", "")
-            .replace("-----END RSA PRIVATE KEY-----", "")
+        val content = String(file.readBytes()).replace("-----BEGIN PRIVATE KEY-----\n", "")
+            .replace("-----END PRIVATE KEY-----", "").replace("\\s+".toRegex(), "")
         val encoded = Base64.getDecoder().decode(content)
-        return KeyFactory.getInstance("ES256").generatePrivate(PKCS8EncodedKeySpec(encoded))
+        return KeyFactory.getInstance("EC").generatePrivate(PKCS8EncodedKeySpec(encoded))
+        //return getPrivateKey(config.notifications.apnsKeyPath, "EC")!!
     }
 
     private suspend fun createAPNSBearerToken(): SignedJWT<JWSES256Algorithm>? {
@@ -90,13 +114,12 @@ object APNsNotificationHandler {
     ) {
         val bearer = getAPNSBearer()?.asToken() ?: return
 
-        val response = client.request {
+        val response = client.request(Url(config.notifications.apnsURL + "/3/device/${deviceToken}")) {
             method = HttpMethod.Post
             headers {
-                append(":scheme", "https")
-                append(":method", "POST")
+                append("scheme", "https")
                 append("authorization", "bearer ${bearer}")
-                append(":path", "/3/device/${deviceToken}")
+                //append("path", "/3/device/${deviceToken}")
                 append("apns-push-type", pushType.value)
                 append("apns-expiration", "0")
                 append("apns-priority", priority.priority.toString())

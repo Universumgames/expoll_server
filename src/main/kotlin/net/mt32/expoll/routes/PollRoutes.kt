@@ -11,10 +11,14 @@ import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.PollUserNote
+import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.ServerTimings
 import net.mt32.expoll.helper.addServerTiming
 import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.notification.ExpollNotification
+import net.mt32.expoll.notification.ExpollNotificationType
+import net.mt32.expoll.notification.sendNotification
 import net.mt32.expoll.serializable.request.CreatePollRequest
 import net.mt32.expoll.serializable.request.EditPollRequest
 import net.mt32.expoll.serializable.responses.PollCreatedResponse
@@ -67,7 +71,12 @@ private suspend fun editPoll(call: ApplicationCall) {
         return
     }
 
-    timings.startNewTiming("poll.edit.set","Update poll variables")
+    if(!poll.allowsEditing && editPollRequest.allowsEditing == false){
+        call.respond(ReturnCode.CHANGE_NOT_ALLOWED)
+        return
+    }
+
+    timings.startNewTiming("poll.edit.set", "Update poll variables")
     // set basic settings
     poll.name = editPollRequest.name ?: poll.name
     poll.description = editPollRequest.description ?: poll.description
@@ -75,8 +84,15 @@ private suspend fun editPoll(call: ApplicationCall) {
     poll.allowsMaybe = editPollRequest.allowsMaybe ?: poll.allowsMaybe
     poll.allowsEditing = editPollRequest.allowsEditing ?: poll.allowsEditing
 
+    if(editPollRequest.allowsEditing == false){
+        sendNotification(ExpollNotification(ExpollNotificationType.PollArchived, poll, null))
+    }
+
     // remove users
     poll.users = poll.users.filterNot { user -> editPollRequest.userRemove.contains(user.id) }
+    editPollRequest.userRemove.forEach {
+        sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, poll, User.loadFromID(it)))
+    }
 
     // add/remove options
     editPollRequest.options.forEach { cOption ->
@@ -99,9 +115,11 @@ private suspend fun editPoll(call: ApplicationCall) {
     timings.startNewTiming("poll.save", "Save poll to database")
 
     poll.save()
+    sendNotification(ExpollNotification(ExpollNotificationType.PollEdited, poll, null))
 
-    if(editPollRequest.delete == true){
+    if (editPollRequest.delete == true) {
         poll.delete()
+        sendNotification(ExpollNotification(ExpollNotificationType.PollDeleted, poll, null))
     }
     call.addServerTiming(timings)
     call.respond(ReturnCode.OK)
@@ -118,9 +136,15 @@ private suspend fun leavePoll(call: ApplicationCall) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
+    val poll = Poll.fromID(pollID)
+    if (poll == null) {
+        call.respond(ReturnCode.INVALID_PARAMS)
+        return
+    }
     // TODO remove votes when user leaves poll
     principal.user.polls = principal.user.polls.filterNot { it.id == pollID }
     principal.user.save()
+    sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, poll, principal.user))
     call.respond(ReturnCode.OK)
 }
 
@@ -141,6 +165,7 @@ private suspend fun joinPoll(call: ApplicationCall) {
         return
     }
     principal.user.addPoll(poll.id)
+    sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, poll, principal.user))
     call.respond(ReturnCode.OK)
 }
 
