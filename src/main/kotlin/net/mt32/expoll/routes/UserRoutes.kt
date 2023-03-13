@@ -6,17 +6,16 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import net.mt32.expoll.Mail
-import net.mt32.expoll.auth.BasicSessionPrincipal
-import net.mt32.expoll.auth.ExpollCookie
-import net.mt32.expoll.auth.normalAuth
-import net.mt32.expoll.auth.verifyGoogleCAPTCHA
+import net.mt32.expoll.auth.*
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.MailRule
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.serializable.request.VoteChange
 import net.mt32.expoll.serializable.responses.CreateUserResponse
 import net.mt32.expoll.serializable.responses.UserDataResponse
+import net.mt32.expoll.serializable.responses.UserPersonalizeResponse
 import net.mt32.expoll.serializable.responses.asSimpleList
 
 fun Route.userRoutes() {
@@ -35,8 +34,8 @@ fun Route.userRoutes() {
             get("/personalizeddata"){
                 getPersonalizedData(call)
             }
-            // TODO delete user
-            // TODO delete user confirmation
+            // TODO implement delete user endpoint
+            // TODO implement delete user confirmation endpoint
         }
         get("test") {
             val session = call.sessions.get<ExpollCookie>()
@@ -72,10 +71,16 @@ private suspend fun createUser(call: ApplicationCall) {
         return
     }
 
-    // TODO verify app attest or google captcha
     if(captcha != null){
         val verified = verifyGoogleCAPTCHA(captcha)
         if(verified.score < 0.5){
+            call.respond(ReturnCode.CAPTCHA_INVALID)
+            return
+        }
+    }
+    if(appAttest != null){
+        val verified = verifyAppAttest(appAttest)
+        if(!verified){
             call.respond(ReturnCode.CAPTCHA_INVALID)
             return
         }
@@ -129,8 +134,25 @@ private suspend fun getPersonalizedData(call: ApplicationCall){
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    // TODO return personalized data
-    TODO("personalized data not implemented")
+
+    val user = principal.user
+
+    val personalizedData = UserPersonalizeResponse(
+        user.id,
+        user.username,
+        user.firstName,
+        user.lastName,
+        user.mail,
+        user.polls.map { it.asDetailedPoll() },
+        user.votes.map { VoteChange(it.pollID, it.optionID, it.votedFor.id) },
+        user.sessions.map { it.asSafeSession() },
+        user.notes,
+        user.active,
+        user.admin,
+        user.superAdmin,
+        user.authenticators.map { it.asSimpleAuthenticator() }
+    )
+    call.respond(personalizedData)
 }
 
 private suspend fun createChallenge(call: ApplicationCall) {

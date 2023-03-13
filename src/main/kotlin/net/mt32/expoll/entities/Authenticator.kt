@@ -5,6 +5,7 @@ import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestamp
 import net.mt32.expoll.helper.upsert
+import net.mt32.expoll.serializable.responses.SimpleAuthenticator
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -180,5 +181,14 @@ class Authenticator : DatabaseEntity {
                 return@transaction result?.let { Authenticator(it) }
             }
         }
+    }
+
+    fun asSimpleAuthenticator():SimpleAuthenticator{
+        return SimpleAuthenticator(
+            credentialID,
+            name,
+            initiatorPlatform,
+            createdTimestamp.toClient()
+        )
     }
 }

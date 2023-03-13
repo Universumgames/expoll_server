@@ -32,7 +32,7 @@ private suspend fun logoutAll(call: ApplicationCall){
         call.respond(ReturnCode.UNAUTHORIZED)
         return
     }
-    principal.user.session.forEach {
+    principal.user.sessions.forEach {
         it.delete()
     }
     call.respond(ReturnCode.OK)

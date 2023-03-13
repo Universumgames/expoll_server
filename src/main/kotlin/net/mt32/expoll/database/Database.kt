@@ -4,8 +4,7 @@ import net.mt32.expoll.config
 import net.mt32.expoll.database.transform.dateToTimestamp
 import net.mt32.expoll.database.transform.dropAllForeignKeys
 import net.mt32.expoll.database.transform.dropUnnecessaryColumns
-import net.mt32.expoll.entities.Session
-import net.mt32.expoll.entities.Vote
+import net.mt32.expoll.entities.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.TransactionManager
@@ -25,8 +24,23 @@ object DatabaseFactory {
         transaction {
             SchemaUtils.createDatabase("expoll")
             Transformer.transformTables()
-            // TODO add table creation
-            SchemaUtils.createMissingTablesAndColumns(Vote, Session)
+            SchemaUtils.createMissingTablesAndColumns(
+                APNDevice,
+                AppAttest,
+                Authenticator,
+                Challenge,
+                DeleteConfirmation,
+                MailRule,
+                PollUserNote,
+                NotificationPreferences,
+                Poll,
+                PollOptionString,
+                PollOptionDate,
+                PollOptionDateTime,
+                Session,
+                User,
+                Vote
+            )
             //SchemaUtils.createMissingTablesAndColumns(Users)
             /*Users.insert {
                 it[username] = "Testuiaskojfs"

@@ -20,7 +20,7 @@ interface IUser {
     var mail: String
     var polls: List<Poll>
     val votes: List<Vote>
-    val session: List<Session>
+    val sessions: List<Session>
     val notes: List<PollUserNote>
     var active: Boolean
     var admin: Boolean
@@ -45,7 +45,7 @@ class User : IUser, DatabaseEntity {
     override val votes: List<Vote>
         get() = Vote.fromUser(this)
 
-    override val session: List<Session>
+    override val sessions: List<Session>
         get() {
             return Session.forUser(id)
         }
@@ -121,7 +121,7 @@ class User : IUser, DatabaseEntity {
                 this[UserPolls.userID] = id
             }
 
-            session.forEach { it.save() }
+            sessions.forEach { it.save() }
             challenges.forEach { it.save() }
             authenticators.forEach { it.save() }
             votes.forEach { it.save() }
@@ -150,9 +150,9 @@ class User : IUser, DatabaseEntity {
 
         val id = varchar("id", UUIDLength).default(UUID.randomUUID().toString())
         val username = varchar("username", maxUserNameLength).uniqueIndex()
-        val firstName = varchar("firstName", maxNameComponentLength).uniqueIndex()
+        val firstName = varchar("firstName", maxNameComponentLength)
         val lastName = varchar("lastName", maxNameComponentLength)
-        val mail = varchar("mail", maxMailLength)
+        val mail = varchar("mail", maxMailLength).uniqueIndex()
         val active = bool("active")
         val admin = bool("admin")
 

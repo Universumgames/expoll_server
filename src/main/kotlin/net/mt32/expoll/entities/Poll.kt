@@ -141,9 +141,11 @@ class Poll : DatabaseEntity, IPoll {
 
     override fun delete(): Boolean {
         transaction {
+            UserPolls.deleteWhere { UserPolls.pollID eq id }
             options.forEach { option -> option.delete() }
             notes.forEach { note -> note.delete() }
             votes.forEach { vote -> vote.delete() }
+
             Poll.deleteWhere {
                 Poll.id eq this@Poll.id
             }

@@ -5,6 +5,7 @@ import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestamp
 import net.mt32.expoll.helper.upsert
+import net.mt32.expoll.serializable.responses.SafeSession
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -102,5 +103,13 @@ class Session : DatabaseEntity {
             }
         }
         return true
+    }
+
+    fun asSafeSession():SafeSession{
+        return SafeSession(
+            expirationTimestamp.toClient(),
+            userAgent,
+            loginkey.substring(0,4)
+        )
     }
 }

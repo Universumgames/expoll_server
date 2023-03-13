@@ -20,13 +20,13 @@ class DeleteConfirmation : DatabaseEntity {
 
     override fun save(): Boolean {
         transaction {
-            TODO("Not yet implemented")
+            TODO("Implement user deletion confirmation save")
         }
         return true
     }
 
     override fun delete(): Boolean {
-        TODO("Not yet implemented")
+        TODO("Implement user deletion confirmation removal")
     }
 
     companion object : Table("delete_confirmation") {

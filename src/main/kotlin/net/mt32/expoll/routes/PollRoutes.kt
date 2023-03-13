@@ -63,8 +63,6 @@ private suspend fun editPoll(call: ApplicationCall) {
         return
     }
 
-    // TODO implement delete poll
-
     // set basic settings
     poll.name = editPollRequest.name ?: poll.name
     poll.description = editPollRequest.description ?: poll.description
@@ -94,6 +92,10 @@ private suspend fun editPoll(call: ApplicationCall) {
     }
 
     poll.save()
+
+    if(editPollRequest.delete == true){
+        poll.delete()
+    }
     call.respond(ReturnCode.OK)
 }
 
@@ -108,7 +110,7 @@ private suspend fun leavePoll(call: ApplicationCall) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
-    // TODO remove votes
+    // TODO remove votes when user leaves poll
     principal.user.polls = principal.user.polls.filterNot { it.id == pollID }
     principal.user.save()
     call.respond(ReturnCode.OK)
