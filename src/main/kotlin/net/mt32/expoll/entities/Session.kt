@@ -105,11 +105,12 @@ class Session : DatabaseEntity {
         return true
     }
 
-    fun asSafeSession():SafeSession{
+    fun asSafeSession(currentLoginKey: String? = null): SafeSession {
         return SafeSession(
             expirationTimestamp.toClient(),
             userAgent,
-            loginkey.substring(0,4)
+            loginkey.substring(0, 4),
+            loginkey.equals(currentLoginKey, ignoreCase = true)
         )
     }
 }

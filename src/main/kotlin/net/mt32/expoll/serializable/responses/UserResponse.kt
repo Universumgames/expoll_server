@@ -38,7 +38,7 @@ data class UserPersonalizeResponse(
     var firstName: String,
     var lastName: String,
     var mail: String,
-    var polls: List<DetailedPollResponse>,
+    var polls: List<SimplePoll>,
     val votes: List<VoteChange>,
     var sessions: List<SafeSession>,
     var notes: List<PollUserNote>,
@@ -52,5 +52,6 @@ data class UserPersonalizeResponse(
 data class SafeSession(
     val expiration: tClientDateTime,
     val userAgent: String?,
-    val shortKey: String
+    val shortKey: String,
+    val active: Boolean
 )
