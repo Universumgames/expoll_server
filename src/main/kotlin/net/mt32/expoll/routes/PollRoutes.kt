@@ -85,7 +85,6 @@ private suspend fun editPoll(call: ApplicationCall) {
         } else {
             val option = poll.options.find { it.id == cOption.id }
             option?.delete()
-            // TODO delete votes for that option
         }
     }
 
