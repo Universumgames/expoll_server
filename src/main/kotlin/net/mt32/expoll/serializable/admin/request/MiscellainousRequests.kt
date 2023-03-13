@@ -11,5 +11,5 @@ data class SimpleMailRegexRule(
 
 @Serializable
 data class MailRegexEditRequest(
-    val regex: List<SimpleMailRegexRule>
+    val mailRegex: List<SimpleMailRegexRule>
 )

@@ -31,7 +31,7 @@ private suspend fun editMailRegexRules(call: ApplicationCall) {
     // clear all rules
     MailRule.all().forEach { it.delete() }
     // save new rules
-    rules.regex.map {
+    rules.mailRegex.map {
         MailRule(it.regex, it.blacklist)
     }.forEach { it.save() }
 

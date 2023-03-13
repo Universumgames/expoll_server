@@ -13,11 +13,12 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.protobuf.ProtoBuf
+import net.mt32.expoll.helper.defaultJSON
 
 @OptIn(ExperimentalSerializationApi::class)
 fun Application.configureSerialization() {
     install(ContentNegotiation) {
-        json()
+        json(json = defaultJSON)
         jackson {  }
         xml()
         cbor(Cbor {

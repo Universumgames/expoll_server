@@ -25,7 +25,7 @@ class MailRule : DatabaseEntity {
         var id: String
         do {
             id = UUID.randomUUID().toString()
-        } while (MailRule.fromID(id) == null)
+        } while (MailRule.fromID(id) != null)
         this.id = id
         this.regex = regex
         this.blacklist = blacklist
