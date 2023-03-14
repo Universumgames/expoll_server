@@ -97,7 +97,7 @@ class User : IUser, DatabaseEntity {
         this.created = UnixTimestamp.now()
     }
 
-    private constructor(userRow: ResultRow) {
+    constructor(userRow: ResultRow) {
         this.id = userRow[User.id]
         this.username = userRow[User.username]
         this.mail = userRow[User.mail]
@@ -176,10 +176,13 @@ class User : IUser, DatabaseEntity {
 
         fun loadFromLoginKey(loginKey: String): User? {
             return transaction {
-                val sessionRow =
-                    Session.select { Session.loginKey eq loginKey }.firstOrNull() ?: return@transaction null
-                val userRow = User.select { User.id eq sessionRow[Session.userID] }.firstOrNull()
-                return@transaction userRow?.let { User(it) }
+                val sessionUser = Join(
+                    Session, User,
+                    onColumn = Session.userID, otherColumn = User.id,
+                    joinType = JoinType.INNER
+                ).select { (Session.userID eq User.id) and (Session.loginKey eq loginKey) }.firstOrNull()
+                    ?: return@transaction null
+                return@transaction User(sessionUser)
             }
         }
 

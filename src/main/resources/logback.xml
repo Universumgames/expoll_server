@@ -9,6 +9,7 @@
     </root>
     <logger name="org.eclipse.jetty" level="WARN"/>
     <logger name="io.netty" level="WARN"/>
+    <logger name="ktor" level="WARN"/>
     <logger name="Exposed" level="warn" additivity="false">
         <appender-ref ref="STDOUT"/>
     </logger>

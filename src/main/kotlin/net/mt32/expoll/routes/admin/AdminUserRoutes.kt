@@ -10,9 +10,8 @@ import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
-import net.mt32.expoll.helper.ServerTimings
-import net.mt32.expoll.helper.addServerTiming
 import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.serializable.admin.request.AdminCreateUserRequest
 import net.mt32.expoll.serializable.admin.request.AdminEditUserRequest
 import net.mt32.expoll.serializable.admin.responses.UserInfo
@@ -41,10 +40,10 @@ private suspend fun getUsers(call: ApplicationCall) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    val timings = ServerTimings("users.load", "Load all users")
+    call.startNewTiming("users.load", "Load all users")
     val users = User.all()
 
-    timings.startNewTiming("users.transform", "Transform user list to simple")
+    call.startNewTiming("users.transform", "Transform user list to simple")
     val userInfos = users.map { user ->
         UserInfo(
             user.id,
@@ -57,7 +56,6 @@ private suspend fun getUsers(call: ApplicationCall) {
             user.active
         )
     }
-    call.addServerTiming(timings)
     call.respond(UserListResponse(userInfos, users.size))
 }
 

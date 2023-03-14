@@ -1,10 +1,12 @@
 package net.mt32.expoll.helper
 
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.response.*
+import io.ktor.util.*
 
 
-class ServerTimings {
+private class ServerTimings : Principal {
     data class Timing(
         val key: String,
         val description: String,
@@ -22,10 +24,10 @@ class ServerTimings {
 
     var latestTiming: Timing? = null
 
-    constructor(){
+    constructor() {
     }
 
-    constructor(key: String, description: String){
+    constructor(key: String, description: String) {
         startNewTiming(key, description)
     }
 
@@ -44,7 +46,25 @@ class ServerTimings {
     }
 }
 
-fun ApplicationCall.addServerTiming(timing: ServerTimings) {
-    timing.finishTiming()
-    this.response.header("Server-Timing", timing.timings.sortedBy { it.startTime.millisSince1970 }.map { it.toString() }.joinToString(","))
+fun ApplicationCall.startNewTiming(key: String, description: String){
+    val timings = this.attributes[timingsKey]
+    timings.startNewTiming(key, description)
+}
+
+private val timingsKey = AttributeKey<ServerTimings>("timings")
+
+var ServerTimingsHeader = createApplicationPlugin("ServerTimings"){
+
+    onCall { call->
+        call.attributes.put(timingsKey, ServerTimings("request.receive", "Receive request and prepare response"))
+    }
+
+    onCallRespond { call->
+        val timing = call.attributes[timingsKey]
+        timing.finishTiming()
+        call.response.header(
+            "Server-Timing",
+            timing.timings.sortedBy { it.startTime.millisSince1970 }.map { it.toString() }.joinToString(",")
+        )
+    }
 }

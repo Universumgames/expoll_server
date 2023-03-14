@@ -26,7 +26,7 @@ class Session : DatabaseEntity {
         this.userID = userID
     }
 
-    private constructor(sessionRow: ResultRow) {
+    constructor(sessionRow: ResultRow) {
         this.loginkey = sessionRow[Session.loginKey]
         this.expirationTimestamp = sessionRow[Session.expirationTimestamp].toUnixTimestampFromDB()
         this.userAgent = sessionRow[Session.userAgent]

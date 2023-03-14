@@ -8,6 +8,7 @@ import io.ktor.server.plugins.doublereceive.*
 import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.routing.*
+import net.mt32.expoll.helper.ServerTimingsHeader
 import net.mt32.expoll.routes.userRoutes
 
 fun Application.configureHTTP() {
@@ -33,4 +34,5 @@ fun Application.configureHTTP() {
         }
     }
     install(ForwardedHeaders)
+    install(ServerTimingsHeader)
 }

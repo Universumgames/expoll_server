@@ -12,9 +12,8 @@ import net.mt32.expoll.config
 import net.mt32.expoll.entities.MailRule
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
-import net.mt32.expoll.helper.ServerTimings
-import net.mt32.expoll.helper.addServerTiming
 import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.serializable.request.CreateUserRequest
 import net.mt32.expoll.serializable.request.VoteChange
 import net.mt32.expoll.serializable.responses.CreateUserResponse
@@ -51,7 +50,7 @@ fun Route.userRoutes() {
 }
 
 private suspend fun createUser(call: ApplicationCall) {
-    val timings = ServerTimings("user.create.parse", "Parse create user data")
+    call.startNewTiming("user.create.parse", "Parse create user data")
     val createUserRequest: CreateUserRequest = call.receive()
     val firstName = createUserRequest.firstName
     val lastName = createUserRequest.lastName
@@ -60,7 +59,7 @@ private suspend fun createUser(call: ApplicationCall) {
     val captcha = createUserRequest.captcha
     val appAttest = createUserRequest.appAttest
 
-    timings.startNewTiming("user.create.checks", "Check that dat complies with policies")
+    call.startNewTiming("user.create.checks", "Check that dat complies with policies")
     // null check
     if (captcha == null && appAttest == null) {
         call.respond(ReturnCode.MISSING_PARAMS)
@@ -78,7 +77,7 @@ private suspend fun createUser(call: ApplicationCall) {
         return
     }
 
-    timings.startNewTiming("captcha.validate", "Validate Captcha or app attest")
+    call.startNewTiming("captcha.validate", "Validate Captcha or app attest")
 
     if (captcha != null) {
         val verified = verifyGoogleCAPTCHA(captcha)
@@ -97,14 +96,14 @@ private suspend fun createUser(call: ApplicationCall) {
         return
     }
 
-    timings.startNewTiming("user.create", "Create User and save to database")
+    call.startNewTiming("user.create", "Create User and save to database")
     val user = User(username, firstName, lastName, mail, admin = false)
     user.save()
 
-    timings.startNewTiming("session.create", "Create new Session")
+    call.startNewTiming("session.create", "Create new Session")
     val session = user.createSession()
 
-    timings.startNewTiming("user.create.welcomeMail", "Send welcome mail")
+    call.startNewTiming("user.create.welcomeMail", "Send welcome mail")
     val port = config.frontEndPort
     val protocol = call.request.local.scheme
     Mail.sendMail(
@@ -118,7 +117,6 @@ private suspend fun createUser(call: ApplicationCall) {
     )
 
     call.sessions.set(ExpollCookie(session.loginkey))
-    call.addServerTiming(timings)
     call.respond(CreateUserResponse(session.loginkey))
 }
 
@@ -144,7 +142,7 @@ private suspend fun getUserData(call: ApplicationCall) {
 }
 
 private suspend fun getPersonalizedData(call: ApplicationCall) {
-    val timings = ServerTimings("user.basic", "Gather user and session data")
+    call.startNewTiming("user.basic", "Gather user and session data")
     val principal = call.principal<BasicSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
@@ -153,13 +151,13 @@ private suspend fun getPersonalizedData(call: ApplicationCall) {
 
     val user = principal.user
 
-    timings.startNewTiming("user.polls", "Gather polls")
+    call.startNewTiming("user.polls", "Gather polls")
     val polls = user.polls.map { it.asSimplePoll() }
-    timings.startNewTiming("user.votes", "Gather votes")
+    call.startNewTiming("user.votes", "Gather votes")
     val votes = user.votes.map { VoteChange(it.pollID, it.optionID, it.votedFor.id) }
-    timings.startNewTiming("user.sessions", "Gather sessions")
+    call.startNewTiming("user.sessions", "Gather sessions")
     val sessions = user.sessions.map { it.asSafeSession(principal.loginKey) }
-    timings.startNewTiming("user.auths", "Gather authenticators")
+    call.startNewTiming("user.auths", "Gather authenticators")
     val auths = user.authenticators.map { it.asSimpleAuthenticator() }
 
 
@@ -178,7 +176,6 @@ private suspend fun getPersonalizedData(call: ApplicationCall) {
         user.superAdmin,
         auths
     )
-    call.addServerTiming(timings)
     call.respond(personalizedData)
 }
 

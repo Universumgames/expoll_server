@@ -12,9 +12,8 @@ import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.PollUserNote
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
-import net.mt32.expoll.helper.ServerTimings
-import net.mt32.expoll.helper.addServerTiming
 import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.notification.ExpollNotification
 import net.mt32.expoll.notification.ExpollNotificationType
 import net.mt32.expoll.notification.sendNotification
@@ -50,10 +49,10 @@ private suspend fun editPoll(call: ApplicationCall) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    val timings = ServerTimings("poll.edit.parse", "Parsing poll edit request")
+    call.startNewTiming("poll.edit.parse", "Parsing poll edit request")
     val editPollRequest: EditPollRequest = call.receive()
 
-    timings.startNewTiming("poll.load.basic", "load basic poll data from database")
+    call.startNewTiming("poll.load.basic", "load basic poll data from database")
     val poll = Poll.fromID(editPollRequest.pollID)
     if (poll == null) {
         call.respond(ReturnCode.INVALID_PARAMS)
@@ -69,7 +68,7 @@ private suspend fun editPoll(call: ApplicationCall) {
         return
     }
 
-    timings.startNewTiming("poll.edit.set", "Update poll variables")
+    call.startNewTiming("poll.edit.set", "Update poll variables")
     // set basic settings
     poll.name = editPollRequest.name ?: poll.name
     poll.description = editPollRequest.description ?: poll.description
@@ -105,7 +104,7 @@ private suspend fun editPoll(call: ApplicationCall) {
         dbNote.save()
     }
 
-    timings.startNewTiming("poll.save", "Save poll to database")
+    call.startNewTiming("poll.save", "Save poll to database")
 
     poll.save()
     sendNotification(ExpollNotification(ExpollNotificationType.PollEdited, poll, null))
@@ -114,7 +113,6 @@ private suspend fun editPoll(call: ApplicationCall) {
         poll.delete()
         sendNotification(ExpollNotification(ExpollNotificationType.PollDeleted, poll, null))
     }
-    call.addServerTiming(timings)
     call.respond(ReturnCode.OK)
 }
 
@@ -169,11 +167,11 @@ private suspend fun createPoll(call: ApplicationCall) {
         return
     }
 
-    val timings = ServerTimings("poll.create.parse", "Parse poll creation data")
+    call.startNewTiming("poll.create.parse", "Parse poll creation data")
     val createPollRequest: CreatePollRequest = call.receive()
 
 
-    timings.startNewTiming("poll.create", "Create poll")
+    call.startNewTiming("poll.create", "Create poll")
     val pollCount = principal.user.polls.count { it.adminID == principal.userID }
     if (pollCount >= config.maxPollCountPerUser && !principal.admin) {
         call.respond(ReturnCode.TOO_MANY_POLLS)
@@ -193,14 +191,13 @@ private suspend fun createPoll(call: ApplicationCall) {
     )
 
 
-    timings.startNewTiming("poll.save", "Save poll and options to database")
+    call.startNewTiming("poll.save", "Save poll and options to database")
     poll.save()
     createPollRequest.options.forEach { option ->
         poll.addOption(option)
     }
     principal.user.addPoll(poll.id)
 
-    call.addServerTiming(timings)
     call.respond(PollCreatedResponse(poll.id))
 }
 
@@ -223,11 +220,10 @@ private suspend fun getPollList(call: ApplicationCall) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    val timings = ServerTimings("polls.list", "Retrieve poll data from database")
+    call.startNewTiming("polls.list", "Retrieve poll data from database")
     val polls = principal.user.polls
-    timings.startNewTiming("polls.transform", "Transform poll data to simplified list format")
+    call.startNewTiming("polls.transform", "Transform poll data to simplified list format")
     val simplePolls = polls.asPollListResponse()
-    call.addServerTiming(timings)
     call.respond(simplePolls)
 }
 
@@ -237,14 +233,13 @@ private suspend fun getDetailedPoll(call: ApplicationCall, pollID: tPollID) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    val timings = ServerTimings("polls.fetch", "Load basic poll data from database")
+    call.startNewTiming("polls.fetch", "Load basic poll data from database")
     val poll = Poll.fromID(pollID)
     if (poll == null) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
-    timings.startNewTiming("poll.transform", "Transform poll data to detailed format")
+    call.startNewTiming("poll.transform", "Transform poll data to detailed format")
     val detailedPoll = poll.asDetailedPoll()
-    call.addServerTiming(timings)
     call.respond(detailedPoll)
 }

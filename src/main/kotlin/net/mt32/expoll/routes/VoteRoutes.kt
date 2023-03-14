@@ -11,9 +11,8 @@ import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.Vote
 import net.mt32.expoll.helper.ReturnCode
-import net.mt32.expoll.helper.ServerTimings
 import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.addServerTiming
+import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.notification.ExpollNotification
 import net.mt32.expoll.notification.ExpollNotificationType
 import net.mt32.expoll.notification.sendNotification
@@ -33,7 +32,7 @@ suspend fun voteRoute(call: ApplicationCall) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    val timings = ServerTimings("vote.parse", "Parse request data")
+    call.startNewTiming("vote.parse", "Parse request data")
     val voteChange: VoteChange = call.receive()
 
     if (voteChange.userID != null && !principal.admin) {
@@ -41,7 +40,7 @@ suspend fun voteRoute(call: ApplicationCall) {
         return
     }
 
-    timings.startNewTiming("poll.load", "Load basic poll data")
+    call.startNewTiming("poll.load", "Load basic poll data")
 
     val poll = Poll.fromID(voteChange.pollID)
     val votedForEnum = VoteValue.values().find { it.id == voteChange.votedFor }
@@ -54,7 +53,7 @@ suspend fun voteRoute(call: ApplicationCall) {
         return
     }
 
-    timings.startNewTiming("vote.check", "Check that votes count does not exceed maximum")
+    call.startNewTiming("vote.check", "Check that votes count does not exceed maximum")
 
     if (!poll.allowsEditing) {
         call.respond(ReturnCode.CHANGE_NOT_ALLOWED)
@@ -70,13 +69,12 @@ suspend fun voteRoute(call: ApplicationCall) {
         return
     }
 
-    timings.startNewTiming("vote.save", "Save data to database")
+    call.startNewTiming("vote.save", "Save data to database")
 
     Vote.setVote(userIDToUse, voteChange.pollID, voteChange.optionID, votedForEnum)
     poll.updatedTimestamp = UnixTimestamp.now()
     poll.save()
 
     sendNotification(ExpollNotification(ExpollNotificationType.VoteChange, poll, User.loadFromID(userIDToUse)))
-    call.addServerTiming(timings)
     call.respond(ReturnCode.OK)
 }

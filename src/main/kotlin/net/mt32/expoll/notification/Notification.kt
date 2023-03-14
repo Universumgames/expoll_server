@@ -11,15 +11,10 @@ import net.mt32.expoll.config
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.defaultJSON
 import java.io.File
-import java.io.IOException
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.security.KeyFactory
-import java.security.NoSuchAlgorithmException
 import java.security.PrivateKey
 import java.security.interfaces.ECPrivateKey
 import java.security.spec.ECPrivateKeySpec
-import java.security.spec.InvalidKeySpecException
 import java.security.spec.PKCS8EncodedKeySpec
 import java.util.*
 
@@ -64,20 +59,12 @@ object APNsNotificationHandler {
     private var _apnsBearer: SignedJWT<JWSES256Algorithm>? = null
     private var _apnsAge: Date? = null
 
-    @Throws(IOException::class)
-    fun getPrivateKey(filename: String?, algorithm: String): PrivateKey? {
-        val content = String(Files.readAllBytes(Paths.get(filename)))
-        return try {
-            val privateKey = content.replace("-----BEGIN PRIVATE KEY-----", "")
-                .replace("-----END PRIVATE KEY-----", "")
-                .replace("\\s+".toRegex(), "")
-            val kf = KeyFactory.getInstance(algorithm)
-            kf.generatePrivate(PKCS8EncodedKeySpec(Base64.getDecoder().decode(privateKey)))
-        } catch (e: NoSuchAlgorithmException) {
-            throw RuntimeException("Java did not support the algorithm:$algorithm", e)
-        } catch (e: InvalidKeySpecException) {
-            throw RuntimeException("Invalid key format")
-        }
+    private val apnsKey: PrivateKey
+    private val ecAPNsKey: ECPrivateKey?
+
+    init {
+        apnsKey = getAPNsKey()
+        ecAPNsKey = apnsKey.toECPrivateKey()
     }
 
 
@@ -91,12 +78,12 @@ object APNsNotificationHandler {
     }
 
     private suspend fun createAPNSBearerToken(): SignedJWT<JWSES256Algorithm>? {
+        if(ecAPNsKey == null) return null
         val jwt = JWT.es256(JWTKeyID(config.notifications.apnsKeyID)) {
             issuedNow()
             issuer(config.notifications.teamID)
         }
-        val ecKey = getAPNsKey().toECPrivateKey() ?: return null
-        val signed = jwt.sign(ecKey)
+        val signed = jwt.sign(ecAPNsKey)
         val signedOrNull = signed.fold(
             ifLeft = { null },
             ifRight = { it }
