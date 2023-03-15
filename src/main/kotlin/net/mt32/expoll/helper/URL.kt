@@ -2,6 +2,7 @@ package net.mt32.expoll.helper
 
 import io.ktor.server.application.*
 import net.mt32.expoll.config
+import net.mt32.expoll.tPollID
 import java.net.URLEncoder
 
 /**
@@ -18,4 +19,10 @@ fun urlBuilder(call: ApplicationCall, loginKey: String): String {
             config.loginLinkURL +
             (if (port == 80 || port == 443) "" else ":$port") + "/#/login?key=" +
             URLEncoder.encode(loginKey, "utf-8")
+}
+
+fun shareURLBuilder(pollID: tPollID): String{
+    var prefix = config.shareURLPrefix
+    if(!prefix.endsWith("/")) prefix += "/"
+    return prefix + pollID
 }

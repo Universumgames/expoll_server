@@ -1,13 +1,9 @@
 package net.mt32.expoll.entities
 
 import net.mt32.expoll.PollType
-import net.mt32.expoll.config
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
-import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.toUnixTimestampFromClient
-import net.mt32.expoll.helper.toUnixTimestampFromDB
-import net.mt32.expoll.helper.upsert
+import net.mt32.expoll.helper.*
 import net.mt32.expoll.serializable.responses.*
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
@@ -65,6 +61,9 @@ class Poll : DatabaseEntity, IPoll {
     override var maxPerUserVoteCount: Int
     override var allowsMaybe: Boolean
     override var allowsEditing: Boolean
+
+    val shareURL: String
+        get() = shareURLBuilder(id)
 
     val options: List<PollOption>
         get() {
@@ -253,6 +252,7 @@ class Poll : DatabaseEntity, IPoll {
         val userIDs = this.userIDs
         val users = this.users
         val options = this.options
+        val notes = this.notes
         return DetailedPollResponse(
             id,
             name,
@@ -285,7 +285,7 @@ class Poll : DatabaseEntity, IPoll {
             }.filterNot { it.note == null },
             allowsMaybe,
             allowsEditing,
-            config.shareURLPrefix + id
+            shareURL
         )
     }
 

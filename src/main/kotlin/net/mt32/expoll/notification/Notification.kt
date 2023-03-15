@@ -4,8 +4,8 @@ import io.github.nefilim.kjwt.*
 import io.ktor.client.*
 import io.ktor.client.engine.java.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import net.mt32.expoll.config
 import net.mt32.expoll.helper.UnixTimestamp
@@ -62,9 +62,21 @@ object APNsNotificationHandler {
     private val apnsKey: PrivateKey
     private val ecAPNsKey: ECPrivateKey?
 
+    private val sendingThread: Thread
+
+    private val apnQueue: MutableList<APNData>
+
     init {
         apnsKey = getAPNsKey()
         ecAPNsKey = apnsKey.toECPrivateKey()
+        apnQueue = mutableListOf()
+        sendingThread = Thread {
+            while (true) {
+                val apn = apnQueue.removeFirstOrNull()
+                if (apn != null) runBlocking { sendAPN(apn) }
+            }
+        }
+        sendingThread.start()
     }
 
 
@@ -78,7 +90,7 @@ object APNsNotificationHandler {
     }
 
     private suspend fun createAPNSBearerToken(): SignedJWT<JWSES256Algorithm>? {
-        if(ecAPNsKey == null) return null
+        if (ecAPNsKey == null) return null
         val jwt = JWT.es256(JWTKeyID(config.notifications.apnsKeyID)) {
             issuedNow()
             issuer(config.notifications.teamID)
@@ -91,7 +103,7 @@ object APNsNotificationHandler {
         return signedOrNull
     }
 
-    suspend fun sendAPN(
+    fun sendAPN(
         deviceToken: String,
         expiration: UnixTimestamp,
         payload: APNsPayload,
@@ -99,24 +111,37 @@ object APNsNotificationHandler {
         pushType: APNsPushType = APNsPushType.ALERT,
         collapseID: String? = null
     ) {
+        apnQueue.add(APNData(deviceToken, expiration, payload, priority, pushType, collapseID))
+    }
+
+    private suspend fun sendAPN(data: APNData) {
         val bearer = getAPNSBearer()?.asToken() ?: return
 
-        val response = client.request(Url(config.notifications.apnsURL + "/3/device/${deviceToken}")) {
+        val response = client.request(Url(config.notifications.apnsURL + "/3/device/${data.deviceToken}")) {
             method = HttpMethod.Post
             headers {
                 append("scheme", "https")
                 append("authorization", "bearer ${bearer}")
                 //append("path", "/3/device/${deviceToken}")
-                append("apns-push-type", pushType.value)
+                append("apns-push-type", data.pushType.value)
                 append("apns-expiration", "0")
-                append("apns-priority", priority.priority.toString())
+                append("apns-priority", data.priority.priority.toString())
                 append("apns-topic", config.notifications.bundleID)
-                if (collapseID != null)
-                    append("apns-collapse-id", collapseID.substring(0, 8))
+                if (data.collapseID != null)
+                    append("apns-collapse-id", data.collapseID.substring(0, 8))
             }
             contentType(ContentType.Application.Json)
-            setBody(defaultJSON.encodeToString(payload))
+            setBody(defaultJSON.encodeToString(data.payload))
         }
-        print(response.bodyAsText())
+        //println(response.bodyAsText())
     }
+
+    private data class APNData(
+        val deviceToken: String,
+        val expiration: UnixTimestamp,
+        val payload: APNsPayload,
+        val priority: APNsPriority,
+        val pushType: APNsPushType = APNsPushType.ALERT,
+        val collapseID: String? = null
+    )
 }
