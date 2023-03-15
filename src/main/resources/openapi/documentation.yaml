@@ -1,0 +1,897 @@
+openapi: 3.0.0
+info:
+  title: Expoll REST API
+  description: This is the backend api documentation for expoll
+  license:
+    name: MIT
+    url: https://github.com/Universumgames/expoll_server/blob/main/LICENSE
+  version: 2.6.0
+servers:
+  - url: https://expoll.mt32.net/api
+    description: the production server api
+  - url: http://localhost:6060/
+    description: local test server
+  - url: http://192.168.178.68:6060
+    description: local network testing
+
+paths:
+  /serverInfo:
+    get:
+      description: Get Meta info of backend server
+      responses:
+        200:
+          description: Meta json object
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                  minimumRequiredVersion:
+                    type: string
+                  serverPort:
+                    type: integer
+                    format: int32
+                  frontendPort:
+                    type: integer
+                    format: int32
+                  loginLinkBase:
+                    type: string
+                  mailSender:
+                    type: string
+  /metaInfo:
+    get:
+      description: get various debugging information
+      responses:
+        200:
+          description: Meta info
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+
+  /compliance:
+    get:
+      description: Check if your client version is supported by the backend
+      parameters:
+        - name: version
+          description: The client version
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Client is supported
+        409:
+          description: Client is not supported
+        400:
+          description: Version parameter missing
+  /user:
+    post:
+      description: Create a new user
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserRequest"
+            examples:
+              max:
+                value:
+                  firstName: Max
+                  lastName: Mustermann
+                  username: mamu
+                  mail: max.mustermann@example.de
+                  appAttest: "<app attest value>"
+        required: true
+      responses:
+        200:
+          description: User was successfully created, returns a cookie and the first loginKey
+          content:
+            text/plain:
+              schema:
+                type: string
+              example: "<uuid>"
+        400:
+          description: Parameters are missing
+        406:
+          description: User with the same mail or username already exists or the mail is not valid
+    get:
+      description: get basic user data
+      responses:
+        200:
+          description: Basic userdata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  username:
+                    type: string
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+                  mail:
+                    type: string
+                  active:
+                    type: string
+                  admin:
+                    type: string
+
+        401:
+          description: Unauthorized
+  /vote:
+    post:
+      description: Vote for an option in a poll
+      requestBody:
+        description: The vote data
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteChangeRequest"
+            example:
+              pollID: "<uuid>"
+              optionID: 43
+              votedFor: 2
+        required: true
+      responses:
+        "200":
+          description: Vote was successfull
+        "406":
+          description: Poll or option does not exist, the votedFor value is invalid or 'maybe' is disabled
+        403:
+          description: Maximum number on Yes/Maybe votes on this poll is too high or voting is disabled for the poll
+  /auth/simple:
+    post:
+      description: Login via loginkey or request a login mail
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                loginKey:
+                  type: string
+                  description: the key to login
+                  required: this or mail
+                mail:
+                  type: string
+                  description: the mail address of the user
+                  required: this or loginKey
+            examples:
+              Request:
+                summary: Requesting login mail
+                value: '{"mail": "max.mustermann@example.org"}'
+              LoginKey:
+                summary: Get auth cookie
+                value: '{"loginKey": "<uuid>"}'
+        required: true
+      responses:
+        200:
+          description: The login was successfull
+          content:
+            cookie:
+              schema:
+                type: string
+              example: '{"loginKey":"<uuid>"}'
+        400:
+          description: Parameter missing, user does not exist
+        401:
+          description: The loginKey is invalid
+  /auth/logout:
+    delete:
+      description: Logout the current session or a specified one
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shortKey:
+                  type: string
+                  description: the first 4 characters of a loginkey
+            example: '{"shortKey": "abcd"}'
+      responses:
+        200:
+          description: Session was deleted and cookie removed (if deleted SEssion is not the active one)
+        401:
+          description: Unauthorized
+  /auth/logoutAll:
+    delete:
+      description: Logout all sessions
+      responses:
+        200:
+          description: All sessions were deleted
+        401:
+          description: Unauthorized
+  /auth/webauthn/register:
+    get:
+      description: Undocumented endpoint to start webauthn registration
+    post:
+      description: Undocumented endpoint to save webauthn
+  /auth/webauthn/authenticate:
+    get:
+      description: Undocumented endpoint to start authentication
+    post:
+      description: Undocumented endpoint to start authentication
+  /auth/webauthn/list:
+    get:
+      description: get list of all webauthn authenticators
+      responses:
+        200:
+          description: list of the authenticators
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimpleAuthenticator'
+        401:
+          description: Unauthorized
+  /auth/webauthn/edit:
+    post:
+      description: edit an authenticator (currently only changing its name)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                credentialID:
+                  type: string
+                newName:
+                  type: string
+                  description: The new name for the authenticator
+      responses:
+        200:
+          description: Renaming successfull
+        401:
+          description: Unauthorized
+        403:
+          description: Authenticator does not exist
+  /auth/webauthn/:
+    delete:
+      description: delete an authenticator TODO
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                credentialID:
+                  type: string
+                  description: the authenticator you want to delete
+      responses:
+        200:
+          description: Deletion was successfull
+        401:
+          description: Unauthorized
+        403:
+          description: Authenticator does not exist
+  /simple/poll/{pollId}/title:
+    get:
+      description: Get the name for a poll
+      parameters:
+        - name: pollId
+          in: path
+          required: true
+      responses:
+        200:
+          description: The name of the requested poll
+          content:
+            plain/text:
+              schema:
+                type: string
+              example: "This is a great pollname"
+        400:
+          description: PollID parameter missing or poll does not exist
+  /simple/mailregex:
+    get:
+      description: Get all regex rules the mail has to comply to
+      responses:
+        200:
+          description: List of all regex rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MailRegexRule"
+  /notifications/preferences:
+    get:
+      description: Get notification preferences
+      responses:
+        200:
+          description: Notification preferences
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferences"
+        401:
+          description: Unauthorized
+    post:
+      description: Set notification preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationPreferences"
+      responses:
+        200:
+          description: Setting new Notification preferences was successful
+        401:
+          description: Unauthorized
+  /notifications/apple:
+    post:
+      description: register a new apple device for push notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                deviceID:
+                  type: string
+            example: '{"deviceID":"the generated deviceid"}'
+      responses:
+        200:
+          description: Device was added (or moved) to user
+        400:
+          description: Unauthorized
+  /poll:
+    get:
+      description: Get poll list or poll details
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pollID:
+                  type: string
+                  required: false
+      responses:
+        200:
+          description: Poll list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SimplePoll"
+        200(alt):
+          description: Poll details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetailedPoll"
+    post:
+      description: Edit the poll, only the poll creator can do this
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EditPollRequest"
+      responses:
+        200:
+          description: Poll edited successfully
+        400:
+          description: parameters missing or poll does not exist
+        401:
+          description: the user is not authorized to edit this poll
+        403:
+          description: Editing the poll is not allowed
+    put:
+      description: Create a new Poll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePollRequest"
+      responses:
+        200:
+          description: Poll created successfully
+        400:
+          description: some parameters are missing
+        413:
+          description: the user has exceeded the maximum number of polls that they created
+  /poll/join:
+    post:
+      description: Join a poll
+      parameters:
+        - name: pollID
+          in: query
+          required: true
+      responses:
+        200:
+          description: Successfully joined poll
+        400:
+          description: pollID missing or poll does not exist
+  /poll/leave:
+    post:
+      description: Leave a poll
+      parameters:
+        - name: pollID
+          in: query
+          required: true
+      responses:
+        200:
+          description: Left poll if it exists
+        400:
+          description: pollID parameter missing
+  /admin/isImpersonating:
+    get:
+      description: Check if you are currently impersonating a user
+      parameters:
+        - name: loginKey
+          in: cookie
+          required: true
+        - name: originalLoginKey
+          in: cookie
+          required: true
+      responses:
+        200:
+          description: you are currently impersonating a user
+        400:
+          description: Parameters missing or you are not impersonating someone
+  /admin/impersonate:
+    post:
+      description: Impersonate a user
+      parameters:
+        - name: userID
+          in: query
+          required: true
+      responses:
+        200:
+          description: Impersonation successfull
+          content:
+            cookie:
+              schema:
+                type: object
+                properties:
+                  loginKey:
+                    type: string
+                    description: a new session key of the user you impersonate
+                  originalLoginKey:
+                    type: string
+                    description: your original session key, used for unimpersonate
+            plain/text:
+              schema:
+                type: string
+                description: the new session key
+        400:
+          description: parameter missing or the user does not exist
+        401:
+          description: you are not allowed to impersonate someone
+
+
+
+          # TODO add loginKey parameter to all authorized endpoints
+  /admin/unimpersonate:
+    post:
+      description: give up the impersonation
+      parameters:
+        - name: loginKey
+          in: query
+          required: true
+        - name: originalLoginKey
+          in: query
+          required: true
+      responses:
+        200:
+          description: successfully removed impersonation
+          content:
+            cookie:
+              schema:
+                type: object
+                properties:
+                  loginKey:
+                    type: string
+                    description: your old session key
+        400:
+          description: you are currently not impersonating someone
+  /admin/users:
+    get:
+      description: get list of all users
+      responses:
+        200:
+          description: list of all users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserInfo"
+        401:
+          description: you are not allowed to view the userlist
+    post:
+      description: Create a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUserCreateRequest"
+      responses:
+        200:
+          description: Created user successfully
+        406:
+          description: Username or mail is already used
+        401:
+          description: You are not allowed to to this
+    put:
+      description: edit a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminUserEditRequest"
+      responses:
+        200:
+          description: User edited successfully
+        400:
+          description: parameters missing or user does not exist
+    delete:
+      description: Delete user
+      parameters:
+        - name: userID
+          in: query
+          required: true
+      responses:
+        200:
+          description: User deleted successfully
+        400:
+          description: User id missing or user does not exist
+  /admin/polls:
+    get:
+      description: List of all polls
+      responses:
+        200:
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalCount:
+                    type: number
+                  polls:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/SimplePoll"
+        401:
+          description: you are not allowed to view all polls
+  /admin/mailregex:
+    get:
+      description: Get list of all regex rules (basically a duplicate of "/simple/mailregex")
+      responses:
+        200:
+          description: List of all regex rules
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MailRegexRule"
+    post:
+      description: edit mail regex rules, replaces all existing rules with the ones sent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mailRegex:
+                  type: array
+                  items:
+                    properties:
+                      regex:
+                        type: string
+                      blacklist:
+                        type: boolean
+                        summary: is this regex rule one which should be followed or avoided
+                        description: if any of the blacklisted rules match, the mail is rejected; all whitelisted rules have to match
+      responses:
+        200:
+          description: Editing was successfull
+
+components:
+  schemas:
+    VoteChangeRequest:
+      type: object
+      properties:
+        pollID:
+          type: string
+          description: the id of the poll to vote on
+        optionID:
+          type: integer
+          description: the id of the option to vote
+        votedFor:
+          type: integer
+          format: "0, 1 or 2"
+          description: value of the vote NO(0), YES(1), MAYBE(2)
+        userID:
+          type: string
+          required: if admins want to change the vote for other users
+    CreateUserRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        username:
+          type: string
+        mail:
+          type: string
+        captcha:
+          type: string
+          description: The google captchas code
+          required: either this or appAttest
+        appAttest:
+          type: string
+          description: Apples app attest
+          required: either this or captcha
+    MailRegexRule:
+      type: object
+      properties:
+        id:
+          type: string
+        regex:
+          type: string
+          description: the regex rule
+        blacklist:
+          type: boolean
+          description: indicates whether this is a rule that is not allowed or that must be followed
+    NotificationPreferences:
+      type: object
+      properties:
+        pollArchived:
+          type: boolean
+        pollDeleted:
+          type: boolean
+        pollEdited:
+          type: boolean
+        userAdded:
+          type: boolean
+        userRemoved:
+          type: boolean
+        voteChange:
+          type: boolean
+        userID:
+          type: string
+          readonly: true
+    SimpleAuthenticator:
+      type: object
+      properties:
+        credentialID:
+          type: string
+        name:
+          type: string
+        initiatorPlatform:
+          type: string
+        created:
+          type: string
+          format: DateTime
+    SimpleUser:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        username:
+          type: string
+        id:
+          type: string
+    SimplePoll:
+      type: object
+      properties:
+        pollID:
+          type: string
+        name:
+          type: string
+        admin:
+          $ref: "#/components/schemas/SimpleUser"
+        description:
+          type: string
+        userCount:
+          type: number
+        lastUpdated:
+          type: epoch milliseconds
+        type:
+          type: number
+        editable:
+          type: boolean
+    ComplexOption:
+      type: object
+      properties:
+        id:
+          type: string
+        value:
+          type: string
+          optional: true
+        dateStart:
+          type: epoch milliseconds
+          optional: true
+        dateEnd:
+          type: epoch milliseconds
+          optional: true
+        dateTimeStart:
+          type: epoch milliseconds
+          optional: true
+        dateTimeEnd:
+          type: epoch milliseconds
+          optional: true
+    UserVote:
+      type: object
+      properties:
+        user:
+          $ref: "#/components/schemas/SimpleUser"
+        votes:
+          type: array
+          items:
+            properties:
+              optionID:
+                type: number
+              votedFor:
+                type: number
+    UserNote:
+      type: object
+      properties:
+        userID:
+          type: string
+        note:
+          type: string
+    DetailedPoll:
+      type: object
+      allOf:
+        - $ref: "#/components/schemas/SimplePoll"
+        - type: object
+          properties:
+            created:
+              type: epoch milliseconds
+            options:
+              type: array
+              items:
+                $ref: "#/components/schemas/ComplexOption"
+            userVotes:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserVote"
+            userNotes:
+              type: array
+              items:
+                $ref: "#/components/schemas/UserNote"
+            allowedMaybe:
+              type: boolean
+            allowsEditing:
+              type: boolean
+            shareURL:
+              type: url
+    CreatePollRequest:
+      type: object
+      required:
+        - name
+        - maxPerUserVoteCount
+        - description
+        - type
+        - allowsMaybe
+        - allowsEditing
+      properties:
+        name:
+          type: string
+        maxPerUserVoteCount:
+          type: number
+          description: The number of yes/maybe votes a user can vote on, -1 for infitiy
+        description:
+          type: string
+        type:
+          type: number
+          description: The type of the poll, STRING(0), DATE(1), DATETIME(2)
+        allowsMaybe:
+          type: boolean
+          description: Wether or not "maybe" is an allowed vote option
+        allowsEditing:
+          type: boolean
+          description: wether or not the poll can be edited (votes or other edits, except re-enabling editing)
+    EditPollRequest:
+      type: object
+      required:
+        - pollID
+      properties:
+        pollID:
+          type: string
+          required: true
+        delete:
+          type: boolean
+          required: false
+        name:
+          type: string
+          required: false
+        description:
+          type: string
+          required: false
+        maxPerUserVoteCount:
+          type: number
+          required: false
+        allowsMaybe:
+          type: boolean
+          required: false
+        allowsEditing:
+          type: boolean
+          required: false
+        userRemove:
+          type: array
+          description: list of all userIDsthat should be removed from this poll
+          items:
+            type: string
+        votes:
+          type: array
+          description: list of vote changes (pollID can be left out)
+          items:
+            $ref: "#/components/schemas/VoteChangeRequest"
+        options:
+          type: array
+          description: list of option modifications, options with an id get deleted, all others get added to the poll
+          items:
+            $ref: "#/components/schemas/ComplexOption"
+        notes:
+          type: array
+          description: list of notes for users
+          items:
+            $ref: "#/components/schemas/UserNote"
+    UserInfo:
+      type: object
+      properties:
+        id:
+          type: string
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        mail:
+          type: string
+        admin:
+          type: boolean
+        superAdmin:
+          type: boolean
+        active:
+          type: boolean
+    AdminUserCreateRequest:
+      type: object
+      properties:
+        mail:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        username:
+          type: string
+    AdminUserEditRequest:
+      type: object
+      required:
+        - userID
+      properties:
+        userID:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        mail:
+          type: string
