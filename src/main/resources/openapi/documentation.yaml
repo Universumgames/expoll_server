@@ -47,7 +47,11 @@ paths:
         200:
           description: Meta info
           content:
-            text/json:
+            application/json:
+              schema:
+                type: object
+                properties:
+
   /compliance:
     get:
       description: Check if your client version is supported by the backend
@@ -598,7 +602,9 @@ paths:
                         type: boolean
                         summary: is this regex rule one which should be followed or avoided
                         description: if any of the blacklisted rules match, the mail is rejected; all whitelisted rules have to match
-
+      responses:
+        200:
+          description: Editing was successfull
 
 components:
   schemas:

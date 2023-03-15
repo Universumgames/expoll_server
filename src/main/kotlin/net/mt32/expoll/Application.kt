@@ -12,8 +12,7 @@ fun main(args: Array<String>) {
         println("Define an environment to load the config from by providing it as the first argument")
     ConfigLoader.load(environment)
     DatabaseFactory.init()
-    
-    // TODO add async where possible https://kotlinlang.org/docs/composing-suspending-functions.html#lazily-started-async
+
     embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }

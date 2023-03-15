@@ -52,12 +52,9 @@ class Poll : DatabaseEntity, IPoll {
         get() {
             return PollUserNote.forPoll(id)
         }
-    var users: List<User>
+    val users: List<User>
         get() {
             return usersInPoll(id)
-        }
-        set(value) {
-            setUsersInPoll(id, value.map { it.id })
         }
     val userCount: Int
         get() = UserPolls.userCount(id)
@@ -244,6 +241,12 @@ class Poll : DatabaseEntity, IPoll {
                 return@transaction Poll.selectAll().toList().map { Poll(it) }
             }
         }
+
+        fun exists(pollID: tPollID): Boolean{
+            return transaction {
+                !Poll.select { Poll.id eq pollID }.empty()
+            }
+        }
     }
 
     fun asDetailedPoll(): DetailedPollResponse {
@@ -334,6 +337,21 @@ class Poll : DatabaseEntity, IPoll {
             }
         }
     }
+
+    fun addUser(userID: tUserID) {
+        UserPolls.addConnection(userID, id)
+    }
+
+    fun removeUser(userID: tUserID) {
+        UserPolls.removeConnection(userID, id)
+        transaction {
+            Vote.deleteWhere {
+                (Vote.pollID eq id) and
+                        (Vote.userID eq userID)
+            }
+        }
+    }
+
 }
 
 object UserPolls : Table("user_polls_poll") {
@@ -357,6 +375,15 @@ object UserPolls : Table("user_polls_poll") {
             UserPolls.insert {
                 it[UserPolls.pollID] = pollID
                 it[UserPolls.userID] = userID
+            }
+        }
+    }
+
+    fun removeConnection(userID: tUserID, pollID: tPollID) {
+        transaction {
+            UserPolls.deleteWhere {
+                (UserPolls.userID eq userID) and
+                        (UserPolls.pollID eq pollID)
             }
         }
     }

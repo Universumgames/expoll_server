@@ -8,7 +8,6 @@ import io.ktor.server.routing.*
 import net.mt32.expoll.VoteValue
 import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.entities.Poll
-import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.Vote
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.UnixTimestamp
@@ -75,6 +74,6 @@ suspend fun voteRoute(call: ApplicationCall) {
     poll.updatedTimestamp = UnixTimestamp.now()
     poll.save()
 
-    sendNotification(ExpollNotification(ExpollNotificationType.VoteChange, poll, User.loadFromID(userIDToUse)))
+    sendNotification(ExpollNotification(ExpollNotificationType.VoteChange, poll.id, userIDToUse))
     call.respond(ReturnCode.OK)
 }

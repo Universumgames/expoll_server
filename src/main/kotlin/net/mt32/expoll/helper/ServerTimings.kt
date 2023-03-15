@@ -1,6 +1,7 @@
 package net.mt32.expoll.helper
 
 import io.ktor.server.application.*
+import io.ktor.server.application.hooks.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.util.*
@@ -55,7 +56,7 @@ private val timingsKey = AttributeKey<ServerTimings>("timings")
 
 var ServerTimingsHeader = createApplicationPlugin("ServerTimings"){
 
-    onCall { call->
+    on(CallSetup) { call->
         call.attributes.put(timingsKey, ServerTimings("request.receive", "Receive request and prepare response"))
     }
 

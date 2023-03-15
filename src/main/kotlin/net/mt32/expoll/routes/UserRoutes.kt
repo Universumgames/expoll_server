@@ -19,7 +19,6 @@ import net.mt32.expoll.serializable.request.VoteChange
 import net.mt32.expoll.serializable.responses.CreateUserResponse
 import net.mt32.expoll.serializable.responses.UserDataResponse
 import net.mt32.expoll.serializable.responses.UserPersonalizeResponse
-import net.mt32.expoll.serializable.responses.asSimpleList
 
 fun Route.userRoutes() {
     route("/user") {
@@ -135,8 +134,7 @@ private suspend fun getUserData(call: ApplicationCall) {
         user.lastName,
         user.mail,
         user.active,
-        principal.admin || principal.superUser,
-        user.polls.asSimpleList()
+        principal.admin || principal.superUser
     )
     call.respond(simpleUserResponse)
 }

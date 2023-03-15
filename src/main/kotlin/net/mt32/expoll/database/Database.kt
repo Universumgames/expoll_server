@@ -158,4 +158,8 @@ abstract class DatabaseEntity : IDatabaseEntity {
      * Delete the current entity from the database and all child objects
      */
     abstract override fun delete(): Boolean
+
+    open fun saveConsecutive(): Boolean {
+        return false
+    }
 }

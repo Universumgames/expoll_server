@@ -6,11 +6,11 @@ import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsert
+import net.mt32.expoll.serializable.admin.responses.UserInfo
 import net.mt32.expoll.serializable.responses.SimpleUser
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
@@ -20,7 +20,7 @@ interface IUser {
     var firstName: String
     var lastName: String
     var mail: String
-    var polls: List<Poll>
+    val polls: List<Poll>
     val votes: List<Vote>
     val sessions: List<Session>
     val notes: List<PollUserNote>
@@ -37,12 +37,9 @@ class User : IUser, DatabaseEntity {
     override var firstName: String
     override var lastName: String
     override var mail: String
-    override var polls: List<Poll>
+    override val polls: List<Poll>
         get() {
             return cachedPolls ?: Poll.accessibleForUser(id)
-        }
-        set(value) {
-            cachedPolls = value
         }
     override val votes: List<Vote>
         get() = Vote.fromUser(this)
@@ -120,14 +117,13 @@ class User : IUser, DatabaseEntity {
                 it[admin] = this@User.admin
                 it[created] = this@User.created.toDB()
             }
+        }
+        return true
+    }
 
-            val polls = this@User.polls
-            UserPolls.deleteWhere { userID eq id }
-            UserPolls.batchInsert(polls.map { poll -> poll.id }) { pollID ->
-                this[UserPolls.pollID] = pollID
-                this[UserPolls.userID] = id
-            }
-
+    override fun saveConsecutive(): Boolean {
+        save()
+        transaction {
             sessions.forEach { it.save() }
             challenges.forEach { it.save() }
             authenticators.forEach { it.save() }
@@ -216,6 +212,19 @@ class User : IUser, DatabaseEntity {
         )
     }
 
+    fun asUserInfo(): UserInfo {
+        return UserInfo(
+            id,
+            username,
+            firstName,
+            lastName,
+            mail,
+            admin,
+            superAdmin,
+            active
+        )
+    }
+
     override fun equals(other: Any?): Boolean {
         if (other is User) return this.id == other.id
         if (other is SimpleUser) return this.id == other.id
@@ -224,5 +233,9 @@ class User : IUser, DatabaseEntity {
 
     fun addPoll(pollID: tPollID) {
         UserPolls.addConnection(id, pollID)
+    }
+
+    fun removePoll(pollID: tPollID){
+        UserPolls.removeConnection(id, pollID)
     }
 }

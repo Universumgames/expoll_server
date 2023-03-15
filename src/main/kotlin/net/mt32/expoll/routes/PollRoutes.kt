@@ -10,7 +10,6 @@ import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.PollUserNote
-import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
@@ -77,13 +76,13 @@ private suspend fun editPoll(call: ApplicationCall) {
     poll.allowsEditing = editPollRequest.allowsEditing ?: poll.allowsEditing
 
     if(editPollRequest.allowsEditing == false){
-        sendNotification(ExpollNotification(ExpollNotificationType.PollArchived, poll, null))
+        sendNotification(ExpollNotification(ExpollNotificationType.PollArchived, editPollRequest.pollID, null))
     }
 
     // remove users
-    poll.users = poll.users.filterNot { user -> editPollRequest.userRemove.contains(user.id) }
     editPollRequest.userRemove.forEach {
-        sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, poll, User.loadFromID(it)))
+        poll.removeUser(it)
+        sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, editPollRequest.pollID, it))
     }
 
     // add/remove options
@@ -107,11 +106,11 @@ private suspend fun editPoll(call: ApplicationCall) {
     call.startNewTiming("poll.save", "Save poll to database")
 
     poll.save()
-    sendNotification(ExpollNotification(ExpollNotificationType.PollEdited, poll, null))
+    sendNotification(ExpollNotification(ExpollNotificationType.PollEdited, editPollRequest.pollID, null))
 
     if (editPollRequest.delete == true) {
         poll.delete()
-        sendNotification(ExpollNotification(ExpollNotificationType.PollDeleted, poll, null))
+        sendNotification(ExpollNotification(ExpollNotificationType.PollDeleted, editPollRequest.pollID, null))
     }
     call.respond(ReturnCode.OK)
 }
@@ -127,15 +126,13 @@ private suspend fun leavePoll(call: ApplicationCall) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
-    val poll = Poll.fromID(pollID)
-    if (poll == null) {
+    if (!Poll.exists(pollID)) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
-    // TODO remove votes when user leaves poll
-    principal.user.polls = principal.user.polls.filterNot { it.id == pollID }
-    principal.user.save()
-    sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, poll, principal.user))
+    // TODO remove votes when user leaves poll?
+    principal.user.removePoll(pollID)
+    sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, pollID, principal.userID))
     call.respond(ReturnCode.OK)
 }
 
@@ -150,13 +147,12 @@ private suspend fun joinPoll(call: ApplicationCall) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
-    val poll = Poll.fromID(pollID)
-    if (poll == null) {
+    if (!Poll.exists(pollID)) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
-    principal.user.addPoll(poll.id)
-    sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, poll, principal.user))
+    principal.user.addPoll(pollID)
+    sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, pollID, principal.userID))
     call.respond(ReturnCode.OK)
 }
 
@@ -220,10 +216,12 @@ private suspend fun getPollList(call: ApplicationCall) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
+
     call.startNewTiming("polls.list", "Retrieve poll data from database")
     val polls = principal.user.polls
     call.startNewTiming("polls.transform", "Transform poll data to simplified list format")
     val simplePolls = polls.asPollListResponse()
+    call.startNewTiming("polls.serialize", "Serialize data and prepare to send")
     call.respond(simplePolls)
 }
 

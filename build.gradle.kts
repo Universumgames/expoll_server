@@ -23,6 +23,15 @@ application {
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
 }
 
+tasks.withType<Test> {
+    useJUnitPlatform{
+        ignoreFailures = true
+    }
+    testLogging {
+        events("passed", "skipped", "failed")
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -67,5 +76,10 @@ dependencies {
     implementation("org.eclipse.angus:angus-mail:2.0.1")
     //implementation("com.webauthn4j:webauthn4j-core:0.21.0.RELEASE")
     implementation("com.yubico:webauthn-server-core:2.4.0")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    testImplementation(platform("org.junit:junit-bom:5.7.0"))
+    testImplementation(kotlin("test-junit5"))
+    //testImplementation(kotlin("test"))
+
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0-Beta")
 }

@@ -1,8 +1,14 @@
 package net.mt32.expoll.notification
 
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.tPollID
+import net.mt32.expoll.tUserID
 
 enum class ExpollNotificationType(val body: String) {
     VoteChange("notification.vote.change %@ %@"),
@@ -32,8 +38,8 @@ enum class ExpollNotificationType(val body: String) {
 
 data class ExpollNotification(
     val type: ExpollNotificationType,
-    val poll: Poll,
-    val affectedUser: User?
+    val pollID: tPollID,
+    val affectedUserID: tUserID?
 )
 
 fun userWantNotificationType(type: ExpollNotificationType, user: User): Boolean {
@@ -48,22 +54,30 @@ fun userWantNotificationType(type: ExpollNotificationType, user: User): Boolean 
     }
 }
 
-// TODO implement sending notification on event
-suspend fun sendNotification(notification: ExpollNotification) {
-    val apnsNotification = APNsNotification(
-        "Poll ${notification.poll.name} was updated",
-        null,
-        null,
-        bodyLocalisationKey = notification.type.body,
-        bodyLocalisationArgs = notification.type.notificationArgs(notification.poll, notification.affectedUser)
-    )
-    val payload = APNsPayload(APS(apnsNotification))
-    val expiration = UnixTimestamp.now().addDays(5)
-    notification.poll.users.forEach { user ->
-        if (!userWantNotificationType(notification.type, user)) return@forEach
+// TODO implement sending notification async on event
+@OptIn(DelicateCoroutinesApi::class)
+fun sendNotification(notification: ExpollNotification) {
+    GlobalScope.launch {
+        val poll = Poll.fromID(notification.pollID)
+        val affectedUser = notification.affectedUserID?.let { User.loadFromID(it) }
+        if (poll == null) return@launch
+        val apnsNotification = APNsNotification(
+            "Poll ${poll.name} was updated",
+            null,
+            null,
+            bodyLocalisationKey = notification.type.body,
+            bodyLocalisationArgs = notification.type.notificationArgs(poll, affectedUser)
+        )
+        val payload = APNsPayload(APS(apnsNotification))
+        val expiration = UnixTimestamp.now().addDays(5)
+        poll.users.forEach { user ->
+            if (!userWantNotificationType(notification.type, user)) return@forEach
 
-        user.apnDevices.forEach { device ->
-            APNsNotificationHandler.sendAPN(device.deviceID, expiration, payload, APNsPriority.medium)
+            user.apnDevices.forEach { device ->
+                runBlocking {
+                    APNsNotificationHandler.sendAPN(device.deviceID, expiration, payload, APNsPriority.medium)
+                }
+            }
         }
     }
 }

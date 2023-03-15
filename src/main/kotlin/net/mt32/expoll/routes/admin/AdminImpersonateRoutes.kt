@@ -8,22 +8,25 @@ import io.ktor.server.sessions.*
 import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.auth.ExpollCookie
 import net.mt32.expoll.auth.adminAuth
+import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
 
-internal fun Route.adminImpersonateRoutes(){
-    route("/"){
-        authenticate(adminAuth){
+internal fun Route.adminImpersonateRoutes() {
+    route("/") {
+        authenticate(adminAuth) {
             post("/impersonate") {
                 impersonate(call)
             }
         }
-        get("/isImpersonating") {
-            isImpersonating(call)
-        }
-        post("/unimpersonate") {
-            unImpersonate(call)
+        authenticate(normalAuth) {
+            get("/isImpersonating") {
+                isImpersonating(call)
+            }
+            post("/unImpersonate") {
+                unImpersonate(call)
+            }
         }
     }
 }
@@ -65,6 +68,11 @@ private suspend fun impersonate(call: ApplicationCall) {
 }
 
 private suspend fun isImpersonating(call: ApplicationCall) {
+    val principal = call.principal<BasicSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+        return
+    }
     val session = call.sessions.get<ExpollCookie>()
     if (session == null) {
         call.respond(ReturnCode.MISSING_PARAMS)
@@ -80,7 +88,7 @@ private suspend fun isImpersonating(call: ApplicationCall) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
-    call.respond(user.asSimpleUser())
+    call.respond(principal.user.asUserInfo())
 }
 
 private suspend fun unImpersonate(call: ApplicationCall) {
