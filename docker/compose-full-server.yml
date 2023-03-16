@@ -45,8 +45,8 @@ services:
         networks:
             - expoll_net
             - out
-        ports:
-            - "80:80"
+#        ports:
+#            - "80:80"
 
 volumes:
     expoll_db:
