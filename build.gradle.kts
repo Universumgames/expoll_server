@@ -15,9 +15,9 @@ kotlin {
 }
 
 group = "net.mt32.expoll"
-version = "0.0.1"
+version = "3.0.0"
 application {
-    mainClass.set("io.ktor.server.netty.EngineMain")
+    mainClass.set("net.mt32.expoll.ApplicationKt")
 
     val isDevelopment: Boolean = project.ext.has("development")
     applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
@@ -29,6 +29,12 @@ tasks.withType<Test> {
     }
     testLogging {
         events("passed", "skipped", "failed")
+    }
+}
+
+ktor{
+    fatJar{
+        archiveFileName.set("expoll.jar")
     }
 }
 

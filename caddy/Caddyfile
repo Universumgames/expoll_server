@@ -1,0 +1,37 @@
+{
+  #TESTING
+  #local_certs
+  #debug
+
+  #Production
+  http_port 80
+  #https_port 443
+  auto_https off
+}
+
+:80 {
+  root * /www/data
+  route /api/* {
+    uri strip_prefix /api
+    reverse_proxy expoll_apiServer:6060
+  }
+  file_server
+
+  @phpFiles path *.php /fpm-ping
+  reverse_proxy @phpFiles unix//run/php-fpm.sock {
+    transport fastcgi {
+        split .php
+    }
+  }
+
+  rewrite /share /share.php
+  rewrite /swagger /api/swagger
+
+  handle_errors {
+      @404 expression `{err.status_code} == 404`
+      handle @404 {
+        rewrite * /index.html
+        file_server
+      }
+    }
+}

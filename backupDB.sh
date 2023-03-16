@@ -1,1 +1,0 @@
-docker expoll_database exec db mysqldump -uroot -ppassword --all-databases > ../dbBackup/dump-$(date +%F_%H-%M-%S).sql

@@ -11,8 +11,8 @@ services:
             MYSQL_ROOT_PASSWORD: password
             MYSQL_DATABASE: expoll
         volumes:
-            - mysqlDB:/var/lib/mysql
+            - expoll_db:/var/lib/mysql
         container_name: expoll_database
 
 volumes:
-    mysqlDB:
+    expoll_db:

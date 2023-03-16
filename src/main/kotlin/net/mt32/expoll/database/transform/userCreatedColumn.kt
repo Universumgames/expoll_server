@@ -6,6 +6,7 @@ import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.UnixTimestamp
 
 fun Transformer.addUserCreationColumn() {
+    if(!tableExists(User.tableName)) return
     if(!columnExists(User.tableName, User.created.name)){
         addColumn(User.tableName, User.created.name, "BIGINT")
     }

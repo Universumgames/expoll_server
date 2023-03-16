@@ -18,7 +18,7 @@ services:
     api:
         build:
             context: ../../
-            dockerfile: ./server/dockerfile
+            dockerfile: ./server/Dockerfile
         restart: unless-stopped
         environment:
             - NODE_ENV=production
@@ -30,12 +30,12 @@ services:
             - "db"
         networks:
             - expoll_net
-    nginx:
+    caddy:
         build:
             context: ../../
-            dockerfile: ./server/nginx/dockerfile
+            dockerfile: ./server/caddy/Dockerfile
         restart: unless-stopped
-        container_name: expoll_nginx
+        container_name: expoll_caddy
         depends_on:
             - "api"
             - "db"
@@ -45,6 +45,8 @@ services:
         networks:
             - expoll_net
             - out
+        ports:
+            - "80:80"
 
 volumes:
     expoll_db:
