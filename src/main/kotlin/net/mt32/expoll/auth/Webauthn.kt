@@ -7,9 +7,8 @@ import com.yubico.webauthn.data.ByteArray
 import com.yubico.webauthn.data.PublicKeyCredentialDescriptor
 import net.mt32.expoll.entities.Authenticator
 import net.mt32.expoll.entities.User
-import net.mt32.expoll.helper.base64ToByteArray
-import net.mt32.expoll.helper.toBase64
 import java.util.*
+import kotlin.jvm.optionals.getOrNull
 
 object WebauthnRegistrationStorage : CredentialRepository {
     override fun getCredentialIdsForUsername(username: String?): MutableSet<PublicKeyCredentialDescriptor> {
@@ -17,7 +16,7 @@ object WebauthnRegistrationStorage : CredentialRepository {
         val user = User.byUsername(username) ?: return mutableSetOf()
         return Authenticator.fromUser(user.id).map { auth ->
             PublicKeyCredentialDescriptor.builder()
-                .id(ByteArray(auth.credentialID.toByteArray()))
+                .id(ByteArray.fromBase64(auth.credentialID))
                 /*.transports(auth.transports.map { transport ->
                     println(transport)
                     AuthenticatorTransport.values().find { it.id.equals(transport, ignoreCase = true) }
@@ -29,28 +28,27 @@ object WebauthnRegistrationStorage : CredentialRepository {
 
     override fun getUsernameForUserHandle(userHandle: ByteArray?): Optional<String> {
         if (userHandle == null) return Optional.empty()
-        val id = userHandle.bytes.toBase64()
-        val user = User.loadFromID(id) ?: return Optional.empty()
+        val user = User.fromUserHandle(userHandle) ?: return Optional.empty()
         return Optional.of(user.username)
     }
 
     override fun getUserHandleForUsername(username: String?): Optional<ByteArray> {
         if (username == null) return Optional.empty()
         val user = User.byUsername(username) ?: return Optional.empty()
-        return Optional.of(ByteArray(user.id.toByteArray()))
+        return Optional.of(user.userHandle)
     }
 
     override fun lookup(credentialId: ByteArray?, userHandle: ByteArray?): Optional<RegisteredCredential> {
         if (userHandle == null) return Optional.empty()
-        val id = userHandle.bytes.toBase64()
-        val user = User.loadFromID(id) ?: return Optional.empty()
-        val auth = Authenticator.fromUser(user.id).find { it.credentialID == credentialId?.bytes?.toBase64() }
+        val username = getUsernameForUserHandle(userHandle).getOrNull() ?: return Optional.empty()
+        val user = User.byUsername(username)?: return Optional.empty()
+        val auth = Authenticator.fromUser(user.id).find { it.credentialID == credentialId?.base64 }
             ?: return Optional.empty()
         return Optional.of(
             RegisteredCredential.builder()
-                .credentialId(ByteArray(auth.credentialID.base64ToByteArray()))
-                .userHandle(ByteArray(user.id.toByteArray()))
-                .publicKeyCose(ByteArray(auth.credentialPublicKey.base64ToByteArray()))
+                .credentialId(ByteArray.fromBase64(auth.credentialID))
+                .userHandle(user.userHandle)
+                .publicKeyCose(ByteArray.fromBase64(auth.credentialPublicKey))
                 .signatureCount(auth.counter.toLong())
                 .build()
         )
@@ -58,16 +56,16 @@ object WebauthnRegistrationStorage : CredentialRepository {
 
     override fun lookupAll(credentialId: ByteArray?): Set<RegisteredCredential> {
         if (credentialId == null) return setOf()
-        val auth = credentialId.bytes?.toBase64()?.let { Authenticator.fromCredentialID(it) }
+        val base64 = credentialId.base64
+        val auth = Authenticator.fromCredentialID(base64)
             ?: return setOf()
         return setOf(
             RegisteredCredential.builder()
-                .credentialId(ByteArray(auth.credentialID.base64ToByteArray()))
-                .userHandle(ByteArray(auth.userID.toByteArray()))
-                .publicKeyCose(ByteArray(auth.credentialPublicKey.base64ToByteArray()))
+                .credentialId(ByteArray.fromBase64(auth.credentialID))
+                .userHandle(ByteArray.fromBase64(auth.userID))
+                .publicKeyCose(ByteArray.fromBase64(auth.credentialPublicKey))
                 .signatureCount(auth.counter.toLong())
                 .build()
         )
     }
-
 }

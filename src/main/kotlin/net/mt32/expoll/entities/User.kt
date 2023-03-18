@@ -1,5 +1,7 @@
 package net.mt32.expoll.entities
 
+import com.yubico.webauthn.data.ByteArray
+import io.ktor.util.*
 import net.mt32.expoll.config
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
@@ -75,6 +77,9 @@ class User : IUser, DatabaseEntity {
         get() = APNDevice.fromUser(id)
 
     val created: UnixTimestamp
+
+
+
 
     constructor(
         username: String,
@@ -201,7 +206,25 @@ class User : IUser, DatabaseEntity {
                 return@transaction User.selectAll().toList().map { User(it) }
             }
         }
+
+        fun fromUserHandle(handle: ByteArray?): User?{
+            if(handle == null) return null
+            val b64 = handle.base64
+            val decoded = b64.decodeBase64String()
+            return loadFromID(decoded)
+        }
+
+        /*val id = "4411a4b1-f62a-11ec-bd56-0242ac190002"
+    val b64 = id.encodeBase64()
+    println(b64)
+    val bb64 = ByteArray.fromBase64(b64)
+    val decoded2 = bb64.base64
+    println(decoded2.decodeBase64String())
+    println(b64.decodeBase64String())*/
     }
+
+    val userHandle: ByteArray
+        get() = ByteArray.fromBase64(id.encodeBase64())
 
     fun asSimpleUser(): SimpleUser {
         return SimpleUser(

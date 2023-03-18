@@ -3,6 +3,7 @@ package net.mt32.expoll
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.util.*
 import net.mt32.expoll.database.DatabaseFactory
 import net.mt32.expoll.plugins.*
 
@@ -12,6 +13,9 @@ fun main(args: Array<String>) {
         println("Define an environment to load the config from by providing it as the first argument")
     ConfigLoader.load(environment)
     DatabaseFactory.init()
+
+
+
 
     embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
