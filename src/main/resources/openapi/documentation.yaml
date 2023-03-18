@@ -834,7 +834,12 @@ components:
           required: false
         userRemove:
           type: array
-          description: list of all userIDsthat should be removed from this poll
+          description: list of all userIDs that should be removed from this poll
+          items:
+            type: string
+        userAdd:
+          type: array
+          description: list of userIDs, emails or usernames that should be added to the poll
           items:
             type: string
         votes:

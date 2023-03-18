@@ -27,6 +27,7 @@ data class EditPollRequest(
     val allowsMaybe: Boolean? = null,
     val allowsEditing: Boolean? = null,
     val userRemove: List<tUserID> = listOf(),
+    val userAdd: List<tUserID> = listOf(),
     val votes: List<VoteChange> = listOf(),
     val options: List<ComplexOption> = listOf(),
     val notes: List<UserNote> = listOf()

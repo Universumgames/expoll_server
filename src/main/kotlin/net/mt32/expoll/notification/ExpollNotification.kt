@@ -9,6 +9,7 @@ import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
+import java.util.*
 
 enum class ExpollNotificationType(val body: String) {
     VoteChange("notification.vote.change %@ %@"),

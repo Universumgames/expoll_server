@@ -10,6 +10,7 @@ import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.PollUserNote
+import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
@@ -83,6 +84,16 @@ private suspend fun editPoll(call: ApplicationCall) {
     editPollRequest.userRemove.forEach {
         poll.removeUser(it)
         sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, editPollRequest.pollID, it))
+    }
+
+    // add users
+    editPollRequest.userAdd.forEach {
+        var user = User.loadFromID(it)
+        if(user == null) user = User.byUsername(it)
+        if(user == null) user = User.byMail(it)
+        if(user == null) return@forEach
+        poll.addUser(user.id)
+        sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, editPollRequest.pollID, user.id))
     }
 
     // add/remove options
