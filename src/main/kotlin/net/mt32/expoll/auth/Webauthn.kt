@@ -15,8 +15,6 @@ object WebauthnRegistrationStorage : CredentialRepository {
     override fun getCredentialIdsForUsername(username: String?): MutableSet<PublicKeyCredentialDescriptor> {
         if (username == null) return mutableSetOf()
         val user = User.byUsername(username) ?: return mutableSetOf()
-        print("auths")
-        println(user.authenticators.map { it.transports })
         return Authenticator.fromUser(user.id).map { auth ->
             PublicKeyCredentialDescriptor.builder()
                 .id(ByteArray(auth.credentialID.toByteArray()))

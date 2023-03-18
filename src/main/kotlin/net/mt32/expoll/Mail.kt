@@ -17,7 +17,7 @@ object Mail {
             props["mail.smtp.auth"] = "true"
             props["mail.smtp.starttls.enable"] = config.mailPort
             props["mail.smtp.starttls.enable"] = "true"
-            props.setProperty("mail.debug", "true");
+            props.setProperty("mail.debug", "false");
             props.setProperty("mail.smtp.ssl.protocols", "TLSv1.2")
 
 
@@ -43,6 +43,5 @@ object Mail {
         } catch (e: Exception) {
             e.printStackTrace()
         }
-
     }
 }

@@ -63,7 +63,7 @@ val rpIdentity: RelyingPartyIdentity
     get() = RelyingPartyIdentity.builder().id(config.webauthn.rpID).name(config.webauthn.rpName).build()
 
 val rp: RelyingParty
-    get() = RelyingParty.builder().identity(rpIdentity).credentialRepository(WebauthnRegistrationStorage).build()
+    get() = RelyingParty.builder().identity(rpIdentity).credentialRepository(WebauthnRegistrationStorage).origins(setOf(config.webauthn.origin)).build()
 
 val registrationStorage: MutableMap<tUserID, PublicKeyCredentialCreationOptions> = mutableMapOf()
 
@@ -120,7 +120,7 @@ private suspend fun registerResponse(call: ApplicationCall) {
             UnixTimestamp.now()
         )
         auth.save()
-        call.respondText("{\"verify\":true\"}")
+        call.respondText("{\"verified\":true\"}")
     } catch (e: RegistrationFailedException) {
         e.printStackTrace()
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
