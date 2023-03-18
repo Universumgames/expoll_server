@@ -7,21 +7,25 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.auth.ExpollCookie
+import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.transactions.transaction
 
 fun Route.authRoutes(){
     route("auth"){
         simpleAuthRoutes()
         webauthnRoutes()
-        delete("logout"){
-            logout(call)
-        }
-        delete("logoutAll"){
-            logoutAll(call)
+        authenticate(normalAuth) {
+            delete("logout") {
+                logout(call)
+            }
+            delete("logoutAll") {
+                logoutAll(call)
+            }
         }
     }
 }
@@ -50,7 +54,9 @@ private suspend fun logout(call: ApplicationCall){
         session?.delete()
         call.respond(ReturnCode.OK)
     }else {
-        Session.deleteWhere { Session.loginKey eq principal.loginKey }
+        transaction {
+            Session.deleteWhere { Session.loginKey eq principal.loginKey }
+        }
         call.sessions.clear<ExpollCookie>()
     }
 }
