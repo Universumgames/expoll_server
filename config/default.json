@@ -46,5 +46,11 @@
         "email": "mail",
         "username": "testuser",
         "loginKey": "loginkey"
+    },
+    "jwt": {
+        "secret": "your signature secret",
+        "issuer": "your token issuer",
+        "audience": "destination domain for token",
+        "realm": "summary of tokens purpose"
     }
 }

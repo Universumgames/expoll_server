@@ -8,6 +8,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.encodeToString
+import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.checkVersionCompatibility
@@ -72,5 +73,11 @@ fun Route.apiRouting() {
         }
         adminRoute()
 
+        authenticate("jwtAuth") {
+            get("/test2"){
+                println(call.principal<JWTSessionPrincipal>())
+                call.respond(call.principal<JWTSessionPrincipal>()?: "")
+            }
+        }
     }
 }

@@ -150,6 +150,10 @@ class User : IUser, DatabaseEntity {
         return loginKeySession
     }
 
+    fun createOTP(): OTP{
+        return OTP.create(id)
+    }
+
     companion object : Table("user") {
         const val maxUserNameLength = 255
         const val maxNameComponentLength = 255

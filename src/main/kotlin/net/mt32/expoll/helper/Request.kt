@@ -3,7 +3,7 @@ package net.mt32.expoll.helper
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import kotlinx.serialization.json.jsonObject
-import net.mt32.expoll.auth.cookieName
+import net.mt32.expoll.auth.oldCookieName
 import java.net.URLDecoder
 
 @Deprecated(
@@ -12,7 +12,7 @@ import java.net.URLDecoder
 )
 suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
     val request = call.request
-    var cookie = request.cookies[cookieName]
+    var cookie = request.cookies[oldCookieName]
     if (cookie != null) {
         if (cookie.startsWith("j:")) cookie = URLDecoder.decode(cookie.substring(2), "UTF-8")
         if (cookie != null) {

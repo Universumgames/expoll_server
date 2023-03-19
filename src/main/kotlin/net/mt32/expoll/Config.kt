@@ -59,6 +59,14 @@ data class CompatibleVersionDescriptor(
 )
 
 @Serializable
+data class JWTConfig(
+    val secret: String = "",
+    val issuer: String = "",
+    val audience: String = "",
+    val realm: String = ""
+)
+
+@Serializable
 data class ConfigData(
     val mail: MailConfig = MailConfig(),
     val serverPort: Int = 0,
@@ -74,7 +82,8 @@ data class ConfigData(
     val notifications: NotificationConfig = NotificationConfig(),
     val testUser: TestUserConfig = TestUserConfig(),
     val minimumRequiredClientVersion: String = "",
-    val compatibleVersions: List<CompatibleVersionDescriptor> = listOf()
+    val compatibleVersions: List<CompatibleVersionDescriptor> = listOf(),
+    val jwt: JWTConfig = JWTConfig()
 )
 
 var config: ConfigData = ConfigData()

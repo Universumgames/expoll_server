@@ -1,6 +1,9 @@
 package net.mt32.expoll.auth
 
+import com.auth0.jwt.interfaces.Payload
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import kotlinx.serialization.Serializable
@@ -8,6 +11,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.LoginKeySession
+import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.*
 import net.mt32.expoll.tUserID
@@ -18,10 +22,13 @@ import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
-const val cookieName = "expoll_dat"
+const val cookieName = "expoll_session"
+@Deprecated("use jwt cookie instead")
+const val oldCookieName = "expoll_dat"
 val normalAuth: String? = null
 const val adminAuth = "admin"
 
+@Deprecated("user ExpollJWTCookie instead")
 @Serializable
 data class ExpollCookie(
     val loginKey: String,
@@ -38,14 +45,40 @@ data class ExpollCookie(
     }
 }
 
+@Serializable
+data class ExpollJWTCookie(
+    val jwt: String,
+    val originalJWT: String? = null
+){
+    companion object : SessionSerializer<ExpollJWTCookie> {
+        override fun deserialize(text: String): ExpollJWTCookie {
+            return defaultJSON.decodeFromString(text)
+        }
+
+        override fun serialize(session: ExpollJWTCookie): String {
+            return defaultJSON.encodeToString(session)
+        }
+    }
+}
+
+@Deprecated("Use JWT authentication instead")
 data class BasicSessionPrincipal(
     val loginKey: String,
     val userID: tUserID,
     val loginKeySession: LoginKeySession,
     val user: User,
     val admin: Boolean,
-    val superUser: Boolean
+    val superAdmin: Boolean
 ) : Principal
+
+data class JWTSessionPrincipal(
+    val payload: Payload,
+    val session: Session,
+    val userID: tUserID,
+    val user: User,
+    val admin: Boolean,
+    val superAdmin: Boolean
+): Principal
 
 class UserAuthentication internal constructor(val authConfig: Config) : AuthenticationProvider(authConfig) {
     override suspend fun onAuthenticate(context: AuthenticationContext) {
