@@ -10,7 +10,10 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import kotlinx.coroutines.runBlocking
-import net.mt32.expoll.auth.*
+import net.mt32.expoll.auth.ExpollJWTCookie
+import net.mt32.expoll.auth.adminAuth
+import net.mt32.expoll.auth.cookieName
+import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.helper.getDataFromAny
@@ -20,13 +23,7 @@ import kotlin.collections.set
 fun Application.configureSecurity() {
 
     authentication {
-        checkLoggedIn(normalAuth) {
-
-        }
-        checkLoggedIn(adminAuth) {
-            checkAdmin = true
-        }
-        jwt("jwtAuth") {
+        jwt(normalAuth) {
             realm = config.jwt.realm
             verifier(
                 JWT
@@ -36,7 +33,28 @@ fun Application.configureSecurity() {
                     .build()
             )
             validate { credential ->
-                return@validate Session.loadAndVerify(credential)
+                return@validate Session.loadAndVerify(this, credential)
+            }
+            authHeader { call->
+                var header = call.request.parseAuthorizationHeader()
+                if(header == null){
+                    val jwt = runBlocking { return@runBlocking call.getDataFromAny("jwt") }
+                    header = parseAuthorizationHeader("Bearer $jwt")
+                }
+                return@authHeader header
+            }
+        }
+        jwt(adminAuth){
+            realm = config.jwt.realm
+            verifier(
+                JWT
+                    .require(Algorithm.HMAC256(config.jwt.secret))
+                    .withAudience(config.jwt.audience)
+                    .withIssuer(config.jwt.issuer)
+                    .build()
+            )
+            validate { credential ->
+                return@validate Session.loadAndVerify(this, credential, withAdmin = true)
             }
             authHeader { call->
                 var header = call.request.parseAuthorizationHeader()
@@ -50,11 +68,6 @@ fun Application.configureSecurity() {
     }
     data class MySession(val count: Int = 0)
     install(Sessions) {
-        cookie<ExpollCookie>(oldCookieName) {
-            cookie.extensions["SameSite"] = "lax"
-            serializer = ExpollCookie.Companion
-            cookie.maxAgeInSeconds = 60 * 60 * 24 * 120 // 120 days ?
-        }
         cookie<ExpollJWTCookie>(cookieName){
             cookie.extensions["SameSite"] = "lax"
             serializer = ExpollJWTCookie.Companion

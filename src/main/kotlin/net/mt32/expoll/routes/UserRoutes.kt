@@ -39,12 +39,6 @@ fun Route.userRoutes() {
             // TODO implement delete user endpoint
             // TODO implement delete user confirmation endpoint
         }
-        get("test") {
-            val session = call.sessions.get<ExpollCookie>()
-            val prince = call.principal<BasicSessionPrincipal>()
-            print(prince)
-            call.respondText { session?.loginKey ?: "not found" }
-        }
     }
 }
 
@@ -100,7 +94,7 @@ private suspend fun createUser(call: ApplicationCall) {
     user.save()
 
     call.startNewTiming("session.create", "Create new Session")
-    val session = user.createSession()
+    val session = user.createSessionFromScratch()
 
     call.startNewTiming("user.create.welcomeMail", "Send welcome mail")
     val port = config.frontEndPort
@@ -115,12 +109,13 @@ private suspend fun createUser(call: ApplicationCall) {
                 ")"
     )
 
-    call.sessions.set(ExpollCookie(session.loginKey))
-    call.respond(CreateUserResponse(session.loginKey))
+    val jwt = session.getJWT()
+    call.sessions.set(ExpollJWTCookie(jwt))
+    call.respond(CreateUserResponse(jwt))
 }
 
 private suspend fun getUserData(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
@@ -141,7 +136,7 @@ private suspend fun getUserData(call: ApplicationCall) {
 
 private suspend fun getPersonalizedData(call: ApplicationCall) {
     call.startNewTiming("user.basic", "Gather user and session data")
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
@@ -154,7 +149,7 @@ private suspend fun getPersonalizedData(call: ApplicationCall) {
     call.startNewTiming("user.votes", "Gather votes")
     val votes = user.votes.map { VoteChange(it.pollID, it.optionID, it.votedFor.id) }
     call.startNewTiming("user.sessions", "Gather sessions")
-    val sessions = user.loginKeySessions.map { it.asSafeSession(principal.loginKey) }
+    val sessions = user.sessions.map { it.asSafeSession(principal.session) }
     call.startNewTiming("user.auths", "Gather authenticators")
     val auths = user.authenticators.map { it.asSimpleAuthenticator() }
 

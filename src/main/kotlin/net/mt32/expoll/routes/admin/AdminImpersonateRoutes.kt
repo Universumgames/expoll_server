@@ -5,8 +5,8 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import net.mt32.expoll.auth.BasicSessionPrincipal
-import net.mt32.expoll.auth.ExpollCookie
+import net.mt32.expoll.auth.ExpollJWTCookie
+import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.auth.adminAuth
 import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.User
@@ -33,17 +33,17 @@ internal fun Route.adminImpersonateRoutes() {
 
 
 private suspend fun impersonate(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    val session = call.sessions.get<ExpollCookie>()
+    val session = call.sessions.get<ExpollJWTCookie>()
     if (session == null) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
-    if (session.originalLoginKey != null) {
+    if (session.originalJWT != null) {
         call.respond(ReturnCode.UNPROCESSABLE_ENTITY)
         return
     }
@@ -62,28 +62,29 @@ private suspend fun impersonate(call: ApplicationCall) {
         return
     }
 
-    val newSession = impersonateUser.createSession()
-    call.sessions.set(ExpollCookie(newSession.loginKey, session.loginKey))
-    call.respond(newSession.loginKey)
+    val newSession = impersonateUser.createSessionFromScratch()
+    val newJwt = newSession.getJWT()
+    call.sessions.set(ExpollJWTCookie(newJwt, session.jwt))
+    call.respond(newJwt)
 }
 
 private suspend fun isImpersonating(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    val session = call.sessions.get<ExpollCookie>()
+    val session = call.sessions.get<ExpollJWTCookie>()
     if (session == null) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
-    val origKey = session.originalLoginKey
+    val origKey = session.originalJWT
     if (origKey == null) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
-    val user = User.loadFromLoginKey(origKey)
+    val user = User.loadFromID(principal.originalUserID ?: "")
     if (user == null) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
@@ -92,16 +93,16 @@ private suspend fun isImpersonating(call: ApplicationCall) {
 }
 
 private suspend fun unImpersonate(call: ApplicationCall) {
-    val session = call.sessions.get<ExpollCookie>()
+    val session = call.sessions.get<ExpollJWTCookie>()
     if (session == null) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
-    val origKey = session.originalLoginKey
+    val origKey = session.originalJWT
     if (origKey == null) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
-    call.sessions.set(ExpollCookie(origKey))
+    call.sessions.set(ExpollJWTCookie(origKey))
     call.respond(ReturnCode.OK)
 }

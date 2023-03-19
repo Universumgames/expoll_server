@@ -6,7 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import net.mt32.expoll.PollType
-import net.mt32.expoll.auth.BasicSessionPrincipal
+import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.PollUserNote
@@ -44,7 +44,7 @@ fun Route.pollRoutes() {
 }
 
 private suspend fun editPoll(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
@@ -127,7 +127,7 @@ private suspend fun editPoll(call: ApplicationCall) {
 }
 
 private suspend fun leavePoll(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
@@ -148,7 +148,7 @@ private suspend fun leavePoll(call: ApplicationCall) {
 }
 
 private suspend fun joinPoll(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
@@ -168,7 +168,7 @@ private suspend fun joinPoll(call: ApplicationCall) {
 }
 
 private suspend fun createPoll(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
@@ -209,7 +209,7 @@ private suspend fun createPoll(call: ApplicationCall) {
 }
 
 private suspend fun getPolls(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
@@ -222,7 +222,7 @@ private suspend fun getPolls(call: ApplicationCall) {
 }
 
 private suspend fun getPollList(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
@@ -237,7 +237,7 @@ private suspend fun getPollList(call: ApplicationCall) {
 }
 
 private suspend fun getDetailedPoll(call: ApplicationCall, pollID: tPollID) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return

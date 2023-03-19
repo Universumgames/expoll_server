@@ -6,7 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.decodeFromString
-import net.mt32.expoll.auth.BasicSessionPrincipal
+import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.entities.APNDevice
 import net.mt32.expoll.entities.NotificationPreferences
 import net.mt32.expoll.helper.ReturnCode
@@ -33,7 +33,7 @@ fun Route.notificationRoutes() {
 }
 
 private suspend fun registerAppleDevice(call:ApplicationCall){
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.UNAUTHORIZED)
         return
@@ -58,7 +58,7 @@ private suspend fun registerAppleDevice(call:ApplicationCall){
 }
 
 private suspend fun setNotification(call: ApplicationCall){
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.UNAUTHORIZED)
         return
@@ -78,7 +78,7 @@ private suspend fun setNotification(call: ApplicationCall){
 }
 
 private suspend fun getNotifications(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.UNAUTHORIZED)
         return

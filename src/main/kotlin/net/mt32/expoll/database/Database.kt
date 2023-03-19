@@ -35,7 +35,6 @@ object DatabaseFactory {
                 PollOptionString,
                 PollOptionDate,
                 PollOptionDateTime,
-                LoginKeySession,
                 OTP,
                 Session,
                 User,

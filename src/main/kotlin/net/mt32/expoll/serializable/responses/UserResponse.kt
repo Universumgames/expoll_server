@@ -19,7 +19,7 @@ data class UserDataResponse(
 
 @Serializable
 data class CreateUserResponse(
-    val loginKey: String
+    val jwt: String
 )
 
 @Serializable
@@ -51,6 +51,6 @@ data class UserPersonalizeResponse(
 data class SafeSession(
     val expiration: tClientDateTime,
     val userAgent: String?,
-    val shortKey: String,
+    val nonce: String,
     val active: Boolean
 )

@@ -6,7 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import net.mt32.expoll.VoteValue
-import net.mt32.expoll.auth.BasicSessionPrincipal
+import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.Vote
 import net.mt32.expoll.helper.ReturnCode
@@ -26,7 +26,7 @@ fun Route.voteRoutes() {
 }
 
 suspend fun voteRoute(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return

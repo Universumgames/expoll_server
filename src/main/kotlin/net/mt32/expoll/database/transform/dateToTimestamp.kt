@@ -11,7 +11,6 @@ import java.util.*
  * Transform all tables to use unix timestamps instead of date/datetime
  */
 fun Transformer.dateToTimestamp() {
-    sessionDateToTimestamp()
     pollOptionDateToTimestamp()
     apnDeviceDateToTimestamp()
     confirmationDateToTimestamp()
@@ -84,9 +83,4 @@ private fun pollOptionDateToTimestamp() {
 
     changeDateColumnToTimestamp(PollOptionDate.Companion, PollOptionDate.dateStartTimestamp, "dateStart")
     changeDateColumnToTimestamp(PollOptionDate.Companion, PollOptionDate.dateEndTimestamp, "dateEnd", "NULL")
-}
-
-// Session
-private fun sessionDateToTimestamp() {
-    changeDateColumnToTimestamp(LoginKeySession.Companion, LoginKeySession.expirationTimestamp, "expiration")
 }

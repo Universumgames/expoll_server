@@ -12,7 +12,10 @@ import net.mt32.expoll.serializable.admin.responses.UserInfo
 import net.mt32.expoll.serializable.responses.SimpleUser
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
@@ -24,7 +27,7 @@ interface IUser {
     var mail: String
     val polls: List<Poll>
     val votes: List<Vote>
-    val loginKeySessions: List<LoginKeySession>
+    val sessions: List<Session>
     val notes: List<PollUserNote>
     var active: Boolean
     var admin: Boolean
@@ -46,9 +49,9 @@ class User : IUser, DatabaseEntity {
     override val votes: List<Vote>
         get() = Vote.fromUser(this)
 
-    override val loginKeySessions: List<LoginKeySession>
+    override val sessions: List<Session>
         get() {
-            return LoginKeySession.forUser(id)
+            return Session.forUser(id)
         }
     override val notes: List<PollUserNote>
         get() {
@@ -129,7 +132,7 @@ class User : IUser, DatabaseEntity {
     override fun saveConsecutive(): Boolean {
         save()
         transaction {
-            loginKeySessions.forEach { it.save() }
+            sessions.forEach { it.save() }
             challenges.forEach { it.save() }
             authenticators.forEach { it.save() }
             votes.forEach { it.save() }
@@ -141,17 +144,14 @@ class User : IUser, DatabaseEntity {
         TODO("Not yet implemented")
     }
 
-    /**
-     * Creates a new session and saves it
-     */
-    fun createSession(): LoginKeySession {
-        val loginKeySession = LoginKeySession.createSession(id)
-        loginKeySession.save()
-        return loginKeySession
-    }
-
     fun createOTP(): OTP{
         return OTP.create(id)
+    }
+
+    fun createSessionFromScratch(): Session{
+        val session = Session(id, "unknown")
+        session.save()
+        return session
     }
 
     companion object : Table("user") {
@@ -176,18 +176,6 @@ class User : IUser, DatabaseEntity {
             return transaction {
                 val userRow = User.select { User.id eq id }.limit(1).firstOrNull()
                 return@transaction userRow?.let { User(it) }
-            }
-        }
-
-        fun loadFromLoginKey(loginKey: String): User? {
-            return transaction {
-                val loginKeySessionUser = Join(
-                    LoginKeySession, User,
-                    onColumn = LoginKeySession.userID, otherColumn = User.id,
-                    joinType = JoinType.INNER
-                ).select { (LoginKeySession.userID eq User.id) and (LoginKeySession.loginKey eq loginKey) }.firstOrNull()
-                    ?: return@transaction null
-                return@transaction User(loginKeySessionUser)
             }
         }
 

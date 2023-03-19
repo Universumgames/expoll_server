@@ -12,8 +12,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import net.mt32.expoll.auth.BasicSessionPrincipal
-import net.mt32.expoll.auth.ExpollCookie
+import net.mt32.expoll.auth.ExpollJWTCookie
+import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.auth.WebauthnRegistrationStorage
 import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.config
@@ -68,7 +68,7 @@ val rp: RelyingParty
 val registrationStorage: MutableMap<tUserID, PublicKeyCredentialCreationOptions> = mutableMapOf()
 
 private suspend fun registerInit(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.UNAUTHORIZED)
         return
@@ -87,7 +87,7 @@ private suspend fun registerInit(call: ApplicationCall) {
 }
 
 private suspend fun registerResponse(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.UNAUTHORIZED)
         return
@@ -179,8 +179,8 @@ private suspend fun authRes(call: ApplicationCall) {
                 .build()
         )
         if (result.isSuccess) {
-            val session = user.createSession()
-            call.sessions.set(ExpollCookie(session.loginKey))
+            val session = user.createSessionFromScratch()
+            call.sessions.set(ExpollJWTCookie(session.getJWT()))
             call.respondText("{\"verified\":true}", ContentType.Application.Json)
         }
     } catch (e: AssertionFailedException) {
@@ -190,7 +190,7 @@ private suspend fun authRes(call: ApplicationCall) {
 }
 
 private suspend fun getAuthenticatorList(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.UNAUTHORIZED)
         return
@@ -207,7 +207,7 @@ private suspend fun getAuthenticatorList(call: ApplicationCall) {
 }
 
 private suspend fun editAuthenticator(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.UNAUTHORIZED)
         return
@@ -229,7 +229,7 @@ private suspend fun editAuthenticator(call: ApplicationCall) {
 }
 
 private suspend fun deleteAuthenticator(call: ApplicationCall) {
-    val principal = call.principal<BasicSessionPrincipal>()
+    val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.UNAUTHORIZED)
         return

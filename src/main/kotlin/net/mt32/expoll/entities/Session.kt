@@ -2,15 +2,14 @@ package net.mt32.expoll.entities
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import io.ktor.server.application.*
 import io.ktor.server.auth.jwt.*
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
-import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.toBase64
-import net.mt32.expoll.helper.toUnixTimestampFromDB
-import net.mt32.expoll.helper.upsert
+import net.mt32.expoll.helper.*
+import net.mt32.expoll.serializable.responses.SafeSession
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -26,7 +25,7 @@ class OTP : DatabaseEntity {
     val expirationTimestamp: UnixTimestamp
 
     val valid: Boolean
-        get() = expirationTimestamp < UnixTimestamp.now()
+        get() = expirationTimestamp > UnixTimestamp.now()
 
     constructor(otp: String, userID: tUserID, expirationTimestamp: UnixTimestamp = UnixTimestamp.now().addHours(1)) {
         this.otp = otp
@@ -41,14 +40,14 @@ class OTP : DatabaseEntity {
     }
 
     companion object : Table("otp") {
-        val otp = varchar("otp", 16)
+        val otp = varchar("otp", 64)
         val userID = varchar("userid", UUIDLength)
         val expirationTimestamp = long("expirationTimestamp")
 
         fun fromOTP(otp: String): OTP? {
             return transaction {
                 val otp = OTP.select { OTP.otp eq otp }.firstOrNull()?.let { OTP(it) }
-                if (otp != null && otp.valid.not()) {
+                if (otp != null && !otp.valid) {
                     otp.delete()
                     return@transaction null
                 }
@@ -151,8 +150,8 @@ class Session : DatabaseEntity {
     }
 
 
-    fun getJWT(): String? {
-        val user = this.user ?: return null
+    fun getJWT(): String {
+        val user = this.user!!
         return JWT.create()
             .withAudience(config.jwt.audience)
 
@@ -193,7 +192,7 @@ class Session : DatabaseEntity {
             return nonce
         }
 
-        fun fromUser(userID: tUserID): List<Session> {
+        fun forUser(userID: tUserID): List<Session> {
             return transaction {
                 return@transaction Session.select { Session.userID eq userID }.map { Session(it) }
             }
@@ -205,7 +204,7 @@ class Session : DatabaseEntity {
             }
         }
 
-        fun loadAndVerify(credential: JWTCredential): JWTSessionPrincipal? {
+        suspend fun loadAndVerify(call: ApplicationCall, credential: JWTCredential, withAdmin: Boolean = false): JWTSessionPrincipal? {
             if (credential.expiresAt != null && credential.expiresAt!! < Date()) return null
             val payload = credential.payload
             val nonce = payload.getClaim("nonce").asLong()
@@ -215,13 +214,20 @@ class Session : DatabaseEntity {
             if (session.expirationTimestamp < UnixTimestamp.now()) return null
             if (session.createdTimestamp > UnixTimestamp.now()) return null
             val user = session.user ?: return null
+            if(withAdmin && !user.admin && !user.superAdmin) return null
+            var originalUserID: tUserID? = null
+            val originalJWT = call.getDataFromAny("originalJWT")
+            if(originalJWT != null){
+                originalUserID = JWT.decode(originalJWT).getClaim("userID").asString()
+            }
             return JWTSessionPrincipal(
                 payload,
                 session,
                 userID,
                 user,
                 user.admin,
-                user.superAdmin
+                user.superAdmin,
+                originalUserID
             )
         }
     }
@@ -249,5 +255,9 @@ class Session : DatabaseEntity {
             }
         }
         return true
+    }
+
+    fun asSafeSession(currentSession: Session): SafeSession{
+        return SafeSession(expirationTimestamp.toClient(), userAgent, nonce.toString(), currentSession.nonce == nonce)
     }
 }

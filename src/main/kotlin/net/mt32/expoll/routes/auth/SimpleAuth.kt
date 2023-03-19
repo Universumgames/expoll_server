@@ -5,8 +5,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import net.mt32.expoll.Mail
-import net.mt32.expoll.auth.ExpollCookie
-import net.mt32.expoll.entities.LoginKeySession
+import net.mt32.expoll.auth.ExpollJWTCookie
+import net.mt32.expoll.entities.OTP
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
@@ -21,10 +21,10 @@ fun Route.simpleAuthRoutes() {
 }
 
 suspend fun simpleLoginRoute(call: ApplicationCall) {
-    val loginKey = call.getDataFromAny("loginKey")
+    val otpString = call.getDataFromAny("otp")
     val mail = call.getDataFromAny("mail")
 
-    if (loginKey.isNullOrEmpty() && mail.isNullOrEmpty()) {
+    if (otpString.isNullOrEmpty() && mail.isNullOrEmpty()) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
@@ -35,25 +35,27 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
             call.respond(ReturnCode.BAD_REQUEST)
             return
         }
-        val session = user.createSession()
+        val otp = user.createOTP()
         Mail.sendMail(
             user.mail, "Login to expoll", "Here is you login key for logging in on the expoll website: \n\t" +
-                    session.loginKey +
+                    otp.otp +
                     "\n alternatively you can click this link \n" +
-                    urlBuilder(call, session.loginKey)
+                    urlBuilder(call, otp.otp)
         )
-        call.respond(ReturnCode.OK)
+        call.respondText(otp.otp)
         return
     }
 
-    if(!loginKey.isNullOrEmpty()) {
-        val loginKeySession = LoginKeySession.fromLoginKey(loginKey)
-        if(loginKeySession == null){
+    if(!otpString.isNullOrEmpty()) {
+        val otp = OTP.fromOTP(otpString)
+        if(otp == null){
             call.respond(ReturnCode.UNAUTHORIZED)
             return
         }
-        call.sessions.set(ExpollCookie(loginKeySession.loginKey))
-        call.respond(ReturnCode.OK)
+        val session = otp.createSessionAndDeleteSelf(call.request.headers["User-Agent"] ?: "unknown")
+        val jwt = session.getJWT()
+        call.sessions.set(ExpollJWTCookie(jwt))
+        call.respondText(jwt)
         return
     }
     call.respond(ReturnCode.INTERNAL_SERVER_ERROR)

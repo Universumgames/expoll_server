@@ -11,14 +11,14 @@ import java.net.URLEncoder
  * @param {string} loginKey the users login key
  * @return {string} the login url
  */
-fun urlBuilder(call: ApplicationCall, loginKey: String): String {
+fun urlBuilder(call: ApplicationCall, otp: String): String {
     val port = config.frontEndPort
     val protocol = call.request.local.scheme
     return protocol +
             "://" +
             config.loginLinkURL +
             (if (port == 80 || port == 443) "" else ":$port") + "/#/login?key=" +
-            URLEncoder.encode(loginKey, "utf-8")
+            URLEncoder.encode(otp, "utf-8")
 }
 
 fun shareURLBuilder(pollID: tPollID): String{
