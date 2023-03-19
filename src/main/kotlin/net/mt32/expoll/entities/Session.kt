@@ -114,3 +114,45 @@ class Session : DatabaseEntity {
         )
     }
 }
+
+class OTP: DatabaseEntity{
+    val otp: String
+    val userID: tUserID
+    val expirationTimestamp: UnixTimestamp
+
+    constructor(otp: String, userID: tUserID, expirationTimestamp: UnixTimestamp = UnixTimestamp.now().addHours(1)) {
+        this.otp = otp
+        this.userID = userID
+        this.expirationTimestamp = expirationTimestamp
+    }
+
+    private constructor(resultRow: ResultRow){
+        this.otp = resultRow[OTP.otp]
+        this.userID = resultRow[OTP.userID]
+        this.expirationTimestamp = resultRow[OTP.expirationTimestamp].toUnixTimestampFromDB()
+    }
+
+    companion object: Table("otp"){
+        val otp = varchar("otp", 16)
+        val userID = varchar("userid", UUIDLength)
+        val expirationTimestamp = long("expirationTimestamp")
+    }
+
+    override fun save(): Boolean {
+        transaction {
+            OTP.upsert(OTP.otp) {
+                it[OTP.otp] = this@OTP.otp
+                it[OTP.userID] = this@OTP.userID
+                it[OTP.expirationTimestamp] = this@OTP.expirationTimestamp.toDB()
+            }
+        }
+        return true
+    }
+
+    override fun delete(): Boolean {
+        transaction {
+            OTP.deleteWhere { OTP.otp eq this@OTP.otp }
+        }
+        return true
+    }
+}

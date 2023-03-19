@@ -25,7 +25,7 @@
   }
 
   rewrite /share /share.php
-  rewrite /swagger /api/swagger
+  replace /swagger /api/swagger
 
   handle_errors {
       @404 expression `{err.status_code} == 404`
