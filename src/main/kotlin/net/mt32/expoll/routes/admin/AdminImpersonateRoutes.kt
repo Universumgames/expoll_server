@@ -63,8 +63,8 @@ private suspend fun impersonate(call: ApplicationCall) {
     }
 
     val newSession = impersonateUser.createSession()
-    call.sessions.set(ExpollCookie(newSession.loginkey, session.loginKey))
-    call.respond(newSession.loginkey)
+    call.sessions.set(ExpollCookie(newSession.loginKey, session.loginKey))
+    call.respond(newSession.loginKey)
 }
 
 private suspend fun isImpersonating(call: ApplicationCall) {

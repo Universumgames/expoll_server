@@ -88,5 +88,5 @@ private fun pollOptionDateToTimestamp() {
 
 // Session
 private fun sessionDateToTimestamp() {
-    changeDateColumnToTimestamp(Session.Companion, Session.expirationTimestamp, "expiration")
+    changeDateColumnToTimestamp(LoginKeySession.Companion, LoginKeySession.expirationTimestamp, "expiration")
 }

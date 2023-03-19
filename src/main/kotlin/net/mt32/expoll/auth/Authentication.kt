@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import net.mt32.expoll.config
-import net.mt32.expoll.entities.Session
+import net.mt32.expoll.entities.LoginKeySession
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.*
 import net.mt32.expoll.tUserID
@@ -41,7 +41,7 @@ data class ExpollCookie(
 data class BasicSessionPrincipal(
     val loginKey: String,
     val userID: tUserID,
-    val session: Session,
+    val loginKeySession: LoginKeySession,
     val user: User,
     val admin: Boolean,
     val superUser: Boolean
@@ -61,23 +61,23 @@ class UserAuthentication internal constructor(val authConfig: Config) : Authenti
 
 
         call.startNewTiming("auth.db", "Try getting data from db about session")
-        val sessionUser = transaction {
+        val loginKeySessionUser = transaction {
             return@transaction Join(
-                Session, User,
-                onColumn = Session.userID, otherColumn = User.id,
+                LoginKeySession, User,
+                onColumn = LoginKeySession.userID, otherColumn = User.id,
                 joinType = JoinType.INNER,
-                additionalConstraint = { (Session.userID eq User.id) and (Session.loginKey eq loginKey) }
+                additionalConstraint = { (LoginKeySession.userID eq User.id) and (LoginKeySession.loginKey eq loginKey) }
             ).selectAll().firstOrNull()
         }
         call.startNewTiming("auth.checks", "Check session validity")
-        if (sessionUser == null) {
+        if (loginKeySessionUser == null) {
             call.respond(ReturnCode.UNAUTHORIZED)
             return
         }
 
-        val userFound = User(sessionUser)
-        val session = Session(sessionUser)
-        if (session.expirationTimestamp < Date().toUnixTimestamp()) {
+        val userFound = User(loginKeySessionUser)
+        val loginKeySession = LoginKeySession(loginKeySessionUser)
+        if (loginKeySession.expirationTimestamp < Date().toUnixTimestamp()) {
             call.sessions.clear<ExpollCookie>()
             call.respond(ReturnCode.UNAUTHORIZED)
             return
@@ -98,7 +98,7 @@ class UserAuthentication internal constructor(val authConfig: Config) : Authenti
 
         context.principal(
             name,
-            BasicSessionPrincipal(loginKey, userFound.id, session, userFound, anyAdmin, superAdmin)
+            BasicSessionPrincipal(loginKey, userFound.id, loginKeySession, userFound, anyAdmin, superAdmin)
         )
     }
 

@@ -180,7 +180,7 @@ private suspend fun authRes(call: ApplicationCall) {
         )
         if (result.isSuccess) {
             val session = user.createSession()
-            call.sessions.set(ExpollCookie(session.loginkey))
+            call.sessions.set(ExpollCookie(session.loginKey))
             call.respondText("{\"verified\":true}", ContentType.Application.Json)
         }
     } catch (e: AssertionFailedException) {

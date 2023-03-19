@@ -8,7 +8,7 @@ import io.ktor.server.sessions.*
 import net.mt32.expoll.auth.BasicSessionPrincipal
 import net.mt32.expoll.auth.ExpollCookie
 import net.mt32.expoll.auth.normalAuth
-import net.mt32.expoll.entities.Session
+import net.mt32.expoll.entities.LoginKeySession
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -36,7 +36,7 @@ private suspend fun logoutAll(call: ApplicationCall){
         call.respond(ReturnCode.UNAUTHORIZED)
         return
     }
-    principal.user.sessions.forEach {
+    principal.user.loginKeySessions.forEach {
         it.delete()
     }
     call.respond(ReturnCode.OK)
@@ -50,12 +50,12 @@ private suspend fun logout(call: ApplicationCall){
     }
     val shortKey = call.getDataFromAny("shortKey")
     if(shortKey != null){
-        val session = Session.fromShortKey(shortKey, principal.userID)
-        session?.delete()
+        val loginKeySession = LoginKeySession.fromShortKey(shortKey, principal.userID)
+        loginKeySession?.delete()
         call.respond(ReturnCode.OK)
     }else {
         transaction {
-            Session.deleteWhere { Session.loginKey eq principal.loginKey }
+            LoginKeySession.deleteWhere { LoginKeySession.loginKey eq principal.loginKey }
         }
         call.sessions.clear<ExpollCookie>()
     }

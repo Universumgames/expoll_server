@@ -13,24 +13,24 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
 
-class Session : DatabaseEntity {
-    val loginkey: String
+class LoginKeySession : DatabaseEntity {
+    val loginKey: String
     val expirationTimestamp: UnixTimestamp
     var userAgent: String?
     val userID: tUserID
 
-    constructor(loginkey: String, userID: tUserID, expirationTimestamp: UnixTimestamp, userAgent: String? = null) {
-        this.loginkey = loginkey
+    constructor(loginKey: String, userID: tUserID, expirationTimestamp: UnixTimestamp, userAgent: String? = null) {
+        this.loginKey = loginKey
         this.expirationTimestamp = expirationTimestamp
         this.userAgent = userAgent
         this.userID = userID
     }
 
     constructor(sessionRow: ResultRow) {
-        this.loginkey = sessionRow[Session.loginKey]
-        this.expirationTimestamp = sessionRow[Session.expirationTimestamp].toUnixTimestampFromDB()
-        this.userAgent = sessionRow[Session.userAgent]
-        this.userID = sessionRow[Session.userID]
+        this.loginKey = sessionRow[LoginKeySession.loginKey]
+        this.expirationTimestamp = sessionRow[LoginKeySession.expirationTimestamp].toUnixTimestampFromDB()
+        this.userAgent = sessionRow[LoginKeySession.userAgent]
+        this.userID = sessionRow[LoginKeySession.userID]
     }
 
 
@@ -42,19 +42,19 @@ class Session : DatabaseEntity {
 
         override val primaryKey = PrimaryKey(loginKey)
 
-        fun fromLoginKey(loginKey: String): Session? {
+        fun fromLoginKey(loginKey: String): LoginKeySession? {
             return transaction {
-                val sessionRow =
-                    Session.select { Session.loginKey eq loginKey }.firstOrNull() ?: return@transaction null
-                return@transaction Session(sessionRow)
+                val loginKeySessionRow =
+                    LoginKeySession.select { LoginKeySession.loginKey eq loginKey }.firstOrNull() ?: return@transaction null
+                return@transaction LoginKeySession(loginKeySessionRow)
             }
         }
 
-        fun forUser(userID: tUserID): List<Session> {
+        fun forUser(userID: tUserID): List<LoginKeySession> {
             return transaction {
-                val sessionRow =
-                    Session.select { Session.userID eq userID }
-                return@transaction sessionRow.map { Session(it) }
+                val loginKeySessionRow =
+                    LoginKeySession.select { LoginKeySession.userID eq userID }
+                return@transaction loginKeySessionRow.map { LoginKeySession(it) }
             }
         }
 
@@ -64,33 +64,33 @@ class Session : DatabaseEntity {
          * @param forUserID the user the session should be created for
          * @return new Session object with an predefined expiration
          */
-        fun createSession(forUserID: tUserID): Session {
+        fun createSession(forUserID: tUserID): LoginKeySession {
             var loginKey = ""
             transaction {
                 do {
                     loginKey = UUID.randomUUID().toString()
                 } while (fromLoginKey(loginKey) != null)
             }
-            return Session(loginKey, forUserID, UnixTimestamp.now().addDays(120))
+            return LoginKeySession(loginKey, forUserID, UnixTimestamp.now().addDays(120))
         }
 
-        fun fromShortKey(shortKey: String, userID: tUserID): Session? {
+        fun fromShortKey(shortKey: String, userID: tUserID): LoginKeySession? {
             return transaction {
-                val sessionRow =
-                    Session.select { (Session.loginKey like ("$shortKey%")) and (Session.userID eq userID) }
+                val loginKeySessionRow =
+                    LoginKeySession.select { (LoginKeySession.loginKey like ("$shortKey%")) and (LoginKeySession.userID eq userID) }
                         .firstOrNull()
-                return@transaction sessionRow?.let { Session(it) }
+                return@transaction loginKeySessionRow?.let { LoginKeySession(it) }
             }
         }
     }
 
     override fun save(): Boolean {
         transaction {
-            Session.upsert(Session.loginKey) {
-                it[loginKey] = this@Session.loginkey
-                it[expirationTimestamp] = this@Session.expirationTimestamp.toDB()
-                it[userAgent] = this@Session.userAgent
-                it[userID] = this@Session.userID
+            LoginKeySession.upsert(LoginKeySession.loginKey) {
+                it[loginKey] = this@LoginKeySession.loginKey
+                it[expirationTimestamp] = this@LoginKeySession.expirationTimestamp.toDB()
+                it[userAgent] = this@LoginKeySession.userAgent
+                it[userID] = this@LoginKeySession.userID
             }
         }
         return true
@@ -98,8 +98,8 @@ class Session : DatabaseEntity {
 
     override fun delete(): Boolean {
         transaction {
-            Session.deleteWhere {
-                Session.loginKey eq this@Session.loginkey
+            LoginKeySession.deleteWhere {
+                LoginKeySession.loginKey eq this@LoginKeySession.loginKey
             }
         }
         return true
@@ -109,8 +109,8 @@ class Session : DatabaseEntity {
         return SafeSession(
             expirationTimestamp.toClient(),
             userAgent,
-            loginkey.substring(0, 4),
-            loginkey.equals(currentLoginKey, ignoreCase = true)
+            loginKey.substring(0, 4),
+            loginKey.equals(currentLoginKey, ignoreCase = true)
         )
     }
 }
