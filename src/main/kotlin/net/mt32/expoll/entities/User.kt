@@ -24,7 +24,7 @@ interface IUser {
     var mail: String
     val polls: List<Poll>
     val votes: List<Vote>
-    val sessions: List<Session>
+    val loginKeySessions: List<LoginKeySession>
     val notes: List<PollUserNote>
     var active: Boolean
     var admin: Boolean
@@ -46,9 +46,9 @@ class User : IUser, DatabaseEntity {
     override val votes: List<Vote>
         get() = Vote.fromUser(this)
 
-    override val sessions: List<Session>
+    override val loginKeySessions: List<LoginKeySession>
         get() {
-            return Session.forUser(id)
+            return LoginKeySession.forUser(id)
         }
     override val notes: List<PollUserNote>
         get() {
@@ -129,7 +129,7 @@ class User : IUser, DatabaseEntity {
     override fun saveConsecutive(): Boolean {
         save()
         transaction {
-            sessions.forEach { it.save() }
+            loginKeySessions.forEach { it.save() }
             challenges.forEach { it.save() }
             authenticators.forEach { it.save() }
             votes.forEach { it.save() }
@@ -144,10 +144,10 @@ class User : IUser, DatabaseEntity {
     /**
      * Creates a new session and saves it
      */
-    fun createSession(): Session {
-        val session = Session.createSession(id)
-        session.save()
-        return session
+    fun createSession(): LoginKeySession {
+        val loginKeySession = LoginKeySession.createSession(id)
+        loginKeySession.save()
+        return loginKeySession
     }
 
     companion object : Table("user") {
@@ -177,13 +177,13 @@ class User : IUser, DatabaseEntity {
 
         fun loadFromLoginKey(loginKey: String): User? {
             return transaction {
-                val sessionUser = Join(
-                    Session, User,
-                    onColumn = Session.userID, otherColumn = User.id,
+                val loginKeySessionUser = Join(
+                    LoginKeySession, User,
+                    onColumn = LoginKeySession.userID, otherColumn = User.id,
                     joinType = JoinType.INNER
-                ).select { (Session.userID eq User.id) and (Session.loginKey eq loginKey) }.firstOrNull()
+                ).select { (LoginKeySession.userID eq User.id) and (LoginKeySession.loginKey eq loginKey) }.firstOrNull()
                     ?: return@transaction null
-                return@transaction User(sessionUser)
+                return@transaction User(loginKeySessionUser)
             }
         }
 

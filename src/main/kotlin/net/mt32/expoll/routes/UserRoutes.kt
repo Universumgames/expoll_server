@@ -115,8 +115,8 @@ private suspend fun createUser(call: ApplicationCall) {
                 ")"
     )
 
-    call.sessions.set(ExpollCookie(session.loginkey))
-    call.respond(CreateUserResponse(session.loginkey))
+    call.sessions.set(ExpollCookie(session.loginKey))
+    call.respond(CreateUserResponse(session.loginKey))
 }
 
 private suspend fun getUserData(call: ApplicationCall) {
@@ -154,7 +154,7 @@ private suspend fun getPersonalizedData(call: ApplicationCall) {
     call.startNewTiming("user.votes", "Gather votes")
     val votes = user.votes.map { VoteChange(it.pollID, it.optionID, it.votedFor.id) }
     call.startNewTiming("user.sessions", "Gather sessions")
-    val sessions = user.sessions.map { it.asSafeSession(principal.loginKey) }
+    val sessions = user.loginKeySessions.map { it.asSafeSession(principal.loginKey) }
     call.startNewTiming("user.auths", "Gather authenticators")
     val auths = user.authenticators.map { it.asSimpleAuthenticator() }
 
