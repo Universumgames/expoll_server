@@ -51,7 +51,6 @@ paths:
               schema:
                 type: object
                 properties:
-
   /compliance:
     get:
       description: Check if your client version is supported by the backend
@@ -88,18 +87,19 @@ paths:
         required: true
       responses:
         200:
-          description: User was successfully created, returns a cookie and the first loginKey
+          description: User was successfully created, returns a cookie and the first jwt token
           content:
             text/plain:
               schema:
                 type: string
-              example: "<uuid>"
         400:
           description: Parameters are missing
         406:
           description: User with the same mail or username already exists or the mail is not valid
     get:
       description: get basic user data
+      security:
+        - bearerAuth: []
       responses:
         200:
           description: Basic userdata
@@ -128,6 +128,8 @@ paths:
   /vote:
     post:
       description: Vote for an option in a poll
+      security:
+        - bearerAuth: [ ]
       requestBody:
         description: The vote data
         content:
@@ -148,28 +150,28 @@ paths:
           description: Maximum number on Yes/Maybe votes on this poll is too high or voting is disabled for the poll
   /auth/simple:
     post:
-      description: Login via loginkey or request a login mail
+      description: Login via otp or request a login mail
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                loginKey:
+                otp:
                   type: string
-                  description: the key to login
+                  description: the one time password
                   required: this or mail
                 mail:
                   type: string
                   description: the mail address of the user
-                  required: this or loginKey
+                  required: this or otp
             examples:
               Request:
                 summary: Requesting login mail
                 value: '{"mail": "max.mustermann@example.org"}'
-              LoginKey:
-                summary: Get auth cookie
-                value: '{"loginKey": "<uuid>"}'
+              JWT:
+                summary: Get jwt cookie and header value
+                value: '{"jwt": "value"}'
         required: true
       responses:
         200:
@@ -204,6 +206,8 @@ paths:
           description: Unauthorized
   /auth/logoutAll:
     delete:
+      security:
+        - bearerAuth: [ ]
       description: Logout all sessions
       responses:
         200:
@@ -212,8 +216,12 @@ paths:
           description: Unauthorized
   /auth/webauthn/register:
     get:
+      security:
+        - bearerAuth: [ ]
       description: Undocumented endpoint to start webauthn registration
     post:
+      security:
+        - bearerAuth: [ ]
       description: Undocumented endpoint to save webauthn
   /auth/webauthn/authenticate:
     get:
@@ -223,6 +231,8 @@ paths:
   /auth/webauthn/list:
     get:
       description: get list of all webauthn authenticators
+      security:
+        - bearerAuth: [ ]
       responses:
         200:
           description: list of the authenticators
@@ -237,6 +247,8 @@ paths:
   /auth/webauthn/edit:
     post:
       description: edit an authenticator (currently only changing its name)
+      security:
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -259,6 +271,8 @@ paths:
   /auth/webauthn/:
     delete:
       description: delete an authenticator TODO
+      security:
+        - bearerAuth: [ ]
       requestBody:
         content:
           application/json:
@@ -307,6 +321,8 @@ paths:
   /notifications/preferences:
     get:
       description: Get notification preferences
+      security:
+        - bearerAuth: [ ]
       responses:
         200:
           description: Notification preferences
@@ -332,6 +348,8 @@ paths:
   /notifications/apple:
     post:
       description: register a new apple device for push notifications
+      security:
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -409,6 +427,8 @@ paths:
   /poll/join:
     post:
       description: Join a poll
+      security:
+        - bearerAuth: [ ]
       parameters:
         - name: pollID
           in: query
@@ -421,6 +441,8 @@ paths:
   /poll/leave:
     post:
       description: Leave a poll
+      security:
+        - bearerAuth: [ ]
       parameters:
         - name: pollID
           in: query
@@ -448,6 +470,8 @@ paths:
   /admin/impersonate:
     post:
       description: Impersonate a user
+      security:
+        - bearerAuth: [ ]
       parameters:
         - name: userID
           in: query
@@ -481,6 +505,8 @@ paths:
   /admin/unimpersonate:
     post:
       description: give up the impersonation
+      security:
+        - bearerAuth: [ ]
       parameters:
         - name: loginKey
           in: query
@@ -504,6 +530,8 @@ paths:
   /admin/users:
     get:
       description: get list of all users
+      security:
+        - bearerAuth: [ ]
       responses:
         200:
           description: list of all users
@@ -517,6 +545,8 @@ paths:
           description: you are not allowed to view the userlist
     post:
       description: Create a new user
+      security:
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -532,6 +562,8 @@ paths:
           description: You are not allowed to to this
     put:
       description: edit a user
+      security:
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -557,6 +589,8 @@ paths:
   /admin/polls:
     get:
       description: List of all polls
+      security:
+        - bearerAuth: [ ]
       responses:
         200:
           content:
@@ -575,6 +609,8 @@ paths:
   /admin/mailregex:
     get:
       description: Get list of all regex rules (basically a duplicate of "/simple/mailregex")
+      security:
+        - bearerAuth: [ ]
       responses:
         200:
           description: List of all regex rules
@@ -586,6 +622,8 @@ paths:
                   $ref: "#/components/schemas/MailRegexRule"
     post:
       description: edit mail regex rules, replaces all existing rules with the ones sent
+      security:
+        - bearerAuth: [ ]
       requestBody:
         content:
           application/json:
@@ -607,6 +645,11 @@ paths:
           description: Editing was successfull
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
   schemas:
     VoteChangeRequest:
       type: object

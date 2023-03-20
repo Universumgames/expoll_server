@@ -15,6 +15,9 @@
     uri strip_prefix /api
     reverse_proxy expoll_apiServer:6060
   }
+  route /swagger/* {
+      reverse_proxy expoll_apiServer:6060
+    }
   file_server
 
   @phpFiles path *.php /fpm-ping
@@ -25,7 +28,7 @@
   }
 
   rewrite /share /share.php
-  replace /swagger /api/swagger
+
 
   handle_errors {
       @404 expression `{err.status_code} == 404`
