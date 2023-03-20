@@ -48,7 +48,7 @@ data class TestUserConfig(
     val lastName: String = "",
     val email: String = "",
     val username: String = "",
-    val loginKey: String = ""
+    val otp: String = ""
 )
 
 @Serializable

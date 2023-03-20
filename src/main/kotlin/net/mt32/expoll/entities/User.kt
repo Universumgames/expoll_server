@@ -82,8 +82,6 @@ class User : IUser, DatabaseEntity {
     val created: UnixTimestamp
 
 
-
-
     constructor(
         username: String,
         firstName: String,
@@ -144,11 +142,11 @@ class User : IUser, DatabaseEntity {
         TODO("Not yet implemented")
     }
 
-    fun createOTP(): OTP{
+    fun createOTP(): OTP {
         return OTP.create(id)
     }
 
-    fun createSessionFromScratch(): Session{
+    fun createSessionFromScratch(): Session {
         val session = Session(id, "unknown")
         session.save()
         return session
@@ -199,11 +197,24 @@ class User : IUser, DatabaseEntity {
             }
         }
 
-        fun fromUserHandle(handle: ByteArray?): User?{
-            if(handle == null) return null
+        fun fromUserHandle(handle: ByteArray?): User? {
+            if (handle == null) return null
             val b64 = handle.base64
             val decoded = b64.decodeBase64String()
             return loadFromID(decoded)
+        }
+
+        fun ensureTestUserExistence() {
+            val existing = User.byUsername(config.testUser.username)
+            if (existing != null) return
+            val user = User(
+                config.testUser.username,
+                config.testUser.firstName,
+                config.testUser.lastName,
+                config.testUser.email,
+                admin = false
+            )
+            user.save()
         }
 
         /*val id = "4411a4b1-f62a-11ec-bd56-0242ac190002"
@@ -250,7 +261,7 @@ class User : IUser, DatabaseEntity {
         UserPolls.addConnection(id, pollID)
     }
 
-    fun removePoll(pollID: tPollID){
+    fun removePoll(pollID: tPollID) {
         UserPolls.removeConnection(id, pollID)
     }
 }

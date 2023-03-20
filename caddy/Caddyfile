@@ -17,7 +17,7 @@
   }
   route /swagger/* {
       reverse_proxy expoll_apiServer:6060
-    }
+  }
   file_server
 
   @phpFiles path *.php /fpm-ping

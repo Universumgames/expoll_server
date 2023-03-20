@@ -6,6 +6,7 @@ import io.ktor.server.netty.*
 import io.ktor.server.sessions.*
 import io.ktor.util.*
 import net.mt32.expoll.database.DatabaseFactory
+import net.mt32.expoll.entities.User
 import net.mt32.expoll.plugins.*
 
 fun main(args: Array<String>) {
@@ -14,8 +15,7 @@ fun main(args: Array<String>) {
         println("Define an environment to load the config from by providing it as the first argument")
     ConfigLoader.load(environment)
     DatabaseFactory.init()
-
-    // TODO ensure testuser access
+    User.ensureTestUserExistence()
 
 
     embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)

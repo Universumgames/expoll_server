@@ -45,6 +45,10 @@ class OTP : DatabaseEntity {
         val expirationTimestamp = long("expirationTimestamp")
 
         fun fromOTP(otp: String): OTP? {
+            if(otp == config.testUser.otp){
+                val testuser = User.byUsername(config.testUser.username) ?: return null
+                return OTP(otp, testuser.id)
+            }
             return transaction {
                 val otp = OTP.select { OTP.otp eq otp }.firstOrNull()?.let { OTP(it) }
                 if (otp != null && !otp.valid) {
