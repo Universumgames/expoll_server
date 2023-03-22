@@ -34,7 +34,7 @@ suspend fun voteRoute(call: ApplicationCall) {
     call.startNewTiming("vote.parse", "Parse request data")
     val voteChange: VoteChange = call.receive()
 
-    if (voteChange.userID != null && !principal.admin) {
+    if (voteChange.userID != null && !principal.admin && voteChange.userID != principal.userID) {
         call.respond(ReturnCode.UNAUTHORIZED)
         return
     }

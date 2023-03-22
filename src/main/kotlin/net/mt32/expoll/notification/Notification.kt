@@ -106,7 +106,7 @@ object APNsNotificationHandler {
     fun sendAPN(
         deviceToken: String,
         expiration: UnixTimestamp,
-        payload: APNsPayload,
+        payload: IAPNsPayload,
         priority: APNsPriority,
         pushType: APNsPushType = APNsPushType.ALERT,
         collapseID: String? = null
@@ -139,7 +139,7 @@ object APNsNotificationHandler {
     private data class APNData(
         val deviceToken: String,
         val expiration: UnixTimestamp,
-        val payload: APNsPayload,
+        val payload: IAPNsPayload,
         val priority: APNsPriority,
         val pushType: APNsPushType = APNsPushType.ALERT,
         val collapseID: String? = null

@@ -61,7 +61,12 @@ data class APS(
     // TODO add interruption level
 )
 
-@Serializable
-data class APNsPayload(
+sealed interface IAPNsPayload{
     val aps: APS
-)
+}
+
+@Serializable
+@SerialName("payload")
+data class APNsPayload(
+    override val aps: APS
+): IAPNsPayload

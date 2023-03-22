@@ -4,6 +4,8 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.UnixTimestamp
@@ -55,6 +57,13 @@ fun userWantNotificationType(type: ExpollNotificationType, user: User): Boolean 
     }
 }
 
+@Serializable
+@SerialName("expollPayload")
+class ExpollAPNsPayload(
+    override val aps: APS,
+    val pollID: tPollID? = null
+): IAPNsPayload
+
 // TODO implement sending notification async on event
 @OptIn(DelicateCoroutinesApi::class)
 fun sendNotification(notification: ExpollNotification) {
@@ -69,7 +78,7 @@ fun sendNotification(notification: ExpollNotification) {
             bodyLocalisationKey = notification.type.body,
             bodyLocalisationArgs = notification.type.notificationArgs(poll, affectedUser)
         )
-        val payload = APNsPayload(APS(apnsNotification))
+        val payload = ExpollAPNsPayload(APS(apnsNotification), poll.id)
         val expiration = UnixTimestamp.now().addDays(5)
         poll.users.forEach { user ->
             if (!userWantNotificationType(notification.type, user)) return@forEach

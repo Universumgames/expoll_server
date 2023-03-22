@@ -28,6 +28,9 @@ fun Route.notificationRoutes() {
             post{
                 registerAppleDevice(call)
             }
+            delete {
+
+            }
         }
     }
 }
@@ -55,6 +58,10 @@ private suspend fun registerAppleDevice(call:ApplicationCall){
     newDevice.save()
 
     call.respond(ReturnCode.OK)
+}
+
+private suspend fun unregisterAppleDevice(call: ApplicationCall){
+
 }
 
 private suspend fun setNotification(call: ApplicationCall){

@@ -1,10 +1,22 @@
 package net.mt32.expoll.helper
 
 import kotlinx.serialization.json.*
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
+import net.mt32.expoll.notification.APNsPayload
+import net.mt32.expoll.notification.ExpollAPNsPayload
+import net.mt32.expoll.notification.IAPNsPayload
 
 val defaultJSON = Json {
     ignoreUnknownKeys = true
     prettyPrint = true
+    serializersModule = SerializersModule {
+        polymorphic(IAPNsPayload::class){
+            subclass(ExpollAPNsPayload::class)
+            subclass(APNsPayload::class)
+        }
+    }
 }
 
 /**

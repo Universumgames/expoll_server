@@ -19,7 +19,7 @@ class APNDevice : DatabaseEntity {
     var userID: tUserID
     val creationTimestamp: UnixTimestamp
 
-    constructor(deviceID: String, userID: tUserID, creationTimestamp: UnixTimestamp) {
+    constructor(deviceID: String, userID: tUserID, creationTimestamp: UnixTimestamp = UnixTimestamp.now()) {
         this.deviceID = deviceID
         this.userID = userID
         this.creationTimestamp = creationTimestamp
