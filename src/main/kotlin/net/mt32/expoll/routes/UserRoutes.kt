@@ -59,7 +59,7 @@ private suspend fun createUser(call: ApplicationCall) {
         return
     }
     // check user does not exist already
-    if (User.byMail(mail) == null || User.byUsername(username) == null) {
+    if (User.byMail(mail) != null || User.byUsername(username) != null) {
         call.respond(ReturnCode.USER_EXISTS)
         return
     }

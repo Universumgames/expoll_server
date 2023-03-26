@@ -15,17 +15,21 @@ private val client = HttpClient(Java)
 @OptIn(InternalAPI::class)
 suspend fun verifyGoogleCAPTCHA(token: String): reCAPTCHAResponse {
     val response = client.post("https://www.google.com/recaptcha/api/siteverify"){
-        body = """
-            {
+        /*body = """
+        {
             "params": {
-                "secret": ${config.recaptchaAPIKey},
+                "secret": "${config.recaptchaAPIKey}",
                 "response": "$token"
             }
         }
-        """.trimIndent()
+        """.trimIndent()*/
+
+        parameter("secret", config.recaptchaAPIKey)
+        parameter("response", token)
         contentType(ContentType.Application.Json)
     }
-    return defaultJSON.decodeFromString(response.bodyAsText())
+    val responseString = response.bodyAsText()
+    return defaultJSON.decodeFromString(responseString)
 }
 
 @Serializable

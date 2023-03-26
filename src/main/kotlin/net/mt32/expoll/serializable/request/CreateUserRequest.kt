@@ -8,6 +8,6 @@ data class CreateUserRequest (
     val lastName: String,
     val mail: String,
     val username: String,
-    val captcha: String?,
-    val appAttest: String?,
+    val captcha: String? = null,
+    val appAttest: String? = null,
 )
