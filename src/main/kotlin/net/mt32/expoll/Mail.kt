@@ -9,22 +9,25 @@ object Mail {
 
     internal data class MailData(val to: String, val subject: String, val body: String)
 
-    private val mailThread: Thread
-    private val mailQueue: MutableList<MailData>
+    //private val mailThread: Thread
+    //private val mailQueue: MutableList<MailData>
 
     init {
-        mailQueue = mutableListOf()
-        mailThread = Thread {
+        //mailQueue = mutableListOf()
+        /*mailThread = Thread {
             while (true) {
                 val mail = mailQueue.removeFirstOrNull()
                 if (mail != null) sendMail(mail)
             }
         }
-        mailThread.start()
+        mailThread.start()*/
     }
 
     fun sendMail(to: String, subject: String, body: String) {
-        mailQueue.add(MailData(to, subject, body))
+        //mailQueue.add(MailData(to, subject, body))
+        Thread{
+            sendMail(MailData(to, subject, body))
+        }.start()
     }
 
     private fun sendMail(data: MailData) {

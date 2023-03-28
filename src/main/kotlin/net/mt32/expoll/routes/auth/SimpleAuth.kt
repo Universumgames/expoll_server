@@ -31,13 +31,13 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
 
     if (!mail.isNullOrEmpty()) {
         val user = User.byMail(mail)
-        if (user == null) {
+        if (user == null || !user.active) {
             call.respond(ReturnCode.BAD_REQUEST)
             return
         }
         val otp = user.createOTP()
         Mail.sendMail(
-            user.mail, "Login to expoll", "Here is you login key for logging in on the expoll website: \n\t" +
+            user.mail, "Login to expoll", "Here is your OTP for logging in on the expoll website: \n\t" +
                     otp.otp +
                     "\n alternatively you can click this link \n" +
                     urlBuilder(call, otp.otp)

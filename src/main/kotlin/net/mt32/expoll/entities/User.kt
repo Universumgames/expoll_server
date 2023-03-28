@@ -12,10 +12,8 @@ import net.mt32.expoll.serializable.admin.responses.UserInfo
 import net.mt32.expoll.serializable.responses.SimpleUser
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.Table
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
@@ -48,6 +46,9 @@ class User : IUser, DatabaseEntity {
         }
     override val votes: List<Vote>
         get() = Vote.fromUser(this)
+
+    val otps: List<OTP>
+        get() = OTP.fromUser(id)
 
     override val sessions: List<Session>
         get() {
@@ -139,7 +140,39 @@ class User : IUser, DatabaseEntity {
     }
 
     override fun delete(): Boolean {
-        TODO("Not yet implemented")
+        otps.forEach { it.delete() }
+        sessions.forEach { it.delete() }
+        challenges.forEach { it.delete() }
+        authenticators.forEach { it.delete() }
+        apnDevices.forEach { it.delete() }
+        //votes.forEach { it.delete() }
+        //polls.forEach { if(it.adminID != id) UserPolls.removeConnection(id, it.id) }
+        val oldActive = active
+        transaction {
+            User.upsert(User.id) {
+                it[id] = this@User.id
+                it[username] = "Deleted User"
+                it[firstName] = "Deleted"
+                it[lastName] = "User"
+                it[mail] = "unknown"
+                it[created] = this@User.created.toDB()
+                it[active] = false
+                it[admin] = false
+            }
+        }
+        if (!oldActive) {
+            votes.forEach { it.delete() }
+            notes.forEach { it.delete() }
+            polls.forEach {
+                if (it.adminID == id) it.delete()
+                UserPolls.removeConnection(id, it.id)
+            }
+            notificationPreferences.delete()
+            transaction {
+                User.deleteWhere { User.id eq this@User.id }
+            }
+        }
+        return true
     }
 
     fun createOTP(): OTP {

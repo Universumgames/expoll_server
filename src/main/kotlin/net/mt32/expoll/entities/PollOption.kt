@@ -50,7 +50,10 @@ class PollOptionString : PollOption, DatabaseEntity {
 
     override fun delete(): Boolean {
         transaction {
-            Vote.deleteWhere { (Vote.pollID eq pollID) and (Vote.optionID eq id)}
+            Vote.deleteWhere {
+                (Vote.pollID eq this@PollOptionString.pollID) and
+                        (Vote.optionID eq this@PollOptionString.id)
+            }
             deleteWhere {
                 id eq this@PollOptionString.id
             }
@@ -134,7 +137,10 @@ class PollOptionDate : PollOption, DatabaseEntity {
 
     override fun delete(): Boolean {
         transaction {
-            Vote.deleteWhere { (Vote.pollID eq pollID) and (Vote.optionID eq id)}
+            Vote.deleteWhere {
+                (Vote.pollID eq this@PollOptionDate.pollID) and
+                        (Vote.optionID eq this@PollOptionDate.id)
+            }
             deleteWhere {
                 id eq this@PollOptionDate.id
             }
@@ -224,7 +230,10 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
 
     override fun delete(): Boolean {
         transaction {
-            Vote.deleteWhere { (Vote.pollID eq pollID) and (Vote.optionID eq id)}
+            Vote.deleteWhere {
+                (Vote.pollID eq this@PollOptionDateTime.pollID) and
+                        (Vote.optionID eq this@PollOptionDateTime.id)
+            }
             deleteWhere {
                 id eq this@PollOptionDateTime.id
             }

@@ -74,6 +74,13 @@ class OTP : DatabaseEntity {
             otp.save()
             return otp
         }
+
+        fun fromUser(userID: tUserID): List<OTP>{
+            return transaction {
+                val result = OTP.select { OTP.userID eq userID }
+                return@transaction result.map { OTP(it) }
+            }
+        }
     }
 
     override fun save(): Boolean {
