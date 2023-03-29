@@ -45,7 +45,7 @@ class OTP : DatabaseEntity {
         val expirationTimestamp = long("expirationTimestamp")
 
         fun fromOTP(otp: String): OTP? {
-            if(otp == config.testUser.otp){
+            if (otp == config.testUser.otp) {
                 val testuser = User.byUsername(config.testUser.username) ?: return null
                 return OTP(otp, testuser.id)
             }
@@ -75,7 +75,7 @@ class OTP : DatabaseEntity {
             return otp
         }
 
-        fun fromUser(userID: tUserID): List<OTP>{
+        fun fromUser(userID: tUserID): List<OTP> {
             return transaction {
                 val result = OTP.select { OTP.userID eq userID }
                 return@transaction result.map { OTP(it) }
@@ -119,6 +119,9 @@ class Session : DatabaseEntity {
     val createdTimestamp: UnixTimestamp
     val expirationTimestamp: UnixTimestamp
     var lastUsedTimestamp: UnixTimestamp
+
+    val isValid: Boolean
+        get() = expirationTimestamp > UnixTimestamp.now()
 
     val user: User?
         get() = User.loadFromID(userID)
@@ -210,12 +213,21 @@ class Session : DatabaseEntity {
         }
 
         fun fromNonce(nonce: Long): Session? {
-            return transaction {
+            val session = transaction {
                 return@transaction Session.select { Session.nonce eq nonce }.firstOrNull()?.let { Session(it) }
+            } ?: return null
+            if (!session.isValid) {
+                session.delete()
+                return null
             }
+            return session
         }
 
-        suspend fun loadAndVerify(call: ApplicationCall, credential: JWTCredential, withAdmin: Boolean = false): JWTSessionPrincipal? {
+        suspend fun loadAndVerify(
+            call: ApplicationCall,
+            credential: JWTCredential,
+            withAdmin: Boolean = false
+        ): JWTSessionPrincipal? {
             if (credential.expiresAt != null && credential.expiresAt!! < Date()) return null
             val payload = credential.payload
             val nonce = payload.getClaim("nonce").asLong()
@@ -225,10 +237,10 @@ class Session : DatabaseEntity {
             if (session.expirationTimestamp < UnixTimestamp.now()) return null
             if (session.createdTimestamp > UnixTimestamp.now()) return null
             val user = session.user ?: return null
-            if(withAdmin && !user.admin && !user.superAdmin) return null
+            if (withAdmin && !user.admin && !user.superAdmin) return null
             var originalUserID: tUserID? = null
             val originalJWT = call.getDataFromAny("originalJWT")
-            if(originalJWT != null){
+            if (originalJWT != null) {
                 originalUserID = JWT.decode(originalJWT).getClaim("userID").asString()
             }
             return JWTSessionPrincipal(
@@ -268,7 +280,7 @@ class Session : DatabaseEntity {
         return true
     }
 
-    fun asSafeSession(currentSession: Session): SafeSession{
+    fun asSafeSession(currentSession: Session): SafeSession {
         return SafeSession(expirationTimestamp.toClient(), userAgent, nonce.toString(), currentSession.nonce == nonce)
     }
 }

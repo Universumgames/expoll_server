@@ -72,6 +72,7 @@ object Transformer {
         dropUnnecessaryColumns()
         addUserCreationColumn()
         removeGhostVotes()
+        linkAPNDeviceToSession()
     }
 
     /**

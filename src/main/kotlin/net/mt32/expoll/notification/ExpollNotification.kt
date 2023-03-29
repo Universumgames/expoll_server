@@ -62,7 +62,7 @@ fun userWantNotificationType(type: ExpollNotificationType, user: User): Boolean 
 class ExpollAPNsPayload(
     override val aps: APS,
     val pollID: tPollID? = null
-): IAPNsPayload
+) : IAPNsPayload
 
 // TODO implement sending notification async on event
 @OptIn(DelicateCoroutinesApi::class)
@@ -84,9 +84,12 @@ fun sendNotification(notification: ExpollNotification) {
             if (!userWantNotificationType(notification.type, user)) return@forEach
 
             user.apnDevices.forEach { device ->
-                runBlocking {
-                    APNsNotificationHandler.sendAPN(device.deviceID, expiration, payload, APNsPriority.medium)
-                }
+                if (device.session == null)
+                    device.delete()
+                else
+                    runBlocking {
+                        APNsNotificationHandler.sendAPN(device.deviceID, expiration, payload, APNsPriority.medium)
+                    }
             }
         }
     }

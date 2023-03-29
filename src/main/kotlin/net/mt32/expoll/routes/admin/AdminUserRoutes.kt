@@ -12,6 +12,7 @@ import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
+import net.mt32.expoll.helper.urlBuilder
 import net.mt32.expoll.serializable.admin.request.AdminCreateUserRequest
 import net.mt32.expoll.serializable.admin.request.AdminEditUserRequest
 import net.mt32.expoll.serializable.admin.responses.UserInfo
@@ -78,16 +79,16 @@ private suspend fun createUser(call: ApplicationCall) {
     )
 
     user.save()
-    val port = config.frontEndPort
-    val protocol = call.request.local.scheme
+    val otp = user.createOTP()
+    otp.expirationTimestamp.addDays(5)
+    otp.save()
     Mail.sendMail(
-        user.mail, "Thank you for registering in expoll",
-        "Thank you for creating an account at over at expoll (" +
-                protocol +
-                "://" +
-                config.loginLinkURL +
-                (if (port == 80 || port == 443) "" else ":$port") +
-                ")"
+        user.mail, "Expoll account creation",
+        """An admin has created an account on your behalf.
+           Here is your OTP for logging in on the expoll website, it is valid for the next 5 days:
+           ${otp.otp}
+           alternatively you can click this link
+           ${urlBuilder(call, otp.otp)}""".trimIndent()
     )
 
     call.respond(ReturnCode.OK)

@@ -20,8 +20,6 @@ interface IPoll {
     var updatedTimestamp: UnixTimestamp
     var description: String
     val type: PollType
-    val votes: List<Vote>
-    val notes: List<PollUserNote>
     var maxPerUserVoteCount: Int
     var allowsMaybe: Boolean
     var allowsEditing: Boolean
@@ -40,11 +38,11 @@ class Poll : DatabaseEntity, IPoll {
     override var updatedTimestamp: UnixTimestamp
     override var description: String
     override val type: PollType
-    override val votes: List<Vote>
+    val votes: List<Vote>
         get() {
             return Vote.fromPoll(id).filter { vote -> users.map { it.id }.contains(vote.userID) }
         }
-    override val notes: List<PollUserNote>
+    val notes: List<PollUserNote>
         get() {
             return PollUserNote.forPoll(id)
         }

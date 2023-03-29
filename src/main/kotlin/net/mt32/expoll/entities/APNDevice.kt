@@ -18,17 +18,28 @@ class APNDevice : DatabaseEntity {
     val deviceID: String
     var userID: tUserID
     val creationTimestamp: UnixTimestamp
+    val session: Session?
+        get() = Session.fromNonce(sessionNonce)
 
-    constructor(deviceID: String, userID: tUserID, creationTimestamp: UnixTimestamp = UnixTimestamp.now()) {
+    var sessionNonce: Long
+
+    constructor(
+        deviceID: String,
+        userID: tUserID,
+        creationTimestamp: UnixTimestamp = UnixTimestamp.now(),
+        sessionNonce: Long
+    ) {
         this.deviceID = deviceID
         this.userID = userID
         this.creationTimestamp = creationTimestamp
+        this.sessionNonce = sessionNonce
     }
 
     private constructor(apnDeviceRow: ResultRow) {
         this.deviceID = apnDeviceRow[APNDevice.deviceID]
         this.userID = apnDeviceRow[APNDevice.userID]
         this.creationTimestamp = apnDeviceRow[APNDevice.creationTimestamp].toUnixTimestampFromDB()
+        this.sessionNonce = apnDeviceRow[APNDevice.sessionNonce]
     }
 
     override fun save(): Boolean {
@@ -37,6 +48,7 @@ class APNDevice : DatabaseEntity {
                 it[deviceID] = this@APNDevice.deviceID
                 it[userID] = this@APNDevice.userID
                 it[creationTimestamp] = this@APNDevice.creationTimestamp.toDB()
+                it[sessionNonce] = this@APNDevice.sessionNonce
             }
         }
         return true
@@ -55,6 +67,7 @@ class APNDevice : DatabaseEntity {
         val deviceID = varchar("deviceId", 255)
         val userID = varchar("userId", UUIDLength)
         val creationTimestamp = long("creationTimestamp")
+        val sessionNonce = long("sessionNonce")
 
         override val primaryKey = PrimaryKey(deviceID)
 

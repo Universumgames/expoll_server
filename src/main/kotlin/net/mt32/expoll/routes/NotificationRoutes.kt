@@ -50,11 +50,12 @@ private suspend fun registerAppleDevice(call:ApplicationCall){
     val existingDevice = APNDevice.fromDeviceID(deviceID)
     if(existingDevice != null){
         existingDevice.userID = principal.userID
+        existingDevice.sessionNonce = principal.session.nonce
         existingDevice.save()
         call.respond(ReturnCode.OK)
         return
     }
-    val newDevice = APNDevice(deviceID, principal.userID, UnixTimestamp.now())
+    val newDevice = APNDevice(deviceID, principal.userID, UnixTimestamp.now(), principal.session.nonce)
     newDevice.save()
 
     call.respond(ReturnCode.OK)
