@@ -141,7 +141,6 @@ private suspend fun leavePoll(call: ApplicationCall) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
-    // TODO remove votes when user leaves poll?
     principal.user.removePoll(pollID)
     sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, pollID, principal.userID))
     call.respond(ReturnCode.OK)

@@ -10,6 +10,7 @@ fun Route.adminRoute() {
             adminUserRoutes()
             adminPollRoutes()
             adminRegexRoutes()
+            analyticsRoutes()
         }
         adminImpersonateRoutes()
     }

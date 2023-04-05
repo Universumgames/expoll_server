@@ -76,6 +76,7 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-jetty:$ktor_version")
     implementation("io.ktor:ktor-client-java:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
     implementation("io.arrow-kt:arrow-core:1.1.2")
     implementation("io.github.nefilim.kjwt:kjwt-core:0.8.0")
     implementation("jakarta.mail:jakarta.mail-api:2.1.1")
@@ -85,6 +86,9 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
     testImplementation(platform("org.junit:junit-bom:5.7.0"))
     testImplementation(kotlin("test-junit5"))
+    implementation("com.auth0:java-jwt:3.18.1")
+
+
     //testImplementation(kotlin("test"))
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0-Beta")

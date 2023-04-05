@@ -6,16 +6,12 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-class UnixTimestamp {
+class UnixTimestamp private constructor() {
 
     val secondsSince1970: Long
         get() = millisSince1970 / 1000
 
     var millisSince1970: Long = 0
-
-    private constructor() {
-
-    }
 
     operator fun plus(timestamp: UnixTimestamp): UnixTimestamp {
         return fromMillisSince1970(millisSince1970 + timestamp.millisSince1970)
@@ -110,6 +106,12 @@ class UnixTimestamp {
         fun fromDate(date: Date): UnixTimestamp {
             val ts = UnixTimestamp()
             ts.millisSince1970 = date.time
+            return ts
+        }
+
+        fun zero(): UnixTimestamp{
+            val ts = UnixTimestamp()
+            ts.millisSince1970 = 0
             return ts
         }
     }

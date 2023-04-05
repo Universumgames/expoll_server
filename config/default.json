@@ -18,7 +18,7 @@
     },
     "maxPollCountPerUser": 10,
     "recaptchaAPIKey": "your google recaptcha api key goes here",
-    "serverVersion": "3.1.5",
+    "serverVersion": "3.2.0",
     "compatibleVersions": [
         {
             "from": "2.6.10"
@@ -52,5 +52,28 @@
         "issuer": "your token issuer",
         "audience": "destination domain for token",
         "realm": "summary of tokens purpose"
+    },
+    "oidc": {
+        "idps": {
+            "google": {
+                "clientID": "your id",
+                "clientSecret": "your secret",
+                "redirectURL": "https://expoll.mt32.net/....",
+                "discoveryURL": "https://accounts.google.com/.well-known/openid-configuration"
+            },
+            "microsoft": {
+                "clientID": "",
+                "clientSecret": "",
+                "redirectURL": "http://localhost:8080/api/auth/oidc/microsoft",
+                "discoveryURL": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
+            },
+            "apple": {
+                "clientID": "",
+                "privateKeyPath": "./config/abcde.p8",
+                "privateKeyID": "abcde",
+                "redirectURL": "https://expoll.mt32.net/api/auth/oidc/apple",
+                "discoveryURL": "https://appleid.apple.com/.well-known/openid-configuration"
+            }
+        }
     }
 }

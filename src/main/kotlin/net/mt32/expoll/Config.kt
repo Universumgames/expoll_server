@@ -67,6 +67,22 @@ data class JWTConfig(
 )
 
 @Serializable
+data class OIDCIDPConfig(
+    val clientID: String,
+    val clientSecret: String? = null,
+    val privateKeyPath: String? = null,
+    val privateKeyID: String? = null,
+    val audience: String? = null,
+    val redirectURL: String,
+    val discoveryURL: String
+)
+
+@Serializable
+data class OIDCConfig(
+    val idps: Map<String, OIDCIDPConfig> = mapOf()
+)
+
+@Serializable
 data class ConfigData(
     val mail: MailConfig = MailConfig(),
     val serverPort: Int = 0,
@@ -83,7 +99,8 @@ data class ConfigData(
     val testUser: TestUserConfig = TestUserConfig(),
     val minimumRequiredClientVersion: String = "",
     val compatibleVersions: List<CompatibleVersionDescriptor> = listOf(),
-    val jwt: JWTConfig = JWTConfig()
+    val jwt: JWTConfig = JWTConfig(),
+    val oidc: OIDCConfig = OIDCConfig()
 )
 
 var config: ConfigData = ConfigData()

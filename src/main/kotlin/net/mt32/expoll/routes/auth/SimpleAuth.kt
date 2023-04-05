@@ -42,13 +42,16 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
                     "\n alternatively you can click this link \n" +
                     urlBuilder(call, otp.otp)
         )
-        call.respondText(otp.otp)
+        call.respond(ReturnCode.OK)
         return
     }
 
-    if(!otpString.isNullOrEmpty()) {
-        val otp = OTP.fromOTP(otpString)
-        if(otp == null){
+    if (!otpString.isNullOrEmpty()) {
+        val cleanedOTP = otpString
+            .replace(" ", "")
+            .replace("\t", "")
+        val otp = OTP.fromOTP(cleanedOTP)
+        if (otp == null) {
             call.respond(ReturnCode.UNAUTHORIZED)
             return
         }

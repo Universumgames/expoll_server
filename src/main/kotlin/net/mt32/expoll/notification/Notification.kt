@@ -10,12 +10,11 @@ import kotlinx.serialization.encodeToString
 import net.mt32.expoll.config
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.defaultJSON
-import java.io.File
+import net.mt32.expoll.security.loadECKeyFile
 import java.security.KeyFactory
 import java.security.PrivateKey
 import java.security.interfaces.ECPrivateKey
 import java.security.spec.ECPrivateKeySpec
-import java.security.spec.PKCS8EncodedKeySpec
 import java.util.*
 
 
@@ -81,11 +80,7 @@ object APNsNotificationHandler {
 
 
     private fun getAPNsKey(): PrivateKey {
-        val file = File(config.notifications.apnsKeyPath)
-        val content = String(file.readBytes()).replace("-----BEGIN PRIVATE KEY-----\n", "")
-            .replace("-----END PRIVATE KEY-----", "").replace("\\s+".toRegex(), "")
-        val encoded = Base64.getDecoder().decode(content)
-        return KeyFactory.getInstance("EC").generatePrivate(PKCS8EncodedKeySpec(encoded))
+        return loadECKeyFile(config.notifications.apnsKeyPath)!!
         //return getPrivateKey(config.notifications.apnsKeyPath, "EC")!!
     }
 

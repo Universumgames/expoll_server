@@ -3,8 +3,8 @@ package net.mt32.expoll
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
-import io.ktor.server.sessions.*
-import io.ktor.util.*
+import kotlinx.coroutines.runBlocking
+import net.mt32.expoll.auth.OIDC
 import net.mt32.expoll.database.DatabaseFactory
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.plugins.*
@@ -16,6 +16,9 @@ fun main(args: Array<String>) {
     ConfigLoader.load(environment)
     DatabaseFactory.init()
     User.ensureTestUserExistence()
+    runBlocking {
+        OIDC.init()
+    }
 
 
     embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)
@@ -28,4 +31,5 @@ fun Application.module() {
     configureHTTP()
     configureSerialization()
     configureRouting()
+    configureAnalytics()
 }

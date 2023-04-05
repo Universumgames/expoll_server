@@ -45,3 +45,4 @@ docker/db.env
 backups
 *.p8
 privateScripts
+config/*secret*

@@ -19,6 +19,7 @@ fun Route.authRoutes(){
     route("auth"){
         simpleAuthRoutes()
         webauthnRoutes()
+        oidcRoutes()
         authenticate(normalAuth) {
             delete("logout") {
                 logout(call)

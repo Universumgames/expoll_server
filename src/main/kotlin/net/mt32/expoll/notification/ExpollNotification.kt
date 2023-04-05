@@ -11,7 +11,6 @@ import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
-import java.util.*
 
 enum class ExpollNotificationType(val body: String) {
     VoteChange("notification.vote.change %@ %@"),
@@ -64,7 +63,6 @@ class ExpollAPNsPayload(
     val pollID: tPollID? = null
 ) : IAPNsPayload
 
-// TODO implement sending notification async on event
 @OptIn(DelicateCoroutinesApi::class)
 fun sendNotification(notification: ExpollNotification) {
     GlobalScope.launch {

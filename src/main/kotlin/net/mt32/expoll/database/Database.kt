@@ -31,6 +31,7 @@ object DatabaseFactory {
                 MailRule,
                 PollUserNote,
                 NotificationPreferences,
+                OIDCUserData,
                 Poll,
                 PollOptionString,
                 PollOptionDate,

@@ -46,3 +46,16 @@ suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
 )
 suspend fun ApplicationCall.getDataFromAny(key: String): String? =
     getDataFromAny(this, key)
+
+suspend fun ApplicationCall.anyParameter(key: String):String?
+= parameters[key] ?: request.queryParameters[key] ?: receiveParameters()[key]
+
+/*suspend fun ApplicationCall.respondRedirect(url: Url, body: String){
+    response.headers.append("Location", url.toString())
+    respond(HttpStatusCode.TemporaryRedirect, body)
+}
+
+suspend fun ApplicationCall.respondRedirect(url: String, body: String){
+    response.headers.append("Location", url)
+    respond(HttpStatusCode.TemporaryRedirect, body)
+}*/

@@ -4,3 +4,8 @@ fun String.removeNullString(): String? {
     if (this.equals("null", ignoreCase = true)) return null
     return this
 }
+
+fun String.replaceEmptyWithNull(): String?{
+    if(this.isEmpty() || this.isBlank()) return null
+    return this
+}
