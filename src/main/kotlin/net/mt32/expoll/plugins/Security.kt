@@ -36,16 +36,16 @@ fun Application.configureSecurity() {
             validate { credential ->
                 return@validate Session.loadAndVerify(this, credential)
             }
-            authHeader { call->
+            authHeader { call ->
                 var header = call.request.parseAuthorizationHeader()
-                if(header == null){
+                if (header == null) {
                     val jwt = runBlocking { return@runBlocking call.getDataFromAny("jwt") }
                     header = parseAuthorizationHeader("Bearer $jwt")
                 }
                 return@authHeader header
             }
         }
-        jwt(adminAuth){
+        jwt(adminAuth) {
             realm = config.jwt.realm
             verifier(
                 JWT
@@ -57,9 +57,9 @@ fun Application.configureSecurity() {
             validate { credential ->
                 return@validate Session.loadAndVerify(this, credential, withAdmin = true)
             }
-            authHeader { call->
+            authHeader { call ->
                 var header = call.request.parseAuthorizationHeader()
-                if(header == null){
+                if (header == null) {
                     val jwt = runBlocking { return@runBlocking call.getDataFromAny("jwt") }
                     header = parseAuthorizationHeader("Bearer $jwt")
                 }
@@ -69,9 +69,10 @@ fun Application.configureSecurity() {
     }
     data class MySession(val count: Int = 0)
     install(Sessions) {
-        cookie<ExpollJWTCookie>(cookieName){
+        cookie<ExpollJWTCookie>(cookieName) {
             cookie.extensions["SameSite"] = "strict"
-            cookie.extensions["Domain"] = "expoll.mt32.net" // TODO make config
+            cookie.extensions["Domain"] = config.cookieDomain
+            if (!config.developmentMode) cookie.secure = true
             serializer = ExpollJWTCookie.Companion
             cookie.maxAgeInSeconds = UnixTimestamp.zero().addDays(120).secondsSince1970 // 120 days ?
         }

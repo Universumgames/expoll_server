@@ -101,7 +101,8 @@ data class ConfigData(
     val compatibleVersions: List<CompatibleVersionDescriptor> = listOf(),
     val jwt: JWTConfig = JWTConfig(),
     val oidc: OIDCConfig = OIDCConfig(),
-    val cookieDomain: String = ""
+    val cookieDomain: String = "",
+    val developmentMode: Boolean = false
 )
 
 var config: ConfigData = ConfigData()

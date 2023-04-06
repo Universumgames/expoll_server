@@ -76,5 +76,6 @@
       }
     }
   },
-  "cookieDomain": "expoll.mt32.net"
+  "cookieDomain": "expoll.mt32.net",
+  "developmentMode": false
 }
