@@ -8,8 +8,10 @@ import net.mt32.expoll.helper.ReturnCode
 
 val AnalyticsPlugin = createApplicationPlugin("analytics") {
     onCallRespond { call ->
-        if (call.response.status() != ReturnCode.BAD_REQUEST && call.response.status()?.value != 404)
+        if (call.response.status() != ReturnCode.BAD_REQUEST) {
             AnalyticsStorage.registerRequest(call.request.uri.substringBefore("?"))
+            AnalyticsStorage.registerRequest("*")
+        }
     }
 }
 

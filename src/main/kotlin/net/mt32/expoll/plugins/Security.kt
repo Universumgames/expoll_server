@@ -16,6 +16,7 @@ import net.mt32.expoll.auth.cookieName
 import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Session
+import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDataFromAny
 import kotlin.collections.set
 
@@ -69,9 +70,10 @@ fun Application.configureSecurity() {
     data class MySession(val count: Int = 0)
     install(Sessions) {
         cookie<ExpollJWTCookie>(cookieName){
-            cookie.extensions["SameSite"] = "lax"
+            cookie.extensions["SameSite"] = "strict"
+            cookie.extensions["Domain"] = "expoll.mt32.net" // TODO make config
             serializer = ExpollJWTCookie.Companion
-            cookie.maxAgeInSeconds = 60 * 60 * 24 * 120 // 120 days ?
+            cookie.maxAgeInSeconds = UnixTimestamp.zero().addDays(120).secondsSince1970 // 120 days ?
         }
         cookie<MySession>("MY_SESSION") {
             cookie.extensions["SameSite"] = "lax"

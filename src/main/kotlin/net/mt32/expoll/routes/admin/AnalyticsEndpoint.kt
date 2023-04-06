@@ -14,5 +14,8 @@ fun Route.analyticsRoutes(){
         get("requestCounts"){
             call.respond(AnalyticsStorage.requestCountStorage.values.map { it.toResponse() })
         }
+        get("notificationCounts"){
+            call.respond(AnalyticsStorage.notificationCount)
+        }
     }
 }

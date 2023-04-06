@@ -13,7 +13,8 @@ data class DatabaseCounts(
     val pollCount: Long,
     val authDeviceCount: Long,
     val sessionCount: Long,
-    val appSessionCount: Long
+    val appSessionCount: Long,
+    val notificationDeviceCount: Long
 )
 
 fun AnalyticsStorage.getCounts(): DatabaseCounts{
@@ -24,13 +25,15 @@ fun AnalyticsStorage.getCounts(): DatabaseCounts{
         val authDeviceCount = Authenticator.selectAll().count()
         val sessionCount = Session.selectAll().count()
         val appSessionCount = Session.select { Session.userAgent eq "ios App" }.count()
+        val notificationDevices = APNDevice.selectAll().count()
         return@transaction DatabaseCounts(
             userCount,
             voteCount,
             pollCount,
             authDeviceCount,
             sessionCount,
-            appSessionCount
+            appSessionCount,
+            notificationDevices
         )
     }
 }

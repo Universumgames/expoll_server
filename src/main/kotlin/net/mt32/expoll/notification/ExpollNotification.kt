@@ -6,6 +6,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import net.mt32.expoll.analytics.AnalyticsStorage
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.UnixTimestamp
@@ -65,6 +66,7 @@ class ExpollAPNsPayload(
 
 @OptIn(DelicateCoroutinesApi::class)
 fun sendNotification(notification: ExpollNotification) {
+    AnalyticsStorage.notificationCount[notification.type] = (AnalyticsStorage.notificationCount[notification.type] ?: 0) + 1
     GlobalScope.launch {
         val poll = Poll.fromID(notification.pollID)
         val affectedUser = notification.affectedUserID?.let { User.loadFromID(it) }

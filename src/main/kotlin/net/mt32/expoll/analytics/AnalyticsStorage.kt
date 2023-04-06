@@ -1,12 +1,15 @@
 package net.mt32.expoll.analytics
 
 import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.notification.ExpollNotificationType
 import java.util.*
 
 object AnalyticsStorage {
     private val timer: Timer = Timer()
 
     var requestCountStorage: MutableMap<String, RequestCountStorageElement> = mutableMapOf()
+    var notificationCount: MutableMap<ExpollNotificationType, Long>
+    var lastReset: UnixTimestamp
 
     init {
         val now = Calendar.getInstance()
@@ -16,10 +19,14 @@ object AnalyticsStorage {
                 resetStatistics()
             }
         }, delay, UnixTimestamp.zero().addDays(1).millisSince1970)
+        lastReset = UnixTimestamp.now()
+        notificationCount = mutableMapOf()
     }
 
     private fun resetStatistics(){
         requestCountStorage.forEach { it.value.reset() }
+        notificationCount = mutableMapOf()
+        lastReset = UnixTimestamp.now()
     }
 
     private fun getDelayToMidnight(now: Calendar): Long {

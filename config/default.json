@@ -1,79 +1,80 @@
 {
-    "mail": {
-        "mailServer": "your-mailserver-url",
-        "mailPort": 587,
-        "mailSecure": false,
-        "mailUser": "your mail",
-        "mailPassword": "password"
+  "mail": {
+    "mailServer": "your-mailserver-url",
+    "mailPort": 587,
+    "mailSecure": false,
+    "mailUser": "your mail",
+    "mailPassword": "password"
+  },
+  "serverPort": 6060,
+  "frontEndPort": 80,
+  "loginLinkURL": "localhost",
+  "superAdminMail": "your mail address",
+  "database": {
+    "host": "localhost",
+    "port": 3306,
+    "type": "mariadb",
+    "rootPW": "password"
+  },
+  "maxPollCountPerUser": 10,
+  "recaptchaAPIKey": "your google recaptcha api key goes here",
+  "serverVersion": "3.2.0",
+  "compatibleVersions": [
+    {
+      "from": "2.6.10"
     },
-    "serverPort": 6060,
-    "frontEndPort": 80,
-    "loginLinkURL": "localhost",
-    "superAdminMail": "your mail address",
-    "database": {
-        "host": "localhost",
-        "port": 3306,
-        "type": "mariadb",
-        "rootPW": "password"
-    },
-    "maxPollCountPerUser": 10,
-    "recaptchaAPIKey": "your google recaptcha api key goes here",
-    "serverVersion": "3.2.0",
-    "compatibleVersions": [
-        {
-            "from": "2.6.10"
-        },
-        {
-            "from": "2.6.0build56"
-        }
-    ],
-    "webauthn": {
-        "rpName": "Expoll",
-        "rpID": "expoll.mt32.net",
-        "origin": "https://expoll.mt32.net"
-    },
-    "shareURLPrefix": "https://expoll.mt32.net/share?pollID=",
-    "notifications": {
-        "bundleID": "de.universegame.expoll-ios",
-        "teamID": "team id",
-        "apnsKeyID": "the apns key id",
-        "apnsKeyPath": "your key to the ios/macos app for notifications, relative path from root (this config file would be \"config/default.json\"",
-        "apnsURL": "https://api.push.apple.com:443"
-    },
-    "testUser":{
-        "firstName": "Test",
-        "lastName": "User",
-        "email": "mail",
-        "username": "testuser",
-        "otp": "bas64 otp"
-    },
-    "jwt": {
-        "secret": "your signature secret",
-        "issuer": "your token issuer",
-        "audience": "destination domain for token",
-        "realm": "summary of tokens purpose"
-    },
-    "oidc": {
-        "idps": {
-            "google": {
-                "clientID": "your id",
-                "clientSecret": "your secret",
-                "redirectURL": "https://expoll.mt32.net/....",
-                "discoveryURL": "https://accounts.google.com/.well-known/openid-configuration"
-            },
-            "microsoft": {
-                "clientID": "",
-                "clientSecret": "",
-                "redirectURL": "http://localhost:8080/api/auth/oidc/microsoft",
-                "discoveryURL": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
-            },
-            "apple": {
-                "clientID": "",
-                "privateKeyPath": "./config/abcde.p8",
-                "privateKeyID": "abcde",
-                "redirectURL": "https://expoll.mt32.net/api/auth/oidc/apple",
-                "discoveryURL": "https://appleid.apple.com/.well-known/openid-configuration"
-            }
-        }
+    {
+      "from": "2.6.0build56"
     }
+  ],
+  "webauthn": {
+    "rpName": "Expoll",
+    "rpID": "expoll.mt32.net",
+    "origin": "https://expoll.mt32.net"
+  },
+  "shareURLPrefix": "https://expoll.mt32.net/share?pollID=",
+  "notifications": {
+    "bundleID": "de.universegame.expoll-ios",
+    "teamID": "team id",
+    "apnsKeyID": "the apns key id",
+    "apnsKeyPath": "your key to the ios/macos app for notifications, relative path from root (this config file would be \"config/default.json\"",
+    "apnsURL": "https://api.push.apple.com:443"
+  },
+  "testUser": {
+    "firstName": "Test",
+    "lastName": "User",
+    "email": "mail",
+    "username": "testuser",
+    "otp": "bas64 otp"
+  },
+  "jwt": {
+    "secret": "your signature secret",
+    "issuer": "your token issuer",
+    "audience": "destination domain for token",
+    "realm": "summary of tokens purpose"
+  },
+  "oidc": {
+    "idps": {
+      "google": {
+        "clientID": "your id",
+        "clientSecret": "your secret",
+        "redirectURL": "https://expoll.mt32.net/....",
+        "discoveryURL": "https://accounts.google.com/.well-known/openid-configuration"
+      },
+      "microsoft": {
+        "clientID": "",
+        "clientSecret": "",
+        "redirectURL": "http://localhost:8080/api/auth/oidc/microsoft",
+        "discoveryURL": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
+      },
+      "apple": {
+        "clientID": "",
+        "privateKeyPath": "./config/abcde.p8",
+        "privateKeyID": "abcde",
+        "redirectURL": "https://expoll.mt32.net/api/auth/oidc/apple",
+        "discoveryURL": "https://appleid.apple.com/.well-known/openid-configuration"
+      }
+    }
+  },
+  "cookieDomain": "expoll.mt32.net"
 }
