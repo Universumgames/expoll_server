@@ -9,6 +9,7 @@ import io.ktor.client.request.forms.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -18,7 +19,9 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
+import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.auth.OIDC
+import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.OIDCUserData
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.*
@@ -35,6 +38,18 @@ fun Route.oidcRoutes() {
     route("/oidc") {
         get("/providers") {
             listIDPs(call)
+        }
+        authenticate(normalAuth) {
+            get("/connections") {
+                getConnections(call)
+            }
+            route("/addConnection"){
+                for (idp in OIDC.data.values) {
+                    get(idp.name) {
+                        oidcLoginInit(call, idp)
+                    }
+                }
+            }
         }
 
         for (idp in OIDC.data.values) {
@@ -62,6 +77,7 @@ fun Route.oidcRoutes() {
                     }
                 }
             }
+
         }
     }
 }
@@ -73,9 +89,25 @@ private suspend fun listIDPs(call: ApplicationCall) {
     )
 }
 
+private suspend fun getConnections(call: ApplicationCall) {
+    val principal = call.principal<JWTSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+        return
+    }
+    val connections = OIDCUserData.byUser(principal.userID)
+    call.respond(connections.map { it.toConnectionOverview() })
+}
+
+val stateStorage: MutableMap<Long, Pair<UnixTimestamp, String>> = mutableMapOf()
+
 private suspend fun oidcLoginInit(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
     val scope = "openid email " + if (idp.metadata.scopesSupported.contains("profile")) "profile" else "name"
     val url = URLBuilder(idp.metadata.authorizationEndpoint)
+    stateStorage.forEach {
+        if (it.value.first.addHours(1) < UnixTimestamp.now())
+            stateStorage.remove(it.key)
+    }
     url.set {
         parameters.append("client_id", idp.config.clientID)
         parameters.append("scope", scope)
@@ -83,6 +115,12 @@ private suspend fun oidcLoginInit(call: ApplicationCall, idp: OIDC.OIDCIDPData) 
         parameters.append("redirect_uri", idp.config.redirectURL)
         parameters.append("nonce", UUID.randomUUID().toString())
         parameters.append("response_mode", "form_post")
+        val principal = call.principal<JWTSessionPrincipal>()
+        if (principal != null) {
+            val nonce = createNonce()
+            stateStorage[nonce] = Pair(UnixTimestamp.now(), principal.userID)
+            parameters.append("state", nonce.toString())
+        }
     }
     call.respondRedirect(url.build())
 }
@@ -144,6 +182,41 @@ private suspend fun oidcLogin(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
         return
     }
 
+    val principal = call.principal<JWTSessionPrincipal>()
+    if (principal == null && call.anyParameter("state") == null)
+        loginUser(call, userParam, tokenDataMap, baseTokenData, idp)
+    else addOIDCConnection(call, userParam, tokenDataMap, baseTokenData, idp, principal)
+}
+
+private suspend fun addOIDCConnection(
+    call: ApplicationCall,
+    userParam: String?,
+    tokenDataMap: Map<String, JsonPrimitive>,
+    baseTokenData: OIDC.IDToken,
+    idp: OIDC.OIDCIDPData,
+    principal: JWTSessionPrincipal?
+) {
+    val parsedUser = userParam?.let { defaultJSON.decodeFromString<OIDCUserParam>(it) }
+    val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.contentOrNull ?: tokenDataMap["email"]?.contentOrNull
+    val state = call.anyParameter("state")
+    val userID = principal?.userID ?: stateStorage[state?.toLong()]?.second
+    stateStorage.remove(state?.toLong())
+    if (userID == null) {
+        call.respond(ReturnCode.BAD_REQUEST)
+        return
+    }
+    val oidcConnection = OIDCUserData(userID, idp.name, baseTokenData.issuer, baseTokenData.subject, mailUse)
+    oidcConnection.save()
+    call.respondRedirect("/")
+}
+
+private suspend fun loginUser(
+    call: ApplicationCall,
+    userParam: String?,
+    tokenDataMap: Map<String, JsonPrimitive>,
+    baseTokenData: OIDC.IDToken,
+    idp: OIDC.OIDCIDPData
+) {
     val parsedUser = userParam?.let { defaultJSON.decodeFromString<OIDCUserParam>(it) }
 
     val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.contentOrNull ?: tokenDataMap["email"]?.contentOrNull
@@ -165,7 +238,7 @@ private suspend fun oidcLogin(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
     user = (mailUse)?.let { User.byMail(it) }
     if (user != null) {
         // create connection to provider
-        val oidcConnection = OIDCUserData(user.id, idp.name, baseTokenData.issuer, baseTokenData.subject)
+        val oidcConnection = OIDCUserData(user.id, idp.name, baseTokenData.issuer, baseTokenData.subject, mailUse)
         oidcConnection.save()
         createAndRespondWithSession(call, user)
         return

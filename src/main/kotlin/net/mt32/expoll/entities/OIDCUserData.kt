@@ -1,5 +1,6 @@
 package net.mt32.expoll.entities
 
+import kotlinx.serialization.Serializable
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.upsert
@@ -12,12 +13,14 @@ class OIDCUserData : DatabaseEntity {
     val idpName: String
     val issuer: String
     val subject: String
+    val mail: String?
 
-    constructor(userID: String, idpName: String, issuer: String, subject: String) : super() {
+    constructor(userID: String, idpName: String, issuer: String, subject: String, mail: String?) : super() {
         this.userID = userID
         this.idpName = idpName
         this.issuer = issuer
         this.subject = subject
+        this.mail = mail
     }
 
     private constructor(row: ResultRow) {
@@ -25,6 +28,7 @@ class OIDCUserData : DatabaseEntity {
         this.idpName = row[OIDCUserData.idpName]
         this.issuer = row[OIDCUserData.issuer]
         this.subject = row[OIDCUserData.subject]
+        this.mail = row[OIDCUserData.mail]
     }
 
 
@@ -35,6 +39,7 @@ class OIDCUserData : DatabaseEntity {
                 it[OIDCUserData.idpName] = this@OIDCUserData.idpName
                 it[OIDCUserData.issuer] = this@OIDCUserData.issuer
                 it[OIDCUserData.subject] = this@OIDCUserData.subject
+                it[OIDCUserData.mail] = this@OIDCUserData.mail
             }
         }
         return true
@@ -51,11 +56,16 @@ class OIDCUserData : DatabaseEntity {
         return true
     }
 
+    fun toConnectionOverview(): OIDCConnection {
+        return OIDCConnection(idpName, mail, subject)
+    }
+
     companion object : Table("oidcUserData") {
         val userID = varchar("userid", UUIDLength)
         val idpName = varchar("idp", 64)
         val issuer = varchar("issuer", 256)
         val subject = varchar("subject", 512)
+        val mail = varchar("mail", 256).nullable()
 
         fun bySubjectAndIDP(subject: String, idpName: String): OIDCUserData? {
             return transaction {
@@ -65,5 +75,19 @@ class OIDCUserData : DatabaseEntity {
                 return@transaction row?.let { OIDCUserData(it) }
             }
         }
+
+        fun byUser(userID: String): List<OIDCUserData> {
+            return transaction {
+                val result = OIDCUserData.select { (OIDCUserData.userID eq userID) }
+                return@transaction result.map { OIDCUserData(it) }
+            }
+        }
     }
 }
+
+@Serializable
+data class OIDCConnection(
+    val name: String,
+    val mail: String?,
+    val subject: String
+)

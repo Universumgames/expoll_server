@@ -145,13 +145,14 @@ class User : IUser, DatabaseEntity {
         challenges.forEach { it.delete() }
         authenticators.forEach { it.delete() }
         apnDevices.forEach { it.delete() }
+        OIDCUserData.byUser(id).forEach { it.delete() }
         //votes.forEach { it.delete() }
         //polls.forEach { if(it.adminID != id) UserPolls.removeConnection(id, it.id) }
         val oldActive = active
         transaction {
             User.upsert(User.id) {
                 it[id] = this@User.id
-                it[username] = "Deleted User"
+                it[username] = "Deleted User " + this@User.id
                 it[firstName] = "Deleted"
                 it[lastName] = "User"
                 it[mail] = "unknown"

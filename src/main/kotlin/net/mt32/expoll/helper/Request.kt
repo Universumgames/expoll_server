@@ -24,15 +24,18 @@ suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
     val query = request.queryParameters[key]
     if (query != null)
         return query.removeNullString()
+    var isForm = false
     val form = try {
-        call.receiveParameters()[key]
+        val params = call.receiveParameters()
+        isForm = true
+        params[key]
     } catch (e: Exception) {
         null
     }
     if (form != null)
         return form.removeNullString()
     val body = if (call.receiveText()
-            .isNotEmpty()
+            .isNotEmpty() && !isForm
     ) defaultJSON.parseToJsonElement(call.receiveText()).jsonObject.toMap()[key].toString().replace("\"", "") else null
     if (body != null)
         return body.removeNullString()
