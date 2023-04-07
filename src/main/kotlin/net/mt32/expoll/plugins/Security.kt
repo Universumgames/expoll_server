@@ -70,8 +70,8 @@ fun Application.configureSecurity() {
     data class MySession(val count: Int = 0)
     install(Sessions) {
         cookie<ExpollJWTCookie>(cookieName) {
-            cookie.extensions["SameSite"] = "strict"
-            cookie.extensions["Domain"] = config.cookieDomain
+            cookie.extensions["SameSite"] = if (!config.developmentMode) "strict" else "lax"
+            if (!config.developmentMode) cookie.extensions["Domain"] = config.cookieDomain
             if (!config.developmentMode) cookie.secure = true
             serializer = ExpollJWTCookie.Companion
             cookie.maxAgeInSeconds = UnixTimestamp.zero().addDays(120).secondsSince1970 // 120 days ?
