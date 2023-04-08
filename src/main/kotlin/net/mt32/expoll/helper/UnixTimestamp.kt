@@ -42,20 +42,20 @@ class UnixTimestamp private constructor() {
         return (millisSince1970 - timestamp.millisSince1970).toInt()
     }
 
-    fun addSeconds(seconds: Int): UnixTimestamp {
+    fun addSeconds(seconds: Long): UnixTimestamp {
         millisSince1970 += seconds * 1000
         return this
     }
 
-    fun addMinutes(minutes: Int): UnixTimestamp {
+    fun addMinutes(minutes: Long): UnixTimestamp {
         return addSeconds(minutes * 60)
     }
 
-    fun addHours(hours: Int): UnixTimestamp {
+    fun addHours(hours: Long): UnixTimestamp {
         return addMinutes(hours * 60)
     }
 
-    fun addDays(days: Int): UnixTimestamp {
+    fun addDays(days: Long): UnixTimestamp {
         return addHours(days * 24)
     }
 
