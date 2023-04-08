@@ -25,6 +25,7 @@ import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.OIDCUserData
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.*
+import net.mt32.expoll.tUserID
 import java.util.*
 
 private val client = HttpClient(Java) {
@@ -55,7 +56,7 @@ fun Route.oidcRoutes() {
         for (idp in OIDC.data.values) {
             route(idp.name) {
                 get {
-                    if (call.parameters.isEmpty()) {
+                    if (call.parameters.isEmpty() || call.parameters["app"]?.isNotEmpty() == true) {
                         oidcLoginInit(call, idp)
                     } else {
                         oidcLogin(call, idp)
@@ -99,15 +100,30 @@ private suspend fun getConnections(call: ApplicationCall) {
     call.respond(connections.map { it.toConnectionOverview() })
 }
 
-val stateStorage: MutableMap<Long, Pair<UnixTimestamp, String>> = mutableMapOf()
+private interface State{
+    val timestamp: UnixTimestamp
+    val isApp: Boolean
+}
+private data class LoggedInState(
+    override val timestamp: UnixTimestamp,
+    val userID: tUserID,
+    override val isApp: Boolean = false
+): State
+
+private data class FreshState(
+    override val timestamp: UnixTimestamp,
+    override val isApp: Boolean
+):State
+private val stateStorage: MutableMap<Long, State> = mutableMapOf()
 
 private suspend fun oidcLoginInit(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
     val scope = "openid email " + if (idp.metadata.scopesSupported.contains("profile")) "profile" else "name"
     val url = URLBuilder(idp.metadata.authorizationEndpoint)
     stateStorage.forEach {
-        if (it.value.first.addHours(1) < UnixTimestamp.now())
+        if (it.value.timestamp.addHours(1) < UnixTimestamp.now())
             stateStorage.remove(it.key)
     }
+    val isApp = call.request.queryParameters["app"] == "1"
     url.set {
         parameters.append("client_id", idp.config.clientID)
         parameters.append("scope", scope)
@@ -116,11 +132,13 @@ private suspend fun oidcLoginInit(call: ApplicationCall, idp: OIDC.OIDCIDPData) 
         parameters.append("nonce", UUID.randomUUID().toString())
         parameters.append("response_mode", "form_post")
         val principal = call.principal<JWTSessionPrincipal>()
+        val nonce = createNonce()
+        parameters.append("state", nonce.toString())
+
         if (principal != null) {
-            val nonce = createNonce()
-            stateStorage[nonce] = Pair(UnixTimestamp.now(), principal.userID)
-            parameters.append("state", nonce.toString())
-        }
+            stateStorage[nonce] = LoggedInState(UnixTimestamp.now(), principal.userID, isApp)
+        }else
+            stateStorage[nonce] = FreshState(UnixTimestamp.now(), isApp)
     }
     call.respondRedirect(url.build())
 }
@@ -183,9 +201,13 @@ private suspend fun oidcLogin(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
     }
 
     val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null && call.anyParameter("state") == null)
-        loginUser(call, userParam, tokenDataMap, baseTokenData, idp)
-    else addOIDCConnection(call, userParam, tokenDataMap, baseTokenData, idp, principal)
+    val stateParam = call.anyParameter("state")?.toLong()
+    val state = stateStorage[stateParam]
+    stateStorage.remove(stateParam)
+    if (principal == null && state is FreshState)
+        loginUser(call, userParam, tokenDataMap, baseTokenData, idp, state)
+    else if(state is LoggedInState) addOIDCConnection(call, userParam, tokenDataMap, baseTokenData, idp, principal, state)
+    else call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
 }
 
 private suspend fun addOIDCConnection(
@@ -194,17 +216,12 @@ private suspend fun addOIDCConnection(
     tokenDataMap: Map<String, JsonPrimitive>,
     baseTokenData: OIDC.IDToken,
     idp: OIDC.OIDCIDPData,
-    principal: JWTSessionPrincipal?
+    principal: JWTSessionPrincipal?,
+    state: LoggedInState
 ) {
     val parsedUser = userParam?.let { defaultJSON.decodeFromString<OIDCUserParam>(it) }
     val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.contentOrNull ?: tokenDataMap["email"]?.contentOrNull
-    val state = call.anyParameter("state")
-    val userID = principal?.userID ?: stateStorage[state?.toLong()]?.second
-    stateStorage.remove(state?.toLong())
-    if (userID == null) {
-        call.respond(ReturnCode.BAD_REQUEST)
-        return
-    }
+    val userID = principal?.userID ?: state.userID
     val oidcConnection = OIDCUserData(userID, idp.name, baseTokenData.issuer, baseTokenData.subject, mailUse)
     oidcConnection.save()
     call.respondRedirect("/")
@@ -215,7 +232,8 @@ private suspend fun loginUser(
     userParam: String?,
     tokenDataMap: Map<String, JsonPrimitive>,
     baseTokenData: OIDC.IDToken,
-    idp: OIDC.OIDCIDPData
+    idp: OIDC.OIDCIDPData,
+    state: FreshState
 ) {
     val parsedUser = userParam?.let { defaultJSON.decodeFromString<OIDCUserParam>(it) }
 
@@ -231,7 +249,7 @@ private suspend fun loginUser(
     // check for user connection exists
     var user = oidcUserData?.let { User.loadFromID(it.userID) }
     if (user != null) {
-        createAndRespondWithSession(call, user)
+        createAndRespondWithSession(call, user, state)
         return
     }
     // check for mail user
@@ -240,7 +258,7 @@ private suspend fun loginUser(
         // create connection to provider
         val oidcConnection = OIDCUserData(user.id, idp.name, baseTokenData.issuer, baseTokenData.subject, mailUse)
         oidcConnection.save()
-        createAndRespondWithSession(call, user)
+        createAndRespondWithSession(call, user, state)
         return
     }
 
@@ -259,10 +277,10 @@ private suspend fun loginUser(
     }
     user = User(userNameUse, firstNameUse, lastNameUse ?: "", mailUse, admin = false)
     user.save()
-    createAndRespondWithSession(call, user)
+    createAndRespondWithSession(call, user, state)
 }
 
-private suspend fun createAndRespondWithSession(call: ApplicationCall, user: User) {
+private suspend fun createAndRespondWithSession(call: ApplicationCall, user: User, state: State) {
     val otp = user.createOTP()
-    call.respondRedirect(urlBuilder(call, otp.otp))
+    call.respondRedirect(urlBuilder(call, otp.otp, state.isApp))
 }

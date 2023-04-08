@@ -81,6 +81,12 @@ class OTP : DatabaseEntity {
                 return@transaction result.map { OTP(it) }
             }
         }
+
+        fun all(): List<OTP> {
+            return transaction {
+                return@transaction OTP.selectAll().map { OTP(it) }
+            }
+        }
     }
 
     override fun save(): Boolean {
@@ -252,6 +258,12 @@ class Session : DatabaseEntity {
                 user.superAdmin,
                 originalUserID
             )
+        }
+
+        fun all(): List<Session> {
+            return transaction {
+                return@transaction Session.selectAll().map { Session(it) }
+            }
         }
     }
 

@@ -11,7 +11,10 @@ import java.net.URLEncoder
  * @param {string} loginKey the users login key
  * @return {string} the login url
  */
-fun urlBuilder(call: ApplicationCall, otp: String): String {
+fun urlBuilder(call: ApplicationCall, otp: String, forApp: Boolean = false): String {
+    if(forApp){
+        return "expoll://login?key=" + URLEncoder.encode(otp, "utf-8")
+    }
     val port = config.frontEndPort
     val protocol = call.request.local.scheme
     return protocol +
