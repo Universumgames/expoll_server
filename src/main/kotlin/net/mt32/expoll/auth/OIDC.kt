@@ -139,8 +139,8 @@ object OIDC {
             token.issuer != idp.metadata.issuer -> false
             verifier == null -> false
             key.algorithm != null && key.algorithm != header.algorithm -> false
-            //token.expirationTimestamp > UnixTimestamp.now() -> false
-            token.issuedAtTimestamp < UnixTimestamp.now() -> false
+            token.expirationTimestamp < UnixTimestamp.now() -> false
+            token.issuedAtTimestamp > UnixTimestamp.now() -> false
 
             else -> true
         } && try {
@@ -180,13 +180,13 @@ object OIDC {
         @SerialName("azp") val authorizedParty: String? = null
     ) {
         val expirationTimestamp: UnixTimestamp
-            get() = UnixTimestamp.fromMillisSince1970(expiration)
+            get() = UnixTimestamp.fromSecondsSince1970(expiration)
 
         val issuedAtTimestamp: UnixTimestamp
-            get() = UnixTimestamp.fromMillisSince1970(issuedAt)
+            get() = UnixTimestamp.fromSecondsSince1970(issuedAt)
 
         val authTimeTimestamp: UnixTimestamp?
-            get() = authTime?.let { UnixTimestamp.fromMillisSince1970(it) }
+            get() = authTime?.let { UnixTimestamp.fromSecondsSince1970(it) }
     }
 
     @Serializable
