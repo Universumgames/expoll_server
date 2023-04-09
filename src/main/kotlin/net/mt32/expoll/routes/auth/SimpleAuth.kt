@@ -1,11 +1,15 @@
 package net.mt32.expoll.routes.auth
 
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.ExpollJWTCookie
+import net.mt32.expoll.auth.JWTSessionPrincipal
+import net.mt32.expoll.auth.cookieName
+import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.OTP
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
@@ -16,6 +20,11 @@ fun Route.simpleAuthRoutes() {
     route("simple") {
         post {
             simpleLoginRoute(call)
+        }
+        authenticate(normalAuth) {
+            get("app") {
+                loginApp(call)
+            }
         }
     }
 }
@@ -36,7 +45,7 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
             return
         }
         val otp = user.createOTP()
-        Mail.sendMail(
+        Mail.sendMailAsync(
             user.mail, "Login to expoll", "Here is your OTP for logging in on the expoll website: \n\t" +
                     otp.otp +
                     "\n alternatively you can click this link \n" +
@@ -57,9 +66,20 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
         }
         val session = otp.createSessionAndDeleteSelf(call.request.headers["User-Agent"] ?: "unknown")
         val jwt = session.getJWT()
+        call.sessions.clear(cookieName)
         call.sessions.set(ExpollJWTCookie(jwt))
         call.respondText(jwt)
         return
     }
     call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+}
+
+private suspend fun loginApp(call: ApplicationCall) {
+    val principal = call.principal<JWTSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.UNAUTHORIZED)
+        return
+    }
+    val otp = principal.user.createOTP()
+    call.respondRedirect(urlBuilder(call, otp.otp, true))
 }

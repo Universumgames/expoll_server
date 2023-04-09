@@ -69,6 +69,9 @@ class OTP : DatabaseEntity {
             return otp
         }
 
+        /**
+         * Creates and saves a new OTP for a user
+         */
         fun create(userID: tUserID): OTP {
             val otp = OTP(randomOTP(), userID)
             otp.save()

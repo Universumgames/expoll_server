@@ -176,6 +176,9 @@ class User : IUser, DatabaseEntity {
         return true
     }
 
+    /**
+     * Creates and saves new OTP for current user
+     */
     fun createOTP(): OTP {
         return OTP.create(id)
     }

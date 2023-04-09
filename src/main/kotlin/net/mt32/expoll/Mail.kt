@@ -23,7 +23,7 @@ object Mail {
         mailThread.start()*/
     }
 
-    fun sendMail(to: String, subject: String, body: String) {
+    fun sendMailAsync(to: String, subject: String, body: String) {
         //mailQueue.add(MailData(to, subject, body))
         Thread{
             sendMail(MailData(to, subject, body))

@@ -99,7 +99,7 @@ private suspend fun createUser(call: ApplicationCall) {
     call.startNewTiming("user.create.welcomeMail", "Send welcome mail")
     val port = config.frontEndPort
     val protocol = call.request.local.scheme
-    Mail.sendMail(
+    Mail.sendMailAsync(
         user.mail, "Thank you for registering in expoll",
         "Thank you for creating an account at over at expoll (" +
                 protocol +

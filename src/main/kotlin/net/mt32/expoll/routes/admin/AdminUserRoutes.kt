@@ -82,7 +82,7 @@ private suspend fun createUser(call: ApplicationCall) {
     val otp = user.createOTP()
     otp.expirationTimestamp.addDays(5)
     otp.save()
-    Mail.sendMail(
+    Mail.sendMailAsync(
         user.mail, "Expoll account creation",
         """An admin has created an account on your behalf.
            Here is your OTP for logging in on the expoll website, it is valid for the next 5 days:
