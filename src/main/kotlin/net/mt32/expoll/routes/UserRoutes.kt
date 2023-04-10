@@ -1,5 +1,6 @@
 package net.mt32.expoll.routes
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -28,6 +29,10 @@ fun Route.userRoutes() {
         // create user
         post {
             createUser(call)
+        }
+
+        get("appCreateRedirect") {
+            call.respondRedirect(URLBuilder("http://" + config.loginLinkURL + "/#/login?mail=" + call.parameters["mail"]).build())
         }
         authenticate(normalAuth) {
             get {
