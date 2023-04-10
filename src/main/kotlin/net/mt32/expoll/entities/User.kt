@@ -82,6 +82,9 @@ class User : IUser, DatabaseEntity {
 
     val created: UnixTimestamp
 
+    val oidConnections: List<OIDCUserData>
+        get() = OIDCUserData.byUser(id)
+
 
     constructor(
         username: String,
@@ -284,7 +287,8 @@ class User : IUser, DatabaseEntity {
             mail,
             admin,
             superAdmin,
-            active
+            active,
+            oidConnections.map { it.toConnectionOverview().name }
         )
     }
 

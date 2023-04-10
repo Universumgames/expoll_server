@@ -12,7 +12,8 @@ data class UserInfo(
     val mail: String,
     val admin: Boolean,
     val superAdmin: Boolean,
-    val active: Boolean
+    val active: Boolean,
+    val oidcConnections: List<String>
 )
 
 @Serializable
