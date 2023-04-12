@@ -5,7 +5,7 @@ info:
   license:
     name: MIT
     url: https://github.com/Universumgames/expoll_server/blob/main/LICENSE
-  version: 2.6.0
+  version: 3.2.6
 servers:
   - url: https://expoll.mt32.net/api
     description: the production server api
@@ -413,6 +413,8 @@ paths:
           description: Unauthorized
     post:
       description: Set notification preferences
+      security:
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -447,6 +449,8 @@ paths:
   /poll:
     get:
       description: Get poll list or poll details
+      security:
+        - bearerAuth: [ ]
       requestBody:
         content:
           application/json:
@@ -473,6 +477,8 @@ paths:
                 $ref: "#/components/schemas/DetailedPoll"
     post:
       description: Edit the poll, only the poll creator can do this
+      security:
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -490,6 +496,8 @@ paths:
           description: Editing the poll is not allowed
     put:
       description: Create a new Poll
+      security:
+        - bearerAuth: [ ]
       requestBody:
         required: true
         content:
@@ -656,6 +664,8 @@ paths:
           description: parameters missing or user does not exist
     delete:
       description: Delete user
+      security:
+        - bearerAuth: [ ]
       parameters:
         - name: userID
           in: query
