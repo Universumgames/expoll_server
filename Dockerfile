@@ -12,4 +12,4 @@ COPY --from=build /expoll/api_server/config /expoll/api_server/config
 WORKDIR /expoll/api_server
 ENTRYPOINT ["java","-Xmx2g", "-jar","server.jar", "production"]
 
-HEALTHCHECK --timeout=30s CMD curl --silent --fail http://localhost:6060/serverInfo
+HEALTHCHECK --timeout=30s --interval=60s CMD curl --silent --fail http://localhost:6060/serverInfo

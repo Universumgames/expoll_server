@@ -16,6 +16,7 @@ import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.serializable.request.CreateUserRequest
+import net.mt32.expoll.serializable.request.EditUserRequest
 import net.mt32.expoll.serializable.request.VoteChange
 import net.mt32.expoll.serializable.responses.CreateUserResponse
 import net.mt32.expoll.serializable.responses.UserDataResponse
@@ -40,6 +41,9 @@ fun Route.userRoutes() {
             }
             get("/personalizeddata") {
                 getPersonalizedData(call)
+            }
+            put{
+                editUser(call)
             }
             // TODO implement delete user endpoint
             // TODO implement delete user confirmation endpoint
@@ -181,4 +185,26 @@ private suspend fun createChallenge(call: ApplicationCall) {
     val userName = call.getDataFromAny("username")
     val mail = call.getDataFromAny("mail")
     call.respondText { "challenge${userName}${mail}" }
+}
+
+private suspend fun editUser(call: ApplicationCall){
+    val principal = call.principal<JWTSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+        return
+    }
+    val editRequest = call.receive<EditUserRequest>()
+    val user = principal.user
+    val username = editRequest.username
+    if(username != null){
+        if(User.byUsername(username) != null){
+            call.respond(ReturnCode.INVALID_PARAMS)
+            return
+        }
+        user.username = username
+    }
+    user.lastName = editRequest.lastName ?: user.lastName
+    user.firstName = editRequest.firstName ?: user.firstName
+    user.save()
+    call.respond(ReturnCode.OK)
 }

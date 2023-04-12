@@ -11,3 +11,10 @@ data class CreateUserRequest (
     val captcha: String? = null,
     val appAttest: String? = null,
 )
+
+@Serializable
+data class EditUserRequest(
+    val username: String? = null,
+    val firstName: String? = null,
+    val lastName: String? = null
+)
