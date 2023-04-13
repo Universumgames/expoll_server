@@ -124,6 +124,7 @@ private suspend fun oidcLoginInit(call: ApplicationCall, idp: OIDC.OIDCIDPData) 
             stateStorage.remove(it.key)
     }
     val isApp = call.request.queryParameters["app"] == "1"
+    val noRedirect = call.request.queryParameters["redirect"] == "0"
     url.set {
         parameters.append("client_id", idp.config.clientID)
         parameters.append("scope", scope)
@@ -140,7 +141,9 @@ private suspend fun oidcLoginInit(call: ApplicationCall, idp: OIDC.OIDCIDPData) 
         }else
             stateStorage[nonce] = FreshState(UnixTimestamp.now(), isApp)
     }
-    call.respondRedirect(url.build())
+    if(noRedirect)
+        call.respond(url.buildString())
+    else call.respondRedirect(url.build())
 }
 
 @Serializable
@@ -222,9 +225,17 @@ private suspend fun addOIDCConnection(
     val parsedUser = userParam?.let { defaultJSON.decodeFromString<OIDCUserParam>(it) }
     val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.contentOrNull ?: tokenDataMap["email"]?.contentOrNull
     val userID = principal?.userID ?: state.userID
+    if(OIDCUserData.bySubjectAndIDP(baseTokenData.subject, idp.name) != null){
+        if(state.isApp)
+            call.respondRedirect("expoll://reload")
+        else call.respondRedirect("/")
+        return
+    }
     val oidcConnection = OIDCUserData(userID, idp.name, baseTokenData.issuer, baseTokenData.subject, mailUse)
     oidcConnection.save()
-    call.respondRedirect("/")
+    if(state.isApp)
+        call.respondRedirect("expoll://reload")
+    else call.respondRedirect("/")
 }
 
 private suspend fun loginUser(
