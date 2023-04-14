@@ -197,7 +197,8 @@ private suspend fun editUser(call: ApplicationCall){
     val user = principal.user
     val username = editRequest.username
     if(username != null){
-        if(User.byUsername(username) != null){
+        val foundUser = User.byUsername(username)
+        if(foundUser != null && foundUser.id != user.id){
             call.respond(ReturnCode.INVALID_PARAMS)
             return
         }
