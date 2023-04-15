@@ -25,7 +25,7 @@ fun urlBuilder(call: ApplicationCall, otp: String, forApp: Boolean = false): Str
 }
 
 fun shareURLBuilder(pollID: tPollID): String{
-    var prefix = config.shareURLPrefix
-    if(!prefix.endsWith("/")) prefix += "/"
+    val prefix = config.shareURLPrefix
+    //if(!prefix.endsWith("/")) prefix += "/"
     return prefix + pollID
 }
