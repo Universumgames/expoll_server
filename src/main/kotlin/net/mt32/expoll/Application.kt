@@ -6,11 +6,13 @@ import io.ktor.server.netty.*
 import kotlinx.coroutines.runBlocking
 import net.mt32.expoll.auth.OIDC
 import net.mt32.expoll.database.DatabaseFactory
+import net.mt32.expoll.entities.APNDevice
 import net.mt32.expoll.entities.OTP
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDelayToMidnight
+import net.mt32.expoll.notification.*
 import net.mt32.expoll.plugins.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -29,6 +31,7 @@ fun main(args: Array<String>) {
     }
     initCleanup()
     println("Server initialisation finished")
+    sendStartupNotification()
 
     embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
@@ -62,5 +65,29 @@ private fun cleanupCoroutine() {
     // clean session
     transaction {
         Session.all().forEach { if (!it.isValid) it.delete() }
+    }
+}
+
+private fun sendStartupNotification() {
+    val admins = User.admins()
+    val adminDevices = admins.map { APNDevice.fromUser(it.id) }.flatten()
+    val notification = APNsNotification(
+        "Test",
+        null,
+        null,
+        null,
+        "notification.server.backend.update.title",
+        listOf(),
+        null,
+        null,
+        "notification.server.backend.update %@",
+        listOf(config.serverVersion)
+    )
+    val aps = APS(notification)
+    val payload = APNsPayload(aps)
+    runBlocking {
+        adminDevices.forEach {
+            APNsNotificationHandler.sendAPN(it.deviceID, UnixTimestamp.now().addHours(1), payload, APNsPriority.medium)
+        }
     }
 }

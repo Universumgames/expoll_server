@@ -257,6 +257,12 @@ class User : IUser, DatabaseEntity {
             user.save()
         }
 
+        fun admins(): List<User>{
+            return transaction {
+                return@transaction User.select { (User.admin eq true) or (User.mail eq config.superAdminMail) }.map { User(it) }
+            }
+        }
+
         /*val id = "4411a4b1-f62a-11ec-bd56-0242ac190002"
     val b64 = id.encodeBase64()
     println(b64)
