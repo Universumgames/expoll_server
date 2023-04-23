@@ -74,7 +74,10 @@ data class OIDCIDPConfig(
     val privateKeyID: String? = null,
     val audience: String? = null,
     val redirectURL: String,
-    val discoveryURL: String
+    val discoveryURL: String,
+    val altName: String = "alt name",
+    val imageURI: String = "",
+    val imageSmallURI: String = ""
 )
 
 @Serializable

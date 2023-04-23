@@ -18,7 +18,7 @@
   },
   "maxPollCountPerUser": 10,
   "recaptchaAPIKey": "your google recaptcha api key goes here",
-  "serverVersion": "3.2.9",
+  "serverVersion": "3.2.10",
   "compatibleVersions": [
     {
       "from": "2.6.10"
@@ -59,20 +59,29 @@
         "clientID": "your id",
         "clientSecret": "your secret",
         "redirectURL": "https://expoll.mt32.net/....",
-        "discoveryURL": "https://accounts.google.com/.well-known/openid-configuration"
+        "discoveryURL": "https://accounts.google.com/.well-known/openid-configuration",
+        "altName": "Google Signin",
+        "imageURI": "/oidc/google_signin.png",
+        "imageSmallURI": "/oidc/google_preview.svg"
       },
       "microsoft": {
         "clientID": "",
         "clientSecret": "",
         "redirectURL": "http://localhost:8080/api/auth/oidc/microsoft",
-        "discoveryURL": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
+        "discoveryURL": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
+        "altName": "Microsoft Signin",
+        "imageURI": "/oidc/microsoft_signin.png",
+        "imageSmallURI": "/oidc/microsoft_preview.svg"
       },
       "apple": {
         "clientID": "",
         "privateKeyPath": "./config/abcde.p8",
         "privateKeyID": "abcde",
         "redirectURL": "https://expoll.mt32.net/api/auth/oidc/apple",
-        "discoveryURL": "https://appleid.apple.com/.well-known/openid-configuration"
+        "discoveryURL": "https://appleid.apple.com/.well-known/openid-configuration",
+        "altName": "Apple Signin",
+        "imageURI": "/oidc/apple_signin.png",
+        "imageSmallURI": "/oidc/apple_preview.svg"
       }
     }
   },

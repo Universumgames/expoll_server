@@ -268,10 +268,10 @@ class Poll : DatabaseEntity, IPoll {
                 val missingVotes = options.map { it.id }.filterNot { existingVotesOptionIds.contains(it) }
                 UserVote(
                     user.asSimpleUser(),
-                    votes.map { note -> PollVote(note.optionID, note.votedFor.id) } +
+                    votes.map { note -> SimpleVote(note.optionID, note.votedFor.id) } +
                             // add null votes for non existing votes on options
                             missingVotes.map {
-                                PollVote(
+                                SimpleVote(
                                     it,
                                     null
                                 )

@@ -20,7 +20,7 @@ fun urlBuilder(call: ApplicationCall, otp: String, forApp: Boolean = false): Str
     return protocol +
             "://" +
             config.loginLinkURL +
-            (if (port == 80 || port == 443) "" else ":$port") + "/#/login?key=" +
+           "/#/login?key=" +
             URLEncoder.encode(otp, "utf-8")
 }
 

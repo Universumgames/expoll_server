@@ -28,7 +28,7 @@ data class DetailedPollResponse(
 @Serializable
 data class UserVote(
     val user: SimpleUser,
-    val votes: List<PollVote>
+    val votes: List<SimpleVote>
 )
 
 @Serializable
@@ -49,7 +49,7 @@ data class ComplexOption(
 
 // TODO duplicate of VoteChange?
 @Serializable
-data class PollVote(
+data class SimpleVote(
     val optionID: Int,
     val votedFor: Int?,
 )

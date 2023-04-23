@@ -16,7 +16,6 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import net.mt32.expoll.auth.JWTSessionPrincipal
@@ -83,11 +82,15 @@ fun Route.oidcRoutes() {
     }
 }
 
+@Serializable
+data class OIDCInfo(
+    val key: String,
+    val imageURI: String,
+    val imageSmallURI: String,
+    val altName: String
+)
 private suspend fun listIDPs(call: ApplicationCall) {
-    call.respondText(
-        contentType = ContentType.Application.Json,
-        text = defaultJSON.encodeToString(OIDC.data.values.map { it.name }.filter { !it.contains("2") })
-    )
+    call.respond(OIDC.data.map { OIDCInfo(it.value.name, it.value.config.imageURI, it.value.config.imageSmallURI, it.value.config.altName) })
 }
 
 private suspend fun getConnections(call: ApplicationCall) {
@@ -293,5 +296,6 @@ private suspend fun loginUser(
 
 private suspend fun createAndRespondWithSession(call: ApplicationCall, user: User, state: State) {
     val otp = user.createOTP()
-    call.respondRedirect(urlBuilder(call, otp.otp, state.isApp))
+    val url = urlBuilder(call, otp.otp, state.isApp)
+    call.respondRedirect(url)
 }
