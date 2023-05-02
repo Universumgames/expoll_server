@@ -16,6 +16,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
 import net.mt32.expoll.OIDCIDPConfig
 import net.mt32.expoll.config
 import net.mt32.expoll.helper.UnixTimestamp
@@ -48,6 +49,7 @@ data class OIDCProviderMetadata(
 
 object OIDC {
 
+    @Serializable
     data class OIDCIDPData(
         val name: String,
         val metadata: OIDCProviderMetadata,
@@ -117,7 +119,7 @@ object OIDC {
             }
         }
 
-        println(data)
+        println(defaultJSON.encodeToString(data))
     }
 
     private fun isValidIDP(data: OIDCIDPData): Boolean {

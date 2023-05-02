@@ -21,6 +21,10 @@ fun Application.configureRouting() {
             cause.printStackTrace()
             call.respondText(text = "500: $cause" , status = HttpStatusCode.InternalServerError)
         }
+        exception<Exception>{call, exception ->
+            exception.printStackTrace()
+            call.respondText(text = "500: $exception" , status = HttpStatusCode.InternalServerError)
+        }
     }
     routing {
         apiRouting()

@@ -46,3 +46,4 @@ backups
 *.p8
 privateScripts
 config/*secret*
+config/testSaml

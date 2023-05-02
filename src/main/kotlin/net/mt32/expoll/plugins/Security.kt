@@ -2,10 +2,12 @@ package net.mt32.expoll.plugins
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
+import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import kotlinx.coroutines.runBlocking
 import net.mt32.expoll.auth.ExpollJWTCookie
@@ -38,12 +40,18 @@ fun Application.configureSecurity() {
                 var header = call.request.parseAuthorizationHeader()
                 if (header == null) {
                     val jwt = runBlocking { return@runBlocking call.getDataFromAny("jwt") }
-                    header = parseAuthorizationHeader("Bearer $jwt")
+                    header = if (jwt != null) parseAuthorizationHeader("Bearer $jwt") else null
                 }
                 return@authHeader header
             }
             challenge { defaultScheme, realm ->
-                call.sessions.clear(cookieName)
+                try {
+                    if (call.sessions.get(cookieName) != null)
+                        call.sessions.clear(cookieName)
+                }catch (e: Exception){
+                    error("Cookie ${cookieName} not registered")
+                }
+                call.respond(HttpStatusCode.Unauthorized)
             }
         }
         jwt(adminAuth) {
