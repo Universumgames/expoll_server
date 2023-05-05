@@ -39,6 +39,9 @@ class User : IUser, DatabaseEntity {
     override var username: String
     override var firstName: String
     override var lastName: String
+    val fullName: String
+        get() = "$firstName $lastName"
+
     override var mail: String
     override val polls: List<Poll>
         get() {

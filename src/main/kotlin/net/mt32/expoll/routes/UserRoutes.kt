@@ -109,7 +109,7 @@ private suspend fun createUser(call: ApplicationCall) {
     val port = config.frontEndPort
     val protocol = call.request.local.scheme
     Mail.sendMailAsync(
-        user.mail, "Thank you for registering in expoll",
+        user.mail, user.fullName, "Thank you for registering in expoll",
         "Thank you for creating an account at over at expoll (" +
                 protocol +
                 "://" +

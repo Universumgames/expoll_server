@@ -46,7 +46,7 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
         }
         val otp = user.createOTP()
         Mail.sendMailAsync(
-            user.mail, "Login to expoll", "Here is your OTP for logging in on the expoll website: \n\t" +
+            user.mail, user.fullName, "Login to expoll", "Here is your OTP for logging in on the expoll website: \n\t" +
                     otp.otp +
                     "\n alternatively you can click this link \n" +
                     urlBuilder(call, otp.otp)

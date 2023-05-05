@@ -7,7 +7,7 @@ import java.util.*
 
 object Mail {
 
-    internal data class MailData(val to: String, val subject: String, val body: String)
+    internal data class MailData(val toMail: String, val toName: String, val subject: String, val body: String)
 
     //private val mailThread: Thread
     //private val mailQueue: MutableList<MailData>
@@ -23,10 +23,10 @@ object Mail {
         mailThread.start()*/
     }
 
-    fun sendMailAsync(to: String, subject: String, body: String) {
+    fun sendMailAsync(toMail: String, toName: String, subject: String, body: String) {
         //mailQueue.add(MailData(to, subject, body))
         Thread{
-            sendMail(MailData(to, subject, body))
+            sendMail(MailData(toMail, toName, subject, body))
         }.start()
     }
 
@@ -52,8 +52,8 @@ object Mail {
             })
 
             val message = MimeMessage(session)
-            message.setFrom(InternetAddress(config.mailUser))
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(data.to))
+            message.setFrom(InternetAddress(config.mailUser, "Expoll"))
+            message.setRecipients(Message.RecipientType.TO, arrayOf(InternetAddress(data.toMail, data.toName)))
             message.subject = data.subject
             message.setContent(data.body, "text/plain")
 
