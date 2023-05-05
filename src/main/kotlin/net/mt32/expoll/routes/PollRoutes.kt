@@ -11,6 +11,7 @@ import net.mt32.expoll.config
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.PollUserNote
 import net.mt32.expoll.entities.User
+import net.mt32.expoll.entities.UserPolls
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
@@ -159,6 +160,11 @@ private suspend fun joinPoll(call: ApplicationCall) {
     }
     if (!Poll.exists(pollID)) {
         call.respond(ReturnCode.INVALID_PARAMS)
+        return
+    }
+    val alreadyJoined = UserPolls.connectionExists(principal.userID, pollID)
+    if(alreadyJoined){
+        call.respond(ReturnCode.OK)
         return
     }
     principal.user.addPoll(pollID)
