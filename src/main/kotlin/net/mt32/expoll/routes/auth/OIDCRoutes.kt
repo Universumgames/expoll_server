@@ -122,10 +122,12 @@ private val stateStorage: MutableMap<Long, State> = mutableMapOf()
 private suspend fun oidcLoginInit(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
     val scope = "openid email " + if (idp.metadata.scopesSupported.contains("profile")) "profile" else "name"
     val url = URLBuilder(idp.metadata.authorizationEndpoint)
+    val toRemoveKeys = mutableListOf<Long>()
     stateStorage.forEach {
         if (it.value.timestamp.addHours(1) < UnixTimestamp.now())
-            stateStorage.remove(it.key)
+            toRemoveKeys.add(it.key)
     }
+    toRemoveKeys.forEach { stateStorage.remove(it) }
     val isApp = call.request.queryParameters["app"] == "1"
     val noRedirect = call.request.queryParameters["redirect"] == "0"
     url.set {
