@@ -81,5 +81,5 @@ private suspend fun loginApp(call: ApplicationCall) {
         return
     }
     val otp = principal.user.createOTP()
-    call.respondRedirect(urlBuilder(call, otp.otp, true))
+    call.respondRedirect(urlBuilder(call, otp.otp, true, fromApp = true))
 }

@@ -11,8 +11,8 @@ import java.net.URLEncoder
  * @param {string} loginKey the users login key
  * @return {string} the login url
  */
-fun urlBuilder(call: ApplicationCall, otp: String, forApp: Boolean = false): String {
-    if(forApp){
+fun urlBuilder(call: ApplicationCall, otp: String, forApp: Boolean = false, fromApp: Boolean = false): String {
+    if(forApp && fromApp){
         return "expoll://login?key=" + URLEncoder.encode(otp, "utf-8")
     }
     val port = config.frontEndPort
@@ -21,7 +21,8 @@ fun urlBuilder(call: ApplicationCall, otp: String, forApp: Boolean = false): Str
             "://" +
             config.loginLinkURL +
            "/#/login?key=" +
-            URLEncoder.encode(otp, "utf-8")
+            URLEncoder.encode(otp, "utf-8") +
+            "&forApp=" + (if (forApp) "1" else "0")
 }
 
 fun shareURLBuilder(pollID: tPollID): String{
