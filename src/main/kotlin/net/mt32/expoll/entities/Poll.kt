@@ -61,7 +61,7 @@ class Poll : DatabaseEntity, IPoll {
     override var allowsEditing: Boolean
 
     val shareURL: String
-        get() = shareURLBuilder(id)
+        get() = URLBuilder.shareURLBuilder(id)
 
     val options: List<PollOption>
         get() {

@@ -10,9 +10,9 @@ import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.helper.URLBuilder
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
-import net.mt32.expoll.helper.urlBuilder
 import net.mt32.expoll.serializable.admin.request.AdminCreateUserRequest
 import net.mt32.expoll.serializable.admin.request.AdminEditUserRequest
 import net.mt32.expoll.serializable.admin.responses.UserInfo
@@ -55,7 +55,8 @@ private suspend fun getUsers(call: ApplicationCall) {
             user.admin || user.mail.equals(config.superAdminMail, ignoreCase = true),
             user.mail.equals(config.superAdminMail, ignoreCase = true),
             user.active,
-            user.oidConnections.map { it.toConnectionOverview().name }
+            user.oidConnections.map { it.toConnectionOverview().name },
+            user.created.toClient()
         )
     }
     call.respond(UserListResponse(userInfos, users.size))
@@ -89,7 +90,7 @@ private suspend fun createUser(call: ApplicationCall) {
            Here is your OTP for logging in on the expoll website, it is valid for the next 5 days:
            ${otp.otp}
            alternatively you can click this link
-           ${urlBuilder(call, otp.otp)}""".trimIndent()
+           ${URLBuilder.buildLoginLink(call, otp.otp)}""".trimIndent()
     )
 
     call.respond(ReturnCode.OK)

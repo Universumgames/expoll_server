@@ -5,28 +5,22 @@ import net.mt32.expoll.config
 import net.mt32.expoll.tPollID
 import java.net.URLEncoder
 
-/**
- * Build login url sent vie mail
- * @param {Request} req express request object
- * @param {string} loginKey the users login key
- * @return {string} the login url
- */
-fun urlBuilder(call: ApplicationCall, otp: String, forApp: Boolean = false, fromApp: Boolean = false): String {
-    if(forApp && fromApp){
+object DeepLinkBuilder {
+    fun buildLoginLink(call: ApplicationCall, otp: String): String {
         return "expoll://login?key=" + URLEncoder.encode(otp, "utf-8")
     }
-    val port = config.frontEndPort
-    val protocol = call.request.local.scheme
-    return protocol +
-            "://" +
-            config.loginLinkURL +
-           "/#/login?key=" +
-            URLEncoder.encode(otp, "utf-8") +
-            "&forApp=" + (if (forApp) "1" else "0")
 }
 
-fun shareURLBuilder(pollID: tPollID): String{
-    val prefix = config.shareURLPrefix
-    //if(!prefix.endsWith("/")) prefix += "/"
-    return prefix + pollID
+object URLBuilder {
+    fun buildLoginLink(call: ApplicationCall, otp: String, requestAppLogin: Boolean = false): String {
+        val protocol = call.request.local.scheme
+        return protocol + "://" + config.loginLinkURL + "/#/login?key=" + URLEncoder.encode(otp, "utf-8") + "&forApp=" + (if (requestAppLogin) "1" else "0")
+    }
+
+    fun shareURLBuilder(pollID: tPollID): String{
+        val prefix = config.shareURLPrefix
+        //if(!prefix.endsWith("/")) prefix += "/"
+        return prefix + pollID
+    }
 }
+

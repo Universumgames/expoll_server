@@ -24,6 +24,7 @@ import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.OIDCUserData
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.*
+import net.mt32.expoll.helper.URLBuilder
 import net.mt32.expoll.tUserID
 import java.util.*
 
@@ -299,6 +300,6 @@ private suspend fun loginUser(
 
 private suspend fun createAndRespondWithSession(call: ApplicationCall, user: User, state: State) {
     val otp = user.createOTP()
-    val url = urlBuilder(call, otp.otp, state.isApp, fromApp = false)
+    val url = URLBuilder.buildLoginLink(call, otp.otp, requestAppLogin = state.isApp)
     call.respondRedirect(url)
 }

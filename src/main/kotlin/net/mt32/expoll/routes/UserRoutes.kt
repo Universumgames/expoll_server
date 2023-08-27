@@ -138,7 +138,8 @@ private suspend fun getUserData(call: ApplicationCall) {
         user.lastName,
         user.mail,
         user.active,
-        principal.admin || principal.superAdmin
+        principal.admin || principal.superAdmin,
+        user.created.toClient()
     )
     call.respond(simpleUserResponse)
 }

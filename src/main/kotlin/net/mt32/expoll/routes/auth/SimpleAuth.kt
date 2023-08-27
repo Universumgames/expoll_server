@@ -12,9 +12,10 @@ import net.mt32.expoll.auth.cookieName
 import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.OTP
 import net.mt32.expoll.entities.User
+import net.mt32.expoll.helper.DeepLinkBuilder
 import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.helper.URLBuilder
 import net.mt32.expoll.helper.getDataFromAny
-import net.mt32.expoll.helper.urlBuilder
 
 fun Route.simpleAuthRoutes() {
     route("simple") {
@@ -49,7 +50,7 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
             user.mail, user.fullName, "Login to expoll", "Here is your OTP for logging in on the expoll website: \n\t" +
                     otp.otp +
                     "\n alternatively you can click this link \n" +
-                    urlBuilder(call, otp.otp)
+                    URLBuilder.buildLoginLink(call, otp.otp)
         )
         call.respond(ReturnCode.OK)
         return
@@ -81,5 +82,5 @@ private suspend fun loginApp(call: ApplicationCall) {
         return
     }
     val otp = principal.user.createOTP()
-    call.respondRedirect(urlBuilder(call, otp.otp, true, fromApp = true))
+    call.respondRedirect(DeepLinkBuilder.buildLoginLink(call, otp.otp))
 }

@@ -14,7 +14,8 @@ data class UserDataResponse(
     val lastName: String,
     val mail: String,
     val active: Boolean,
-    val admin: Boolean
+    val admin: Boolean,
+    val createdTimestamp: tClientDateTime
 )
 
 @Serializable

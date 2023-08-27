@@ -297,7 +297,8 @@ class User : IUser, DatabaseEntity {
             admin,
             superAdmin,
             active,
-            oidConnections.map { it.toConnectionOverview().name }
+            oidConnections.map { it.toConnectionOverview().name },
+            created.toClient()
         )
     }
 
