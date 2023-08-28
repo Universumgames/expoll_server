@@ -19,6 +19,7 @@ import net.mt32.expoll.serializable.request.CreateUserRequest
 import net.mt32.expoll.serializable.request.EditUserRequest
 import net.mt32.expoll.serializable.request.VoteChange
 import net.mt32.expoll.serializable.responses.CreateUserResponse
+import net.mt32.expoll.serializable.responses.StrippedPollData
 import net.mt32.expoll.serializable.responses.UserDataResponse
 import net.mt32.expoll.serializable.responses.UserPersonalizeResponse
 
@@ -170,7 +171,7 @@ private suspend fun getPersonalizedData(call: ApplicationCall) {
         user.firstName,
         user.lastName,
         user.mail,
-        polls,
+        polls.map { StrippedPollData(it.pollID) },
         votes,
         sessions,
         user.notes,

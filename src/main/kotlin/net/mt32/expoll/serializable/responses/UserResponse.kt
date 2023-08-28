@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import net.mt32.expoll.entities.PollUserNote
 import net.mt32.expoll.serializable.request.VoteChange
 import net.mt32.expoll.tClientDateTime
+import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
 
 @Serializable
@@ -38,7 +39,7 @@ data class UserPersonalizeResponse(
     var firstName: String,
     var lastName: String,
     var mail: String,
-    var polls: List<SimplePoll>,
+    var polls: List<StrippedPollData>,
     val votes: List<VoteChange>,
     var sessions: List<SafeSession>,
     var notes: List<PollUserNote>,
@@ -46,6 +47,11 @@ data class UserPersonalizeResponse(
     var admin: Boolean,
     var superAdmin: Boolean,
     var authenticators: List<SimpleAuthenticator>,
+)
+
+@Serializable
+data class StrippedPollData(
+    val pollID: tPollID
 )
 
 @Serializable

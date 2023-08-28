@@ -338,6 +338,7 @@ class Poll : DatabaseEntity, IPoll {
 
     fun addUser(userID: tUserID) {
         UserPolls.addConnection(userID, id)
+        updatedTimestamp = UnixTimestamp.now()
     }
 
     fun removeUser(userID: tUserID) {
