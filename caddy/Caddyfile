@@ -27,6 +27,9 @@
     }
   }
 
+  @appleAppSiteAssociation path /.well-known/apple-app-site-association
+  header @appleAppSiteAssociation Content-Type application/json
+
   rewrite /share /share.php
 
 
