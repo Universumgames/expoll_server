@@ -1,7 +1,7 @@
-FROM gradle:7-jdk11 AS build
+FROM gradle:8.3-jdk17 AS build
 WORKDIR /expoll/api_server
 COPY --chown=gradle:gradle ./server/ .
-RUN gradle buildFatJar --no-daemon
+RUN gradle buildFatJar --no-daemon --warning-mode all
 #ENTRYPOINT ["gradle", "run", "--no-deamon"]
 
 FROM openjdk:19

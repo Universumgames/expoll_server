@@ -71,13 +71,6 @@ class UnixTimestamp private constructor() {
         return millisSince1970
     }
 
-    @Deprecated("Use toClient instead")
-    fun toJSDate(): String {
-        val tz = TimeZone.getTimeZone("UTC")
-        val df: DateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'")
-        return df.format(toDate())
-    }
-
     fun toDB(): Long {
         return secondsSince1970
     }

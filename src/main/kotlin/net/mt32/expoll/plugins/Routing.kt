@@ -14,7 +14,7 @@ fun Application.configureRouting() {
         exception<NotImplementedError>{call, notImplementedError ->
             call.respondText(text = "501: ${notImplementedError.message}", status = ReturnCode.NOT_IMPLEMENTED)
         }
-        exception<BadRequestException>{call, badRequest->
+        exception<BadRequestException>{ call, _ ->
             call.respond(ReturnCode.MISSING_PARAMS)
         }
         exception<Throwable> { call, cause ->

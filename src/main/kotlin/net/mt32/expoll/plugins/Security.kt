@@ -44,7 +44,7 @@ fun Application.configureSecurity() {
                 }
                 return@authHeader header
             }
-            challenge { defaultScheme, realm ->
+            challenge { _, _ ->
                 try {
                     if (call.sessions.get(cookieName) != null)
                         call.sessions.clear(cookieName)

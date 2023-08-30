@@ -279,7 +279,7 @@ class Poll : DatabaseEntity, IPoll {
                         user.lastName,
                         user.username,
                         user.id,
-                        joinedTimestamps.find { it.userID == user.id }!!.joinTimestamp.toClient()
+                        joinTimestamps.find { it.userID == user.id }!!.joinTimestamp.toClient()
                     ),
                     votes.map { note -> SimpleVote(note.optionID, note.votedFor.id) } +
                             // add null votes for non existing votes on options
@@ -358,7 +358,7 @@ class Poll : DatabaseEntity, IPoll {
         UserPolls.removeConnection(userID, id)
         transaction {
             Vote.deleteWhere {
-                (Vote.pollID eq id) and
+                (Vote.pollID eq pollID) and
                         (Vote.userID eq userID)
             }
         }
