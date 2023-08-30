@@ -5,7 +5,6 @@ import net.mt32.expoll.database.IDatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestampFromDB
-import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.serializable.responses.ComplexOption
 import net.mt32.expoll.tOptionID
 import net.mt32.expoll.tPollID

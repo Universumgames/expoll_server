@@ -3,7 +3,10 @@ package net.mt32.expoll.entities
 import net.mt32.expoll.PollType
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
-import net.mt32.expoll.helper.*
+import net.mt32.expoll.helper.URLBuilder
+import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.helper.toUnixTimestampFromClient
+import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.serializable.responses.*
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID

@@ -3,7 +3,6 @@ package net.mt32.expoll.entities
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
-import net.mt32.expoll.helper.upsert
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction

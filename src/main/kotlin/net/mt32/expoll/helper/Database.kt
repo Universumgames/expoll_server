@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 
 
 // source from https://github.com/JetBrains/Exposed/issues/167#issuecomment-514558435
-class UpsertStatement<Key : Any> :
+/*class UpsertStatement<Key : Any> :
     InsertStatement<Key> {
 
     private val indexName: String
@@ -103,4 +103,4 @@ inline fun <T : Table> T.upsert(
     UpsertStatement<Number>(this, conflictColumns.toList(), conflictIndex).apply {
         body(this)
         execute(TransactionManager.current())
-    }
+    }*/

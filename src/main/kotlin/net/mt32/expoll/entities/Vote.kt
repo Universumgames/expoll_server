@@ -3,7 +3,6 @@ package net.mt32.expoll.entities
 import net.mt32.expoll.VoteValue
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
-import net.mt32.expoll.helper.upsert
 import net.mt32.expoll.tOptionID
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
