@@ -17,11 +17,18 @@ import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
-interface IUser {
-    val id: tUserID
-    var username: String
-    var firstName: String
-    var lastName: String
+interface ISimpleUser {
+    val firstName: String
+    val lastName: String
+    val username: String
+    val id: String
+}
+
+interface IUser: ISimpleUser {
+    override val id: tUserID
+    override var username: String
+    override var firstName: String
+    override var lastName: String
     var mail: String
     val polls: List<Poll>
     val votes: List<Vote>

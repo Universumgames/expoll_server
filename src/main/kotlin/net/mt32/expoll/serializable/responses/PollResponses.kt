@@ -1,10 +1,20 @@
 package net.mt32.expoll.serializable.responses
 
 import kotlinx.serialization.Serializable
+import net.mt32.expoll.entities.ISimpleUser
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.tClientDate
 import net.mt32.expoll.tClientDateTime
 import net.mt32.expoll.tUserID
+
+@Serializable
+data class PollSimpleUser(
+    override val firstName: String,
+    override val lastName: String,
+    override val username: String,
+    override val id: String,
+    val joinedTimestamp: tClientDateTime
+): ISimpleUser
 
 @Serializable
 data class DetailedPollResponse(
@@ -22,12 +32,12 @@ data class DetailedPollResponse(
     val userNotes: List<UserNote>,
     val allowsMaybe: Boolean,
     val allowsEditing: Boolean,
-    val shareURL: String,
+    val shareURL: String
 )
 
 @Serializable
 data class UserVote(
-    val user: SimpleUser,
+    val user: PollSimpleUser,
     val votes: List<SimpleVote>
 )
 

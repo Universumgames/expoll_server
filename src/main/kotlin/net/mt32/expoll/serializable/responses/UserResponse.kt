@@ -1,6 +1,7 @@
 package net.mt32.expoll.serializable.responses
 
 import kotlinx.serialization.Serializable
+import net.mt32.expoll.entities.ISimpleUser
 import net.mt32.expoll.entities.PollUserNote
 import net.mt32.expoll.serializable.request.VoteChange
 import net.mt32.expoll.tClientDateTime
@@ -26,11 +27,11 @@ data class CreateUserResponse(
 
 @Serializable
 data class SimpleUser(
-    val firstName: String,
-    val lastName: String,
-    val username: String,
-    val id: String,
-)
+    override val firstName: String,
+    override val lastName: String,
+    override val username: String,
+    override val id: String,
+): ISimpleUser
 
 @Serializable
 data class UserPersonalizeResponse(

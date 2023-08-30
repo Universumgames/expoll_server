@@ -56,6 +56,9 @@ class Poll : DatabaseEntity, IPoll {
     val userIDs: List<tUserID>
         get() = UserPolls.userIDs(id)
 
+    val joinedTimestamps: List<PollJoinTimestamp>
+        get() = UserPolls.joinedTimestamps(id)
+
     override var maxPerUserVoteCount: Int
     override var allowsMaybe: Boolean
     override var allowsEditing: Boolean
@@ -239,7 +242,7 @@ class Poll : DatabaseEntity, IPoll {
             }
         }
 
-        fun exists(pollID: tPollID): Boolean{
+        fun exists(pollID: tPollID): Boolean {
             return transaction {
                 !Poll.select { Poll.id eq pollID }.empty()
             }
@@ -251,6 +254,7 @@ class Poll : DatabaseEntity, IPoll {
         val users = this.users
         val options = this.options
         val notes = this.notes
+        val joinTimestamps = this.joinedTimestamps
         return DetailedPollResponse(
             id,
             name,
@@ -267,7 +271,13 @@ class Poll : DatabaseEntity, IPoll {
                 val existingVotesOptionIds = votes.map { it.optionID }
                 val missingVotes = options.map { it.id }.filterNot { existingVotesOptionIds.contains(it) }
                 UserVote(
-                    user.asSimpleUser(),
+                    PollSimpleUser(
+                        user.firstName,
+                        user.lastName,
+                        user.username,
+                        user.id,
+                        joinedTimestamps.find { it.userID == user.id }!!.joinTimestamp.toClient()
+                    ),
                     votes.map { note -> SimpleVote(note.optionID, note.votedFor.id) } +
                             // add null votes for non existing votes on options
                             missingVotes.map {
@@ -353,9 +363,14 @@ class Poll : DatabaseEntity, IPoll {
 
 }
 
+data class PollJoinTimestamp(val userID: tUserID, val joinTimestamp: UnixTimestamp) {
+
+}
+
 object UserPolls : Table("user_polls_poll") {
     val userID = varchar("userId", UUIDLength)
     val pollID = varchar("pollId", UUIDLength)
+    val joinedTimestamp = long("joinedTimestamp")
 
     override val primaryKey = PrimaryKey(userID, pollID)
 
@@ -374,6 +389,7 @@ object UserPolls : Table("user_polls_poll") {
             UserPolls.insert {
                 it[UserPolls.pollID] = pollID
                 it[UserPolls.userID] = userID
+                it[UserPolls.joinedTimestamp] = UnixTimestamp.now().toDB()
             }
         }
     }
@@ -397,5 +413,14 @@ object UserPolls : Table("user_polls_poll") {
 
     fun userCount(pollID: tPollID): Int {
         return userIDs(pollID).size
+    }
+
+    fun joinedTimestamps(pollID: tPollID): List<PollJoinTimestamp> {
+        return transaction {
+            return@transaction UserPolls.select {
+                UserPolls.pollID eq pollID
+            }.toList()
+                .map { PollJoinTimestamp(it[UserPolls.userID], it[UserPolls.joinedTimestamp].toUnixTimestampFromDB()) }
+        }
     }
 }

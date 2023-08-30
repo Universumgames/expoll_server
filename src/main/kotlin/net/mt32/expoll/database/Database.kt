@@ -74,6 +74,7 @@ object Transformer {
         addUserCreationColumn()
         removeGhostVotes()
         linkAPNDeviceToSession()
+        addPollJoinedTimestampColumn()
     }
 
     /**
