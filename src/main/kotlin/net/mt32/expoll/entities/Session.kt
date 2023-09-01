@@ -8,10 +8,7 @@ import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
-import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.getDataFromAny
-import net.mt32.expoll.helper.toBase64
-import net.mt32.expoll.helper.toUnixTimestampFromDB
+import net.mt32.expoll.helper.*
 import net.mt32.expoll.serializable.responses.SafeSession
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.*
@@ -97,7 +94,7 @@ class OTP : DatabaseEntity {
 
     override fun save(): Boolean {
         transaction {
-            OTP.upsert(OTP.otp) {
+            OTP.upsertCustom(OTP.otp) {
                 it[otp] = this@OTP.otp
                 it[userID] = this@OTP.userID
                 it[expirationTimestamp] = this@OTP.expirationTimestamp.toDB()
@@ -276,7 +273,7 @@ class Session : DatabaseEntity {
 
     override fun save(): Boolean {
         transaction {
-            Session.upsert(Session.nonce) {
+            Session.upsertCustom(Session.nonce) {
                 it[userID] = this@Session.userID
                 it[nonce] = this@Session.nonce
                 it[userAgent] = this@Session.userAgent

@@ -3,6 +3,7 @@ package net.mt32.expoll.entities
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.upsertCustom
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -33,7 +34,7 @@ class OIDCUserData : DatabaseEntity {
 
     override fun save(): Boolean {
         transaction {
-            OIDCUserData.upsert(OIDCUserData.subject, OIDCUserData.idpName) {
+            OIDCUserData.upsertCustom(OIDCUserData.subject, OIDCUserData.idpName) {
                 it[OIDCUserData.userID] = this@OIDCUserData.userID
                 it[OIDCUserData.idpName] = this@OIDCUserData.idpName
                 it[OIDCUserData.issuer] = this@OIDCUserData.issuer

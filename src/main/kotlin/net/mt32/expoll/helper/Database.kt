@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 
 
 // source from https://github.com/JetBrains/Exposed/issues/167#issuecomment-514558435
-/*class UpsertStatement<Key : Any> :
+class UpsertStatement<Key : Any> :
     InsertStatement<Key> {
 
     private val indexName: String
@@ -55,8 +55,8 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
         }
     }
 
-    override fun prepareSQL(transaction: Transaction) = buildString {
-        append(super.prepareSQL(transaction))
+    override fun prepareSQL(transaction: Transaction, prepared: Boolean) = buildString {
+        append(super.prepareSQL(transaction, prepared))
 
         val dialect = transaction.db.vendor
         if (dialect == "postgresql") {
@@ -84,7 +84,7 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 
 }
 
-inline fun <T : Table> T.upsert(
+inline fun <T : Table> T.upsertCustom(
     conflictColumn: Column<*>? = null,
     conflictIndex: Index? = null,
     body: T.(UpsertStatement<Number>) -> Unit
@@ -94,7 +94,7 @@ inline fun <T : Table> T.upsert(
         execute(TransactionManager.current())
     }
 
-inline fun <T : Table> T.upsert(
+inline fun <T : Table> T.upsertCustom(
     vararg
     conflictColumns: Column<*>,
     conflictIndex: Index? = null,
@@ -103,4 +103,4 @@ inline fun <T : Table> T.upsert(
     UpsertStatement<Number>(this, conflictColumns.toList(), conflictIndex).apply {
         body(this)
         execute(TransactionManager.current())
-    }*/
+    }

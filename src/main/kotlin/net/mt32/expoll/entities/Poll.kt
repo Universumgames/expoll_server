@@ -3,10 +3,7 @@ package net.mt32.expoll.entities
 import net.mt32.expoll.PollType
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
-import net.mt32.expoll.helper.URLBuilder
-import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.toUnixTimestampFromClient
-import net.mt32.expoll.helper.toUnixTimestampFromDB
+import net.mt32.expoll.helper.*
 import net.mt32.expoll.serializable.responses.*
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
@@ -128,7 +125,7 @@ class Poll : DatabaseEntity, IPoll {
                 vote.save()
             }
             transaction {
-                Poll.upsert(Poll.id) {
+                Poll.upsertCustom(Poll.id) {
                     it[Poll.id] = this@Poll.id
                     it[Poll.adminID] = this@Poll.adminID
                     it[Poll.name] = this@Poll.name

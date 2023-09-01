@@ -5,6 +5,7 @@ import net.mt32.expoll.database.IDatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestampFromDB
+import net.mt32.expoll.helper.upsertCustom
 import net.mt32.expoll.serializable.responses.ComplexOption
 import net.mt32.expoll.tOptionID
 import net.mt32.expoll.tPollID
@@ -38,7 +39,7 @@ class PollOptionString : PollOption, DatabaseEntity {
 
     override fun save(): Boolean {
         transaction {
-            PollOptionString.upsert(PollOptionString.id) {
+            PollOptionString.upsertCustom(PollOptionString.id) {
                 it[id] = this@PollOptionString.id
                 it[pollID] = this@PollOptionString.pollID
                 it[value] = this@PollOptionString.value
@@ -124,7 +125,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
 
     override fun save(): Boolean {
         transaction {
-            PollOptionDate.upsert(PollOptionDate.id) {
+            PollOptionDate.upsertCustom(PollOptionDate.id) {
                 it[id] = this@PollOptionDate.id
                 it[pollID] = this@PollOptionDate.pollID
                 it[dateStartTimestamp] = this@PollOptionDate.dateStartTimestamp.toDB()
@@ -217,7 +218,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
 
     override fun save(): Boolean {
         transaction {
-            upsert(PollOptionDateTime.id) {
+            upsertCustom(PollOptionDateTime.id) {
                 it[id] = this@PollOptionDateTime.id
                 it[pollID] = this@PollOptionDateTime.pollID
                 it[PollOptionDateTime.dateTimeStartTimestamp] = this@PollOptionDateTime.dateTimeStartTimestamp.toDB()

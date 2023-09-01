@@ -4,10 +4,14 @@ import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestampFromDB
+import net.mt32.expoll.helper.upsertCustom
 import net.mt32.expoll.serializable.responses.SimpleAuthenticator
 import net.mt32.expoll.tUserID
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
@@ -35,7 +39,7 @@ class Challenge : DatabaseEntity {
     }
 
     override fun save(): Boolean {
-        Challenge.upsert(Challenge.id) {
+        Challenge.upsertCustom(Challenge.id) {
             it[id] = this@Challenge.id
             it[challenge] = this@Challenge.challenge
             it[userID] = this@Challenge.userID
@@ -129,7 +133,7 @@ class Authenticator : DatabaseEntity {
 
     override fun save(): Boolean {
         transaction {
-            Authenticator.upsert(Authenticator.credentialID) {
+            Authenticator.upsertCustom(Authenticator.credentialID) {
                 it[Authenticator.userID] = this@Authenticator.userID
                 it[Authenticator.credentialID] = this@Authenticator.credentialID
                 it[Authenticator.credentialPublicKey] = this@Authenticator.credentialPublicKey

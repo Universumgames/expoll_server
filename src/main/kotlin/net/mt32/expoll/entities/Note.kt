@@ -3,6 +3,7 @@ package net.mt32.expoll.entities
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.upsertCustom
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.*
@@ -34,7 +35,7 @@ class PollUserNote : DatabaseEntity {
                 delete()
                 return@transaction
             }
-            PollUserNote.upsert(PollUserNote.userID, PollUserNote.pollID) {
+            PollUserNote.upsertCustom(PollUserNote.userID, PollUserNote.pollID) {
                 it[userID] = this@PollUserNote.userID
                 it[pollID] = this@PollUserNote.pollID
                 it[note] = this@PollUserNote.note

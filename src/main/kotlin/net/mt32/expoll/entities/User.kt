@@ -7,6 +7,7 @@ import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestampFromDB
+import net.mt32.expoll.helper.upsertCustom
 import net.mt32.expoll.serializable.admin.responses.UserInfo
 import net.mt32.expoll.serializable.responses.SimpleUser
 import net.mt32.expoll.tPollID
@@ -126,7 +127,7 @@ class User : IUser, DatabaseEntity {
 
     override fun save(): Boolean {
         transaction {
-            User.upsert(User.id) {
+            User.upsertCustom(User.id) {
                 it[id] = this@User.id
                 it[username] = this@User.username
                 it[mail] = this@User.mail
@@ -162,7 +163,7 @@ class User : IUser, DatabaseEntity {
         //polls.forEach { if(it.adminID != id) UserPolls.removeConnection(id, it.id) }
         val oldActive = active
         transaction {
-            User.upsert(User.id) {
+            User.upsertCustom(User.id) {
                 it[id] = this@User.id
                 it[username] = "Deleted User " + this@User.id
                 it[firstName] = "Deleted"
