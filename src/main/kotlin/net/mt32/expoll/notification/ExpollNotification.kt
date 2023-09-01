@@ -8,13 +8,21 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.analytics.AnalyticsStorage
 import net.mt32.expoll.config
+import net.mt32.expoll.entities.APNDevice
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
 
-enum class ExpollNotificationType(val body: String) {
+interface IExpollNotificationType {
+    val body: String
+    val title: String
+}
+
+enum class ExpollNotificationType(override val body: String, override val title: String="\$poll") : IExpollNotificationType {
+    EMPTY(""),
+    STARTUP("notification.server.backend.update %@"),
     VoteChange("notification.vote.change %@ %@"),
     UserAdded("notification.user.added %@ %@"),
     UserRemoved("notification.user.removed %@ %@"),
@@ -23,6 +31,7 @@ enum class ExpollNotificationType(val body: String) {
     PollArchived("notification.poll.archived %@");
 
     fun notificationArgs(poll: Poll, user: User?): List<String> {
+        if(this == STARTUP) return listOf(config.serverVersion)
         val pollUpdate =
             this == PollArchived ||
                     this == PollDeleted ||
@@ -40,15 +49,26 @@ enum class ExpollNotificationType(val body: String) {
     }
 }
 
+interface IExpollNotification {
+    val type: ExpollNotificationType
+}
+
 data class ExpollNotification(
-    val type: ExpollNotificationType,
+    override val type: ExpollNotificationType,
     val pollID: tPollID,
     val affectedUserID: tUserID?
-)
+) : IExpollNotification {
+    override fun equals(other: Any?): Boolean {
+        if (other !is ExpollNotification) return false
+        return type == other.type && pollID == other.pollID && affectedUserID == other.affectedUserID
+    }
+}
 
 fun userWantNotificationType(type: ExpollNotificationType, user: User): Boolean {
     val notificationPreferences = user.notificationPreferences
     return when (type) {
+        ExpollNotificationType.EMPTY -> false
+        ExpollNotificationType.STARTUP -> user.admin
         ExpollNotificationType.VoteChange -> notificationPreferences.voteChange
         ExpollNotificationType.UserAdded -> notificationPreferences.userAdded
         ExpollNotificationType.UserRemoved -> notificationPreferences.userRemoved
@@ -65,16 +85,30 @@ class ExpollAPNsPayload(
     val pollID: tPollID? = null
 ) : IAPNsPayload
 
+var lastNotification: ExpollNotification = ExpollNotification(ExpollNotificationType.EMPTY, "", null)
+var lastNotificationTime: UnixTimestamp = UnixTimestamp.zero()
+
+fun sendNotificationAllowed(notification: ExpollNotification): Boolean {
+    if (config.developmentMode) return false
+    if (lastNotification == notification && lastNotificationTime.addMinutes(1) > UnixTimestamp.now()) {
+        return false
+    }
+    lastNotification = notification
+    lastNotificationTime = UnixTimestamp.now()
+    return true
+}
+
 @OptIn(DelicateCoroutinesApi::class)
 fun sendNotification(notification: ExpollNotification) {
-    if(config.developmentMode) return
-    AnalyticsStorage.notificationCount[notification.type] = (AnalyticsStorage.notificationCount[notification.type] ?: 0) + 1
+    if (!sendNotificationAllowed(notification)) return
+    AnalyticsStorage.notificationCount[notification.type] =
+        (AnalyticsStorage.notificationCount[notification.type] ?: 0) + 1
     GlobalScope.launch {
         val poll = Poll.fromID(notification.pollID)
         val affectedUser = notification.affectedUserID?.let { User.loadFromID(it) }
         if (poll == null) return@launch
         val apnsNotification = APNsNotification(
-            "Poll ${poll.name} was updated",
+            notification.type.title.replace("\$poll", "Poll ${poll.name} was updated"),
             null,
             null,
             bodyLocalisationKey = notification.type.body,
@@ -85,14 +119,31 @@ fun sendNotification(notification: ExpollNotification) {
         poll.users.forEach { user ->
             if (!userWantNotificationType(notification.type, user)) return@forEach
 
-            user.apnDevices.forEach { device ->
-                if (device.session == null)
-                    device.delete()
-                else
-                    runBlocking {
-                        APNsNotificationHandler.sendAPN(device.deviceID, expiration, payload, APNsPriority.medium)
-                    }
-            }
+            sendNotification(payload, user, expiration, APNsPriority.medium)
         }
     }
+}
+
+fun sendNotification(payload: IAPNsPayload, user: User, expiration: UnixTimestamp, priority: APNsPriority) {
+    sendNotification(payload, user.apnDevices, expiration, priority)
+}
+
+fun sendNotification(
+    payload: IAPNsPayload,
+    devices: List<APNDevice>,
+    expiration: UnixTimestamp,
+    priority: APNsPriority
+) {
+    devices.forEach { device ->
+        sendNotification(payload, device, expiration, priority)
+    }
+}
+
+fun sendNotification(payload: IAPNsPayload, device: APNDevice, expiration: UnixTimestamp, priority: APNsPriority) {
+    if (device.session == null)
+        device.delete()
+    else
+        runBlocking {
+            APNsNotificationHandler.sendAPN(device.deviceID, expiration, payload, priority)
+        }
 }

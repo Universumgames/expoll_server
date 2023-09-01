@@ -84,9 +84,5 @@ private fun sendStartupNotification() {
     )
     val aps = APS(notification)
     val payload = APNsPayload(aps)
-    runBlocking {
-        adminDevices.forEach {
-            APNsNotificationHandler.sendAPN(it.deviceID, UnixTimestamp.now().addHours(1), payload, APNsPriority.medium)
-        }
-    }
+    sendNotification(payload, adminDevices, UnixTimestamp.now().addHours(1), APNsPriority.medium)
 }

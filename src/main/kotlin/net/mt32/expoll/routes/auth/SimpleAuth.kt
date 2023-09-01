@@ -33,6 +33,7 @@ fun Route.simpleAuthRoutes() {
 suspend fun simpleLoginRoute(call: ApplicationCall) {
     val otpString = call.getDataFromAny("otp")
     val mail = call.getDataFromAny("mail")
+    val forApp = call.getDataFromAny("forApp")?.toBoolean() ?: false
 
     if (otpString.isNullOrEmpty() && mail.isNullOrEmpty()) {
         call.respond(ReturnCode.MISSING_PARAMS)
@@ -50,7 +51,7 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
             user.mail, user.fullName, "Login to expoll", "Here is your OTP for logging in on the expoll website: \n\t" +
                     otp.otp +
                     "\n alternatively you can click this link \n" +
-                    URLBuilder.buildLoginLink(call, otp.otp)
+                    URLBuilder.buildLoginLink(call, otp.otp, forApp)
         )
         call.respond(ReturnCode.OK)
         return
