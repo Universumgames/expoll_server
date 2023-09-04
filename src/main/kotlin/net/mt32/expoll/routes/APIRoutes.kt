@@ -16,6 +16,7 @@ import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.routes.admin.adminRoute
 import net.mt32.expoll.routes.auth.authRoutes
 import net.mt32.expoll.serializable.ServerInfo
+import net.mt32.expoll.serializable.iosPlatformInfo
 
 fun Route.apiRouting() {
     route("/") {
@@ -34,6 +35,11 @@ fun Route.apiRouting() {
         }
         get("serverInfo") {
             call.respond(ServerInfo.instance)
+        }
+        route("appInfo"){
+            get("ios"){
+                call.respond(iosPlatformInfo)
+            }
         }
         get("metaInfo") {
             call.respondText(

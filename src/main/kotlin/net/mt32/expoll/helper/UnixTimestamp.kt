@@ -107,6 +107,16 @@ class UnixTimestamp private constructor() {
             ts.millisSince1970 = 0
             return ts
         }
+
+        fun fromDateTimeComponents(year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int): UnixTimestamp {
+            val cal = Calendar.getInstance()
+            cal.set(year, month, day, hour, minute, second)
+            return fromDate(cal.time)
+        }
+
+        fun fromDateComponents(year: Int, month: Int, day: Int): UnixTimestamp {
+            return fromDateTimeComponents(year, month, day, 0, 0, 0)
+        }
     }
 }
 
