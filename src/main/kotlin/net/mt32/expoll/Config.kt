@@ -1,7 +1,6 @@
 package net.mt32.expoll
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -53,9 +52,16 @@ data class TestUserConfig(
 
 @Serializable
 data class CompatibleVersionDescriptor(
-    val from: String? = null,
-    val to: String? = null,
-    val exact: String? = null
+    val from: VersionDescriptor? = null,
+    val to: VersionDescriptor? = null,
+    val exact: VersionDescriptor? = null
+)
+
+@Serializable
+data class VersionDescriptor(
+    val version: String,
+    val build: Int? = null,
+    val os: String? = null
 )
 
 @Serializable

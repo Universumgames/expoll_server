@@ -12,7 +12,6 @@ import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.checkVersionCompatibility
 import net.mt32.expoll.helper.defaultJSON
-import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.routes.admin.adminRoute
 import net.mt32.expoll.routes.auth.authRoutes
 import net.mt32.expoll.serializable.ServerInfo
@@ -23,11 +22,11 @@ fun Route.apiRouting() {
         get("test") {
             call.respondText("Hello World!")
         }
-        get("compliance") {
-            val clientVersion = call.getDataFromAny("version")
+        options("compliance") {
+            val clientVersion = call.receive<Compliance>()
             if (clientVersion == null) {
                 call.respond(HttpStatusCode.BadRequest)
-                return@get
+                return@options
             }
             val compatible = checkVersionCompatibility(clientVersion)
             if (compatible) call.respond(ReturnCode.OK)
