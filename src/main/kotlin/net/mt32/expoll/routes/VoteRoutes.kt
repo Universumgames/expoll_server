@@ -60,10 +60,17 @@ suspend fun voteRoute(call: ApplicationCall) {
     }
 
     val userIDToUse = voteChange.userID ?: principal.userID
+    val oldOption = Vote.fromUserPollOption(userIDToUse, voteChange.pollID, voteChange.optionID)
 
-    val voteCount = Vote.fromUserPoll(userIDToUse, voteChange.pollID)
-        .filter { it.votedFor == VoteValue.MAYBE || it.votedFor == VoteValue.YES }.size
-    if (voteCount > poll.maxPerUserVoteCount && poll.maxPerUserVoteCount != -1) {
+    val votes = Vote.fromUserPoll(userIDToUse, voteChange.pollID)
+    val filteredVotes = votes
+        .filter { it.votedFor.id >= 1 }.filter { it.optionID != voteChange.optionID }
+    val voteCount = filteredVotes.size
+    val newVoteAddedValue =
+        if (votedForEnum.id >= 1) 1 else 0 // what would be be added to the count if the vote is added
+    val newVoteCount =
+        voteCount + newVoteAddedValue // the new count taking into consideration the new vote and the old vote
+    if (newVoteCount > poll.maxPerUserVoteCount && poll.maxPerUserVoteCount != -1) {
         call.respond(ReturnCode.CHANGE_NOT_ALLOWED)
         return
     }
