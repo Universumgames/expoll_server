@@ -192,8 +192,8 @@ class User : IUser, DatabaseEntity {
     /**
      * Creates and saves new OTP for current user
      */
-    fun createOTP(): OTP {
-        return OTP.create(id)
+    fun createOTP(forApp: Boolean): OTP {
+        return OTP.create(id, forApp)
     }
 
     fun createSessionFromScratch(): Session {

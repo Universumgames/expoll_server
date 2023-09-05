@@ -12,9 +12,9 @@ object DeepLinkBuilder {
 }
 
 object URLBuilder {
-    fun buildLoginLink(call: ApplicationCall, otp: String, requestAppLogin: Boolean = false): String {
+    fun buildLoginLink(call: ApplicationCall, otp: String): String {
         val protocol = call.request.local.scheme
-        return protocol + "://" + config.loginLinkURL + "/#/login?key=" + URLEncoder.encode(otp, "utf-8") + "&forApp=" + (if (requestAppLogin) "1" else "0")
+        return protocol + "://" + config.loginLinkURL + "/#/login?key=" + URLEncoder.encode(otp, "utf-8")
     }
 
     fun shareURLBuilder(pollID: tPollID): String{

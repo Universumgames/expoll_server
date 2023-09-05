@@ -81,7 +81,7 @@ private suspend fun createUser(call: ApplicationCall) {
     )
 
     user.save()
-    val otp = user.createOTP()
+    val otp = user.createOTP(forApp = false)
     otp.expirationTimestamp.addDays(5)
     otp.save()
     Mail.sendMailAsync(

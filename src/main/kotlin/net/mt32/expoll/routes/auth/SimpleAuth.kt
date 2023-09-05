@@ -33,7 +33,6 @@ fun Route.simpleAuthRoutes() {
 suspend fun simpleLoginRoute(call: ApplicationCall) {
     val otpString = call.getDataFromAny("otp")
     val mail = call.getDataFromAny("mail")
-    val forApp = call.getDataFromAny("forApp")?.toBoolean() ?: false
 
     if (otpString.isNullOrEmpty() && mail.isNullOrEmpty()) {
         call.respond(ReturnCode.MISSING_PARAMS)
@@ -41,17 +40,18 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
     }
 
     if (!mail.isNullOrEmpty()) {
+        val forApp = call.getDataFromAny("forApp")?.toBoolean() ?: false
         val user = User.byMail(mail)
         if (user == null || !user.active) {
             call.respond(ReturnCode.BAD_REQUEST)
             return
         }
-        val otp = user.createOTP()
+        val otp = user.createOTP(forApp)
         Mail.sendMailAsync(
             user.mail, user.fullName, "Login to expoll", "Here is your OTP for logging in on the expoll website: \n\t" +
                     otp.otp +
                     "\n alternatively you can click this link \n" +
-                    URLBuilder.buildLoginLink(call, otp.otp, forApp)
+                    URLBuilder.buildLoginLink(call, otp.otp)
         )
         call.respond(ReturnCode.OK)
         return
@@ -70,6 +70,7 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
         val jwt = session.getJWT()
         call.sessions.clear(cookieName)
         call.sessions.set(ExpollJWTCookie(jwt))
+        call.response.headers.append("forApp", otp.forApp.toString())
         call.respondText(jwt)
         return
     }
@@ -82,6 +83,6 @@ private suspend fun loginApp(call: ApplicationCall) {
         call.respond(ReturnCode.UNAUTHORIZED)
         return
     }
-    val otp = principal.user.createOTP()
+    val otp = principal.user.createOTP(true)
     call.respondRedirect(DeepLinkBuilder.buildLoginLink(call, otp.otp))
 }

@@ -15,7 +15,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import net.mt32.expoll.auth.JWTSessionPrincipal
@@ -299,7 +298,7 @@ private suspend fun loginUser(
 }
 
 private suspend fun createAndRespondWithSession(call: ApplicationCall, user: User, state: State) {
-    val otp = user.createOTP()
-    val url = URLBuilder.buildLoginLink(call, otp.otp, requestAppLogin = state.isApp)
+    val otp = user.createOTP(forApp = state.isApp)
+    val url = URLBuilder.buildLoginLink(call, otp.otp)
     call.respondRedirect(url)
 }

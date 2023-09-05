@@ -23,31 +23,35 @@ class OTP : DatabaseEntity {
     val otp: String
     val userID: tUserID
     val expirationTimestamp: UnixTimestamp
+    val forApp: Boolean
 
     val valid: Boolean
         get() = expirationTimestamp > UnixTimestamp.now()
 
-    constructor(otp: String, userID: tUserID, expirationTimestamp: UnixTimestamp = UnixTimestamp.now().addHours(1)) {
+    constructor(otp: String, userID: tUserID, forApp: Boolean, expirationTimestamp: UnixTimestamp = UnixTimestamp.now().addHours(1)) {
         this.otp = otp
         this.userID = userID
+        this.forApp = forApp
         this.expirationTimestamp = expirationTimestamp
     }
 
     private constructor(resultRow: ResultRow) {
         this.otp = resultRow[OTP.otp]
         this.userID = resultRow[OTP.userID]
+        this.forApp = resultRow[OTP.forApp] ?: false
         this.expirationTimestamp = resultRow[OTP.expirationTimestamp].toUnixTimestampFromDB()
     }
 
     companion object : Table("otp") {
         val otp = varchar("otp", 64)
         val userID = varchar("userid", UUIDLength)
+        val forApp = bool("forApp").default(false)
         val expirationTimestamp = long("expirationTimestamp")
 
         fun fromOTP(otp: String): OTP? {
             if (otp == config.testUser.otp) {
                 val testuser = User.byUsername(config.testUser.username) ?: return null
-                return OTP(otp, testuser.id)
+                return OTP(otp, testuser.id, true)
             }
             return transaction {
                 val otp = OTP.select { OTP.otp eq otp }.firstOrNull()?.let { OTP(it) }
@@ -72,8 +76,8 @@ class OTP : DatabaseEntity {
         /**
          * Creates and saves a new OTP for a user
          */
-        fun create(userID: tUserID): OTP {
-            val otp = OTP(randomOTP(), userID)
+        fun create(userID: tUserID, forApp: Boolean): OTP {
+            val otp = OTP(randomOTP(), userID, forApp)
             otp.save()
             return otp
         }
@@ -97,6 +101,7 @@ class OTP : DatabaseEntity {
             OTP.upsertCustom(OTP.otp) {
                 it[otp] = this@OTP.otp
                 it[userID] = this@OTP.userID
+                it[forApp] = this@OTP.forApp
                 it[expirationTimestamp] = this@OTP.expirationTimestamp.toDB()
             }
         }
