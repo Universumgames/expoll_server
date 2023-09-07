@@ -12,7 +12,9 @@ import net.mt32.expoll.auth.*
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.MailRule
 import net.mt32.expoll.entities.User
+import net.mt32.expoll.entities.UserDeletionConfirmation
 import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.serializable.request.CreateUserRequest
@@ -46,9 +48,20 @@ fun Route.userRoutes() {
             put{
                 editUser(call)
             }
+            delete {
+                deleteUser(call)
+            }
+            delete("deleteConfirm"){
+                deleteUserConfirm(call)
+            }
+            post("deleteCancel"){
+                deleteCancel(call)
+            }
             // TODO implement delete user endpoint
             // TODO implement delete user confirmation endpoint
         }
+
+
     }
 }
 
@@ -209,5 +222,64 @@ private suspend fun editUser(call: ApplicationCall){
     user.lastName = editRequest.lastName ?: user.lastName
     user.firstName = editRequest.firstName ?: user.firstName
     user.save()
+    call.respond(ReturnCode.OK)
+}
+
+private suspend fun deleteUser(call: ApplicationCall){
+    val principal = call.principal<JWTSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+        return
+    }
+    val user = principal.user
+    val confirmation = UserDeletionConfirmation(user.id)
+    confirmation.save()
+    Mail.sendMailAsync(
+        user.mail, user.fullName, "Confirm deletion of your expoll account",
+        "You have requested to delete your account on expoll. If you did not request this, please ignore this mail. \n" +
+                "If you did request this, please click the following link to confirm your deletion: \n" +
+                net.mt32.expoll.helper.URLBuilder.deleteConfirmationURL(call, confirmation) + "\n" +
+               "This link will expire in ${config.deleteConfirmationTimeoutSeconds} seconds."
+    )
+    call.respond(ReturnCode.NOT_IMPLEMENTED)
+}
+
+private suspend fun deleteUserConfirm(call: ApplicationCall){
+    val principal = call.principal<JWTSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+        return
+    }
+    val user = principal.user
+    val confirmation = call.getDataFromAny("deleteConfirmationKey")
+    if(confirmation == null){
+        call.respond(ReturnCode.MISSING_PARAMS)
+        return
+    }
+    val confirmationObj = UserDeletionConfirmation.getPendingConfirmationForKey(confirmation)
+    if(confirmationObj == null || confirmationObj.userID != user.id){
+        call.respond(ReturnCode.INVALID_PARAMS)
+        return
+    }
+    if(confirmationObj.initTimestamp.addSeconds(config.deleteConfirmationTimeoutSeconds) < UnixTimestamp.now()){
+        call.respond(ReturnCode.UNPROCESSABLE_ENTITY)
+        return
+    }
+    user.delete()
+}
+
+private suspend fun deleteCancel(call: ApplicationCall){
+    val principal = call.principal<JWTSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+        return
+    }
+    val user = principal.user
+    val confirmation = UserDeletionConfirmation.getPendingConfirmationForUser(user.id)
+    if(confirmation == null){
+        call.respond(ReturnCode.INVALID_PARAMS)
+        return
+    }
+    confirmation.delete()
     call.respond(ReturnCode.OK)
 }

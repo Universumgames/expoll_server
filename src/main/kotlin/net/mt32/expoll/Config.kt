@@ -111,7 +111,9 @@ data class ConfigData(
     val jwt: JWTConfig = JWTConfig(),
     val oidc: OIDCConfig = OIDCConfig(),
     val cookieDomain: String = "",
-    val developmentMode: Boolean = false
+    val developmentMode: Boolean = false,
+    val deleteURLPrefix: String = "",
+    val deleteConfirmationTimeoutSeconds: Long = 0,
 )
 
 var config: ConfigData = ConfigData()

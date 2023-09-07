@@ -24,7 +24,7 @@ interface ISimpleUser {
     val id: String
 }
 
-interface IUser: ISimpleUser {
+interface IUser : ISimpleUser {
     override val id: tUserID
     override var username: String
     override var firstName: String
@@ -91,6 +91,7 @@ class User : IUser, DatabaseEntity {
         get() = APNDevice.fromUser(id)
 
     val created: UnixTimestamp
+    val deleted: UnixTimestamp?
 
     val oidConnections: List<OIDCUserData>
         get() = OIDCUserData.byUser(id)
@@ -112,6 +113,7 @@ class User : IUser, DatabaseEntity {
         this.active = active
         this.admin = admin
         this.created = UnixTimestamp.now()
+        this.deleted = null
     }
 
     constructor(userRow: ResultRow) {
@@ -123,6 +125,7 @@ class User : IUser, DatabaseEntity {
         this.active = userRow[User.active]
         this.admin = userRow[User.admin] || config.superAdminMail.equals(mail, ignoreCase = true)
         this.created = userRow[User.created].toUnixTimestampFromDB()
+        this.deleted = userRow[User.deleted]?.toUnixTimestampFromDB()
     }
 
     override fun save(): Boolean {
@@ -136,6 +139,7 @@ class User : IUser, DatabaseEntity {
                 it[active] = this@User.active
                 it[admin] = this@User.admin
                 it[created] = this@User.created.toDB()
+                it[deleted] = this@User.deleted?.toDB()
             }
         }
         return true
@@ -159,6 +163,7 @@ class User : IUser, DatabaseEntity {
         authenticators.forEach { it.delete() }
         apnDevices.forEach { it.delete() }
         OIDCUserData.byUser(id).forEach { it.delete() }
+        UserDeletionConfirmation.getPendingConfirmationForUser(id)?.delete()
         //votes.forEach { it.delete() }
         //polls.forEach { if(it.adminID != id) UserPolls.removeConnection(id, it.id) }
         val oldActive = active
@@ -172,6 +177,7 @@ class User : IUser, DatabaseEntity {
                 it[created] = this@User.created.toDB()
                 it[active] = false
                 it[admin] = false
+                it[deleted] = UnixTimestamp.now().toDB()
             }
         }
         if (!oldActive) {
@@ -216,6 +222,7 @@ class User : IUser, DatabaseEntity {
         val active = bool("active")
         val admin = bool("admin")
         val created = long("createdTimestamp")
+        val deleted = long("deletedTimestamp").nullable()
 
 
         override val primaryKey = PrimaryKey(id)
@@ -267,9 +274,10 @@ class User : IUser, DatabaseEntity {
             user.save()
         }
 
-        fun admins(): List<User>{
+        fun admins(): List<User> {
             return transaction {
-                return@transaction User.select { (User.admin eq true) or (User.mail eq config.superAdminMail) }.map { User(it) }
+                return@transaction User.select { (User.admin eq true) or (User.mail eq config.superAdminMail) }
+                    .map { User(it) }
             }
         }
 
@@ -321,5 +329,67 @@ class User : IUser, DatabaseEntity {
 
     fun removePoll(pollID: tPollID) {
         UserPolls.removeConnection(id, pollID)
+    }
+}
+
+class UserDeletionConfirmation: DatabaseEntity {
+    val userID: tUserID
+    val initTimestamp: UnixTimestamp
+    val key: String
+
+    constructor(userID: tUserID) {
+        this.userID = userID
+        this.initTimestamp = UnixTimestamp.now()
+        this.key = createKey()
+    }
+
+    constructor(resultRow: ResultRow) {
+        this.userID = resultRow[UserDeletionConfirmation.userID]
+        this.initTimestamp = resultRow[UserDeletionConfirmation.initTimestamp].toUnixTimestampFromDB()
+        this.key = resultRow[UserDeletionConfirmation.key]
+    }
+
+    companion object : Table("userDeletionConfirmation") {
+        val userID = varchar("userID", UUIDLength)
+        val initTimestamp = long("initTimestamp")
+        val key = varchar("key", 255)
+
+        override val primaryKey = PrimaryKey(userID)
+
+        private fun createKey(): String {
+            return UUID.randomUUID().toString()
+        }
+
+        fun getPendingConfirmationForKey(key: String): UserDeletionConfirmation? {
+            return transaction {
+                val resultRow = UserDeletionConfirmation.select { UserDeletionConfirmation.key eq key }.firstOrNull()
+                return@transaction resultRow?.let { UserDeletionConfirmation(it) }
+            }
+        }
+
+        fun getPendingConfirmationForUser(userID: tUserID): UserDeletionConfirmation? {
+            return transaction {
+                val resultRow = UserDeletionConfirmation.select { UserDeletionConfirmation.userID eq userID }.firstOrNull()
+                return@transaction resultRow?.let { UserDeletionConfirmation(it) }
+            }
+        }
+    }
+
+    override fun save(): Boolean {
+        transaction {
+            UserDeletionConfirmation.upsertCustom(UserDeletionConfirmation.userID) {
+                it[userID] = this@UserDeletionConfirmation.userID
+                it[initTimestamp] = this@UserDeletionConfirmation.initTimestamp.toDB()
+                it[key] = this@UserDeletionConfirmation.key
+            }
+        }
+        return true
+    }
+
+    override fun delete(): Boolean {
+        transaction {
+            UserDeletionConfirmation.deleteWhere { UserDeletionConfirmation.userID eq userID }
+        }
+        return true
     }
 }

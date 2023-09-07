@@ -2,6 +2,7 @@ package net.mt32.expoll.helper
 
 import io.ktor.server.application.*
 import net.mt32.expoll.config
+import net.mt32.expoll.entities.UserDeletionConfirmation
 import net.mt32.expoll.tPollID
 import java.net.URLEncoder
 
@@ -21,6 +22,10 @@ object URLBuilder {
         val prefix = config.shareURLPrefix
         //if(!prefix.endsWith("/")) prefix += "/"
         return prefix + pollID
+    }
+
+    fun deleteConfirmationURL(call: ApplicationCall, confirmation: UserDeletionConfirmation): String{
+        return config.deleteURLPrefix + confirmation.key
     }
 }
 
