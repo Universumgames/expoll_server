@@ -79,6 +79,10 @@ class UnixTimestamp private constructor() {
         return millisSince1970
     }
 
+    fun toUnixEpoch(): Long {
+        return secondsSince1970
+    }
+
     companion object {
         fun now(): UnixTimestamp {
             return Date().toUnixTimestamp()
