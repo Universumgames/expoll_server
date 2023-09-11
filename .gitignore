@@ -42,7 +42,7 @@ config/prod*
 **/keys*
 package-lock.json
 docker/db.env
-backups
+backups*
 *.p8
 privateScripts
 config/*secret*

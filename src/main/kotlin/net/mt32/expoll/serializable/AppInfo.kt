@@ -22,15 +22,15 @@ data class AppInfo(
 val iosPlatformInfo = PlatformInfo(
     beta = AppInfo(
         version = "2.6.0",
-        build = 87,
+        build = 90,
         url = "https://testflight.apple.com/join/OpUycQnW",
-        releasedTimestamp = UnixTimestamp.fromDateTimeComponents(2023, 9, 9, 2, 5, 0).toClient()
+        releasedTimestamp = UnixTimestamp.fromDateTimeComponents(2023, 9, 11, 12, 30, 0).toClient()
     ),
     stable = AppInfo(
         version = "2.6.0",
         build = 90,
         url = "https://apps.apple.com/app/expoll/id1639799209",
-        releasedTimestamp = UnixTimestamp.fromDateTimeComponents(2023, 10, 1, 0, 0,0).toClient()
+        releasedTimestamp = UnixTimestamp.fromDateTimeComponents(2023, 9, 13, 0, 0,0).toClient()
     ),
     platformKeys = listOf("ios", "macos")
 )
