@@ -17,8 +17,8 @@ fun Application.configureHTTP() {
         header(HttpHeaders.Server, "expoll_backend")
     }
     routing {
-        //openAPI(path = "openapi", swaggerFile = "openapi/documentation.yaml")
-        swaggerUI(path = "swagger", swaggerFile = "openapi/documentation.yaml") {
+        //openAPI(path = "openapi", swaggerFile = "openapi/openapi.yaml")
+        swaggerUI(path = "openapi", swaggerFile = "openapi/openapi.yaml") {
             version = "4.15.5"
         }
         userRoutes()

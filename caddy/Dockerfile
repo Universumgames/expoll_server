@@ -5,7 +5,7 @@ from node as compiler
 #RUN npm run build
 
 WORKDIR /expoll/frontend_server
-COPY ./client .
+COPY ./webclient .
 
 RUN npm install --legacy-peer-deps
 RUN npm run build

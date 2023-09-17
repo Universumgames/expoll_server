@@ -45,12 +45,7 @@ paths:
       description: get various debugging information
       responses:
         200:
-          description: Meta info
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
+          description: Meta info json object
   /compliance:
     get:
       description: Check if your client version is supported by the backend
@@ -129,13 +124,25 @@ paths:
       description: Edit the user
       security:
         - bearerAuth: [ ]
-      parameters:
-        - name: username
-          in: body
-        - name: firstName
-          in: body
-        - name: lastName
-          in: body
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                username:
+                  type: string
+            examples:
+              max:
+                value:
+                  firstName: Max
+                  lastName: Mustermann
+                  username: mamu
       responses:
         400:
           description: Username already taken
@@ -176,11 +183,9 @@ paths:
                 otp:
                   type: string
                   description: the one time password
-                  required: this or mail
                 mail:
                   type: string
                   description: the mail address of the user
-                  required: this or otp
             examples:
               Request:
                 summary: Requesting login mail
@@ -234,6 +239,9 @@ paths:
     get:
       security:
         - bearerAuth: [ ]
+      responses:
+        200:
+          description: Get list of all webauthn authenticators
       description: Undocumented endpoint to start webauthn registration
     post:
       security:
@@ -682,6 +690,7 @@ paths:
         - bearerAuth: [ ]
       responses:
         200:
+          description: List of all polls
           content:
             application/json:
               schema:
@@ -855,16 +864,20 @@ components:
           type: string
           optional: true
         dateStart:
-          type: epoch milliseconds
+          type: integer
+          format: epoch milliseconds
           optional: true
         dateEnd:
-          type: epoch milliseconds
+          type: integer
+          format: epoch milliseconds
           optional: true
         dateTimeStart:
-          type: epoch milliseconds
+          type: integer
+          format: epoch milliseconds
           optional: true
         dateTimeEnd:
-          type: epoch milliseconds
+          type: integer
+          format: epoch milliseconds
           optional: true
     UserVote:
       type: object
@@ -942,6 +955,7 @@ components:
       type: object
       required:
         - pollID
+      $ref: "#/paths/poll/put"
       properties:
         pollID:
           type: string
