@@ -47,15 +47,28 @@ paths:
         200:
           description: Meta info json object
   /compliance:
-    get:
+    options:
       description: Check if your client version is supported by the backend
-      parameters:
-        - name: version
-          description: The client version
-          in: query
-          required: true
-          schema:
-            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                  required: true
+                  description: the version of the client
+                build:
+                  type: string
+                  description: the build number of the client
+                platform:
+                    type: string
+                    description: the platform the client is running on ("ios", "web")
+            example:
+                version: "2.6.0"
+                build: "90"
+                platform: "ios"
       responses:
         200:
           description: Client is supported
