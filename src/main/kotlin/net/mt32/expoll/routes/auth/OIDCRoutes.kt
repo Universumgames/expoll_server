@@ -294,11 +294,11 @@ private suspend fun loginUser(
     user = User(userNameUse, firstNameUse, lastNameUse ?: "", mailUse, admin = false)
     user.save()
     OIDCUserData(user.id, idp.name, baseTokenData.issuer, baseTokenData.subject, mailUse).save()
-    createAndRespondWithSession(call, user, state)
+    createAndRespondWithSession(call, user, state, isNewUser = true)
 }
 
-private suspend fun createAndRespondWithSession(call: ApplicationCall, user: User, state: State) {
+private suspend fun createAndRespondWithSession(call: ApplicationCall, user: User, state: State, isNewUser: Boolean = false) {
     val otp = user.createOTP(forApp = state.isApp)
-    val url = URLBuilder.buildLoginLink(call, otp.otp)
+    val url = URLBuilder.buildLoginLink(call, user, otp.otp, isNewUser = isNewUser)
     call.respondRedirect(url)
 }

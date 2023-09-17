@@ -39,6 +39,7 @@ object DatabaseFactory {
                 OTP,
                 Session,
                 User,
+                UserDeletionConfirmation,
                 Vote
             )
             //SchemaUtils.createMissingTablesAndColumns(Users)

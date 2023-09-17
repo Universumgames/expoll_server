@@ -266,6 +266,7 @@ private suspend fun deleteUserConfirm(call: ApplicationCall){
         return
     }
     user.delete()
+    call.respond(ReturnCode.OK)
 }
 
 private suspend fun deleteCancel(call: ApplicationCall){

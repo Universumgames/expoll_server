@@ -100,7 +100,7 @@ fun sendNotificationAllowed(notification: ExpollNotification): Boolean {
 
 @OptIn(DelicateCoroutinesApi::class)
 fun sendNotification(notification: ExpollNotification) {
-    if (!sendNotificationAllowed(notification)) return
+    //if (!sendNotificationAllowed(notification)) return
     AnalyticsStorage.notificationCount[notification.type] =
         (AnalyticsStorage.notificationCount[notification.type] ?: 0) + 1
     GlobalScope.launch {

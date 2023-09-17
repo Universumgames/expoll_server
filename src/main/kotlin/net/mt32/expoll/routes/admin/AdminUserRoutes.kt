@@ -90,7 +90,7 @@ private suspend fun createUser(call: ApplicationCall) {
            Here is your OTP for logging in on the expoll website, it is valid for the next 5 days:
            ${otp.otp}
            alternatively you can click this link
-           ${URLBuilder.buildLoginLink(call, otp.otp)}""".trimIndent()
+           ${URLBuilder.buildLoginLink(call, user, otp.otp, false)}""".trimIndent()
     )
 
     call.respond(ReturnCode.OK)

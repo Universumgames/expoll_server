@@ -173,7 +173,7 @@ class User : IUser, DatabaseEntity {
                 it[username] = "Deleted User " + this@User.id
                 it[firstName] = "Deleted"
                 it[lastName] = "User"
-                it[mail] = "unknown"
+                it[mail] = "unknown" + this@User.id
                 it[created] = this@User.created.toDB()
                 it[active] = false
                 it[admin] = false
@@ -332,7 +332,7 @@ class User : IUser, DatabaseEntity {
     }
 }
 
-class UserDeletionConfirmation: DatabaseEntity {
+class UserDeletionConfirmation : DatabaseEntity {
     val userID: tUserID
     val initTimestamp: UnixTimestamp
     val key: String
@@ -369,7 +369,8 @@ class UserDeletionConfirmation: DatabaseEntity {
 
         fun getPendingConfirmationForUser(userID: tUserID): UserDeletionConfirmation? {
             return transaction {
-                val resultRow = UserDeletionConfirmation.select { UserDeletionConfirmation.userID eq userID }.firstOrNull()
+                val resultRow =
+                    UserDeletionConfirmation.select { UserDeletionConfirmation.userID eq userID }.firstOrNull()
                 return@transaction resultRow?.let { UserDeletionConfirmation(it) }
             }
         }
