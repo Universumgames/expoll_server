@@ -18,11 +18,11 @@
   },
   "maxPollCountPerUser": 10,
   "recaptchaAPIKey": "your google recaptcha api key goes here",
-  "serverVersion": "3.4.2",
+  "serverVersion": "3.4.3",
   "compatibleVersions": [
     {
       "from": {
-        "version": "3.1.5",
+        "version": "3.3.0",
         "platform": "web"
       }
     },
