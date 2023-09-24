@@ -39,6 +39,9 @@ suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
     ) defaultJSON.parseToJsonElement(call.receiveText()).jsonObject.toMap()[key].toString().replace("\"", "") else null
     if (body != null)
         return body.removeNullString()
+    val header = request.headers[key]
+    if(header != null)
+        return header.removeNullString()
     return null
 }
 

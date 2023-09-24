@@ -39,14 +39,6 @@ private suspend fun impersonate(call: ApplicationCall) {
         return
     }
     val session = call.sessions.get<ExpollJWTCookie>()
-    if (session == null) {
-        call.respond(ReturnCode.MISSING_PARAMS)
-        return
-    }
-    if (session.originalJWT != null) {
-        call.respond(ReturnCode.UNPROCESSABLE_ENTITY)
-        return
-    }
     val impersonateID = call.getDataFromAny("impersonateID")
     if (impersonateID == null) {
         call.respond(ReturnCode.MISSING_PARAMS)
@@ -64,7 +56,7 @@ private suspend fun impersonate(call: ApplicationCall) {
 
     val newSession = impersonateUser.createSessionFromScratch()
     val newJwt = newSession.getJWT()
-    call.sessions.set(ExpollJWTCookie(newJwt, session.jwt))
+    call.sessions.set(ExpollJWTCookie(newJwt, session?.jwt))
     call.respond(newJwt)
 }
 
@@ -72,16 +64,6 @@ private suspend fun isImpersonating(call: ApplicationCall) {
     val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
-    val session = call.sessions.get<ExpollJWTCookie>()
-    if (session == null) {
-        call.respond(ReturnCode.MISSING_PARAMS)
-        return
-    }
-    val origKey = session.originalJWT
-    if (origKey == null) {
-        call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
     val user = User.loadFromID(principal.originalUserID ?: "")
