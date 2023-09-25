@@ -1,6 +1,5 @@
 package net.mt32.expoll.routes
 
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -17,13 +16,9 @@ data class Compliance(
 )
 
 
-fun Route.Compliance(){
+fun Route.complianceRoute(){
     options("compliance") {
         val clientVersion = call.receive<Compliance>()
-        if (clientVersion == null) {
-            call.respond(HttpStatusCode.BadRequest)
-            return@options
-        }
         val compatible = checkVersionCompatibility(clientVersion)
         if (compatible) call.respond(ReturnCode.OK)
         else call.respond(ReturnCode.CONFLICT)

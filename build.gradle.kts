@@ -85,6 +85,7 @@ dependencies {
     testImplementation(platform("org.junit:junit-bom:5.7.0"))
     testImplementation(kotlin("test-junit5"))
     implementation("com.auth0:java-jwt:3.18.1")
+    implementation("io.ktor:ktor-server-cors:$ktor_version")
 
 
     //testImplementation(kotlin("test"))

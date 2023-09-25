@@ -21,16 +21,16 @@
   "serverVersion": "3.4.3",
   "compatibleVersions": [
     {
+      "platform": "web",
       "from": {
-        "version": "3.3.0",
-        "platform": "web"
+        "version": "3.3.0"
       }
     },
     {
+      "platform": "ios",
       "from": {
         "version": "2.6.0",
-        "build": 81,
-        "os": "ios"
+        "build": 81
       }
     }
   ],

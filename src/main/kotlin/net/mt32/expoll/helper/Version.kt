@@ -19,18 +19,19 @@ fun compareVersionString(version1: String, version2: String): Int {
         .split(".")
         .map { it.toIntOrNull() ?: 0 }
     for (i in (0 until min(v1.size, v2.size))) {
-        if (v1[i] > v2[i]) return 1
-        if (v1[i] < v2[i]) return -1
+        if (v1[i] > v2[i])
+            return 1
+        if (v1[i] < v2[i])
+            return -1
     }
-    return 1
+    return 0
 }
 
 /**
  * Check if a version is greater than another
  * @return {number} 1 if toCheck > version, -1 if toCheck < version, 0 if toCheck == version
  */
-fun compareVersion(version: VersionDescriptor, toCheck: Compliance): Int{
-    if(version.os != toCheck.platform) return 0
+fun compareVersion(version: VersionDescriptor, toCheck: Compliance): Int {
     if (version.version != toCheck.version) return compareVersionString(toCheck.version, version.version)
     if (version.build == null || toCheck.build == null) return 0
     if (version.build.toInt() > toCheck.build.toInt()) return -1
@@ -46,15 +47,16 @@ fun versionMatchRange(from: VersionDescriptor?, to: VersionDescriptor?, toCheck:
     if(from != null && to != null)
         return compareVersion(from, toCheck) >= 0 && compareVersion(to, toCheck) <= 0
     if(from != null)
-        return compareVersion(from, toCheck) <= 0
+        return compareVersion(from, toCheck) >= 0
     if(to != null)
-        return compareVersion(to, toCheck) >= 0
+        return compareVersion(to, toCheck) <= 0
     return false
 }
 
 fun checkVersionCompatibility(toCheck: Compliance): Boolean {
     val versions = config.compatibleVersions
     return versions.any { compatibilityDescriptor ->
+        if(compatibilityDescriptor.platform != toCheck.platform) return@any false
         if (compatibilityDescriptor.exact != null && versionsMatchExact(compatibilityDescriptor.exact, toCheck)) return@any true
         if (versionMatchRange(
                 compatibilityDescriptor.from,

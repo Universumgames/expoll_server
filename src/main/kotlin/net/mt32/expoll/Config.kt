@@ -54,14 +54,14 @@ data class TestUserConfig(
 data class CompatibleVersionDescriptor(
     val from: VersionDescriptor? = null,
     val to: VersionDescriptor? = null,
-    val exact: VersionDescriptor? = null
+    val exact: VersionDescriptor? = null,
+    val platform: String? = null
 )
 
 @Serializable
 data class VersionDescriptor(
     val version: String,
-    val build: Int? = null,
-    val os: String? = null
+    val build: Int? = null
 )
 
 @Serializable

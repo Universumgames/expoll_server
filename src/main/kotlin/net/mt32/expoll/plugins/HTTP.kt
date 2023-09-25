@@ -15,6 +15,7 @@ fun Application.configureHTTP() {
     install(DefaultHeaders) {
         //header("X-Engine", "Ktor") // will send this header with each response
         header(HttpHeaders.Server, "expoll_backend")
+        header(HttpHeaders.AccessControlAllowOrigin, "*")
     }
     routing {
         //openAPI(path = "openapi", swaggerFile = "openapi/openapi.yaml")
@@ -35,4 +36,5 @@ fun Application.configureHTTP() {
     }
     install(ForwardedHeaders)
     install(ServerTimingsHeader)
+
 }
