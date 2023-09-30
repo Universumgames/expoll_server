@@ -16,7 +16,6 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import net.mt32.expoll.OIDCIDPConfig
 import net.mt32.expoll.config
 import net.mt32.expoll.helper.UnixTimestamp
@@ -106,20 +105,27 @@ object OIDC {
         }
         for (idp in config.oidc.idps.toSortedMap()) {
             try {
-                println("Trying to load oidc config from ${idp.key}")
+                print("Loading oidc config for ${idp.key}")
                 val responseMetadata = client.get(idp.value.discoveryURL)
+                print('.')
                 val metadata = responseMetadata.body<OIDCProviderMetadata>()
+                print('.')
                 val responseKeys = client.get(metadata.jwksURI)
+                print('.')
                 val keys = responseKeys.body<KeyStorage>().keys
+                print('.')
                 val data = OIDCIDPData(idp.key, metadata, idp.value, keys)
+                print('.')
                 if (isValidIDP(data))
                     this.data[idp.key] = data
+                println(" success")
             } catch (e: Exception) {
+                println(" failed")
                 e.printStackTrace()
             }
         }
 
-        println(defaultJSON.encodeToString(data))
+        //println(defaultJSON.encodeToString(data))
     }
 
     private fun isValidIDP(data: OIDCIDPData): Boolean {

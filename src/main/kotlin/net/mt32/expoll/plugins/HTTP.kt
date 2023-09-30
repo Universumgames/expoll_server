@@ -3,13 +3,13 @@ package net.mt32.expoll.plugins
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.compression.*
+import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.plugins.defaultheaders.*
 import io.ktor.server.plugins.doublereceive.*
 import io.ktor.server.plugins.forwardedheaders.*
 import io.ktor.server.plugins.swagger.*
 import io.ktor.server.routing.*
 import net.mt32.expoll.helper.ServerTimingsHeader
-import net.mt32.expoll.routes.userRoutes
 
 fun Application.configureHTTP() {
     install(DefaultHeaders) {
@@ -22,7 +22,7 @@ fun Application.configureHTTP() {
         swaggerUI(path = "openapi", swaggerFile = "openapi/openapi.yaml") {
             version = "4.15.5"
         }
-        userRoutes()
+        //userRoutes()
     }
     install(DoubleReceive)
     install(Compression) {
@@ -36,5 +36,18 @@ fun Application.configureHTTP() {
     }
     install(ForwardedHeaders)
     install(ServerTimingsHeader)
-
+    install(CORS){
+        anyHost()
+        allowHeaders { true }
+        allowCredentials = true
+        allowNonSimpleContentTypes = true
+        allowSameOrigin = true
+        allowXHttpMethodOverride()
+        allowMethod(HttpMethod.Options)
+        allowMethod(HttpMethod.Get)
+        allowMethod(HttpMethod.Post)
+        allowMethod(HttpMethod.Put)
+        allowMethod(HttpMethod.Delete)
+        allowMethod(HttpMethod.Patch)
+    }
 }

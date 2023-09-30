@@ -9,16 +9,24 @@ import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.checkVersionCompatibility
 
 @Serializable
-data class Compliance(
+data class ClientInfo(
     val version: String,
     val build: String? = null,
     val platform: String? = null,
 )
 
 
-fun Route.complianceRoute(){
+fun Route.clientCompatibilityRoute(){
     options("compliance") {
-        val clientVersion = call.receive<Compliance>()
+        val body = call.receiveText()
+        println(body)
+        val clientVersion = call.receive<ClientInfo>()
+        val compatible = checkVersionCompatibility(clientVersion)
+        if (compatible) call.respond(ReturnCode.OK)
+        else call.respond(ReturnCode.CONFLICT)
+    }
+    post("compatibility") {
+        val clientVersion = call.receive<ClientInfo>()
         val compatible = checkVersionCompatibility(clientVersion)
         if (compatible) call.respond(ReturnCode.OK)
         else call.respond(ReturnCode.CONFLICT)

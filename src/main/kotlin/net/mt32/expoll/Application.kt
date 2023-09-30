@@ -16,6 +16,7 @@ import net.mt32.expoll.notification.*
 import net.mt32.expoll.plugins.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
+import kotlin.concurrent.thread
 
 private val timer: Timer = Timer()
 
@@ -25,11 +26,12 @@ fun main(args: Array<String>) {
         println("Define an environment to load the config from by providing it as the first argument")
     ConfigLoader.load(environment)
     DatabaseFactory.init()
-    User.ensureTestUserExistence()
-    runBlocking {
-        OIDC.init()
-    }
+    val testUserThread = thread { User.ensureTestUserExistence() }
+    val oidcThread = thread { runBlocking { OIDC.init() } }
     initCleanup()
+
+    testUserThread.join()
+    oidcThread.join()
     println("Server initialisation finished")
     sendStartupNotification()
 

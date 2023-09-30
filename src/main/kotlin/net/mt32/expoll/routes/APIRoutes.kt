@@ -20,7 +20,7 @@ fun Route.apiRouting() {
         get("test") {
             call.respondText("Hello World!")
         }
-        complianceRoute()
+        clientCompatibilityRoute()
         get("serverInfo") {
             call.respond(ServerInfo.instance)
         }
