@@ -46,8 +46,8 @@ paths:
       responses:
         200:
           description: Meta info json object
-  /compliance:
-    options:
+  /compatibility:
+    post:
       description: Check if your client version is supported by the backend
       requestBody:
         content:

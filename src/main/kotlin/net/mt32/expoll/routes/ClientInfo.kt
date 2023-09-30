@@ -17,6 +17,7 @@ data class ClientInfo(
 
 
 fun Route.clientCompatibilityRoute(){
+    // TODO remove this route, just for backwards compatibility
     options("compliance") {
         val body = call.receiveText()
         println(body)
