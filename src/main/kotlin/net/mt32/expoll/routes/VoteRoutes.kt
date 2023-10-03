@@ -8,13 +8,12 @@ import io.ktor.server.routing.*
 import net.mt32.expoll.VoteValue
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.entities.Poll
+import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.Vote
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.startNewTiming
-import net.mt32.expoll.notification.ExpollNotification
-import net.mt32.expoll.notification.ExpollNotificationType
-import net.mt32.expoll.notification.sendNotification
+import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.serializable.request.VoteChange
 
 fun Route.voteRoutes() {
@@ -81,6 +80,8 @@ suspend fun voteRoute(call: ApplicationCall) {
     poll.updatedTimestamp = UnixTimestamp.now()
     poll.save()
 
-    sendNotification(ExpollNotification(ExpollNotificationType.VoteChange, poll.id, userIDToUse))
+    val changedUser = if(voteChange.userID == null) principal.user else User.loadFromID(voteChange.userID)
+    ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.VoteChange, poll, changedUser)
+    //sendNotification(ExpollNotification(ExpollNotificationType.VoteChange, poll.id, userIDToUse))
     call.respond(ReturnCode.OK)
 }

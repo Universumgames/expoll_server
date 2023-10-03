@@ -6,13 +6,16 @@ import io.ktor.server.netty.*
 import kotlinx.coroutines.runBlocking
 import net.mt32.expoll.auth.OIDC
 import net.mt32.expoll.database.DatabaseFactory
-import net.mt32.expoll.entities.APNDevice
 import net.mt32.expoll.entities.OTP
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.User
+import net.mt32.expoll.entities.notifications.APNDevice
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDelayToMidnight
-import net.mt32.expoll.notification.*
+import net.mt32.expoll.notification.APNsNotification
+import net.mt32.expoll.notification.APNsPayload
+import net.mt32.expoll.notification.APS
+import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.plugins.*
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
@@ -86,5 +89,6 @@ private fun sendStartupNotification() {
     )
     val aps = APS(notification)
     val payload = APNsPayload(aps)
-    sendNotification(payload, adminDevices, UnixTimestamp.now().addHours(1), APNsPriority.medium)
+    ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.STARTUP)
+    //sendNotification(payload, adminDevices, UnixTimestamp.now().addHours(1), APNsPriority.medium)
 }

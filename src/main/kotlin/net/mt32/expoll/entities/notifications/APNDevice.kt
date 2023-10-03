@@ -1,7 +1,8 @@
-package net.mt32.expoll.entities
+package net.mt32.expoll.entities.notifications
 
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.entities.Session
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsertCustom
@@ -36,15 +37,15 @@ class APNDevice : DatabaseEntity {
     }
 
     private constructor(apnDeviceRow: ResultRow) {
-        this.deviceID = apnDeviceRow[APNDevice.deviceID]
-        this.userID = apnDeviceRow[APNDevice.userID]
-        this.creationTimestamp = apnDeviceRow[APNDevice.creationTimestamp].toUnixTimestampFromDB()
-        this.sessionNonce = apnDeviceRow[APNDevice.sessionNonce]
+        this.deviceID = apnDeviceRow[Companion.deviceID]
+        this.userID = apnDeviceRow[Companion.userID]
+        this.creationTimestamp = apnDeviceRow[Companion.creationTimestamp].toUnixTimestampFromDB()
+        this.sessionNonce = apnDeviceRow[Companion.sessionNonce]
     }
 
     override fun save(): Boolean {
         transaction {
-            APNDevice.upsertCustom(APNDevice.deviceID) {
+            APNDevice.upsertCustom(Companion.deviceID) {
                 it[deviceID] = this@APNDevice.deviceID
                 it[userID] = this@APNDevice.userID
                 it[creationTimestamp] = this@APNDevice.creationTimestamp.toDB()
@@ -57,7 +58,7 @@ class APNDevice : DatabaseEntity {
     override fun delete(): Boolean {
         transaction {
             APNDevice.deleteWhere {
-                APNDevice.deviceID eq this@APNDevice.deviceID
+                deviceID eq this@APNDevice.deviceID
             }
         }
         return true
@@ -73,16 +74,17 @@ class APNDevice : DatabaseEntity {
 
         fun fromDeviceID(deviceID: String): APNDevice? {
             return transaction {
-                val deviceRow = APNDevice.select { APNDevice.deviceID eq deviceID }.firstOrNull()
+                val deviceRow = APNDevice.select { Companion.deviceID eq deviceID }.firstOrNull()
                 return@transaction deviceRow?.let { APNDevice(it) }
             }
         }
 
         fun fromUser(userID: tUserID): List<APNDevice> {
             return transaction {
-                val result = APNDevice.select { APNDevice.userID eq userID }
+                val result = APNDevice.select { Companion.userID eq userID }
                 return@transaction result.map { APNDevice(it) }
             }
         }
     }
 }
+

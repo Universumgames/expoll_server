@@ -3,6 +3,8 @@ package net.mt32.expoll.database
 import net.mt32.expoll.config
 import net.mt32.expoll.database.transform.*
 import net.mt32.expoll.entities.*
+import net.mt32.expoll.entities.notifications.APNDevice
+import net.mt32.expoll.entities.notifications.WebNotificationDevice
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.TransactionManager
@@ -40,7 +42,8 @@ object DatabaseFactory {
                 Session,
                 User,
                 UserDeletionConfirmation,
-                Vote
+                Vote,
+                WebNotificationDevice
             )
             //SchemaUtils.createMissingTablesAndColumns(Users)
             /*Users.insert {

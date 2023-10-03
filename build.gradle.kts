@@ -86,6 +86,8 @@ dependencies {
     testImplementation(kotlin("test-junit5"))
     implementation("com.auth0:java-jwt:3.18.1")
     implementation("io.ktor:ktor-server-cors:$ktor_version")
+    implementation("nl.martijndwars:web-push:5.1.1")
+    implementation("org.bouncycastle:bcprov-jdk15on:1.70")
 
 
     //testImplementation(kotlin("test"))

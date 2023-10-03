@@ -2,14 +2,14 @@ package net.mt32.expoll.analytics
 
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDelayToMidnight
-import net.mt32.expoll.notification.ExpollNotificationType
+import net.mt32.expoll.notification.ExpollNotificationHandler
 import java.util.*
 
 object AnalyticsStorage {
     private val timer: Timer = Timer()
 
     var requestCountStorage: MutableMap<String, RequestCountStorageElement> = mutableMapOf()
-    var notificationCount: MutableMap<ExpollNotificationType, Long>
+    var notificationCount: MutableMap<ExpollNotificationHandler.ExpollNotification, Long>
     var lastReset: UnixTimestamp
 
     init {

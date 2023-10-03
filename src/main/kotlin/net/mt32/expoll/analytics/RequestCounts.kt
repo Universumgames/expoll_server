@@ -28,8 +28,6 @@ data class RequestCount(
 )
 
 fun AnalyticsStorage.registerRequest(key: String) {
-    if (requestCountStorage[key] == null) {
-        requestCountStorage[key] = RequestCountStorageElement(key, 0, UnixTimestamp.now())
-    }
-    requestCountStorage[key]!!.count++
+    requestCountStorage[key] =
+        RequestCountStorageElement(key, (requestCountStorage[key]?.count ?: 0) + 1, requestCountStorage[key]?.lastReset ?: UnixTimestamp.now())
 }

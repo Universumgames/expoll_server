@@ -3,6 +3,7 @@ package net.mt32.expoll.database.transform
 import net.mt32.expoll.database.DatabaseFactory
 import net.mt32.expoll.database.Transformer
 import net.mt32.expoll.entities.*
+import net.mt32.expoll.entities.notifications.APNDevice
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 import java.util.*

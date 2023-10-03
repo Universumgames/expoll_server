@@ -5,14 +5,12 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.Serializable
 import net.mt32.expoll.auth.JWTSessionPrincipal
-import net.mt32.expoll.entities.APNDevice
 import net.mt32.expoll.entities.NotificationPreferences
-import net.mt32.expoll.helper.ReturnCode
-import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.defaultJSON
-import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.entities.notifications.APNDevice
+import net.mt32.expoll.entities.notifications.WebNotificationDevice
+import net.mt32.expoll.helper.*
 
 fun Route.notificationRoutes() {
     route("notifications") {
@@ -27,6 +25,14 @@ fun Route.notificationRoutes() {
         route("/apple"){
             post{
                 registerAppleDevice(call)
+            }
+            delete {
+
+            }
+        }
+        route("web"){
+            post {
+                registerWebDevice(call)
             }
             delete {
 
@@ -92,4 +98,48 @@ private suspend fun getNotifications(call: ApplicationCall) {
         return
     }
     call.respond(NotificationPreferences.fromUser(principal.userID))
+}
+
+@Serializable
+data class WebRegistrationData(
+    val endpoint: String,
+    val expirationTime: Long? = null,
+    val keys: WebRegistrationKeys
+)
+
+@Serializable
+data class WebRegistrationKeys(
+    val p256dh: String,
+    val auth: String
+)
+
+private suspend fun registerWebDevice(call: ApplicationCall){
+    val principal = call.principal<JWTSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.UNAUTHORIZED)
+        return
+    }
+
+    val registrationData: WebRegistrationData = call.receive()
+    val existingDevice = WebNotificationDevice.fromEndpoint(registrationData.endpoint)
+    if(existingDevice != null){
+        existingDevice.p256dh = registrationData.keys.p256dh
+        existingDevice.auth = registrationData.keys.auth
+        existingDevice.save()
+        call.respond(ReturnCode.OK)
+        return
+    }
+
+    val newDevice = WebNotificationDevice(
+        registrationData.endpoint,
+        registrationData.keys.auth,
+        registrationData.keys.p256dh,
+        principal.userID,
+        registrationData.expirationTime?.toUnixTimestampFromClient(),
+        UnixTimestamp.now(),
+        principal.session.nonce
+    )
+    newDevice.save()
+
+    call.respond(ReturnCode.OK)
 }

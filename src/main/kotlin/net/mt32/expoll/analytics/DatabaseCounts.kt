@@ -2,6 +2,7 @@ package net.mt32.expoll.analytics
 
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.entities.*
+import net.mt32.expoll.entities.notifications.APNDevice
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction

@@ -15,9 +15,7 @@ import net.mt32.expoll.entities.UserPolls
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
-import net.mt32.expoll.notification.ExpollNotification
-import net.mt32.expoll.notification.ExpollNotificationType
-import net.mt32.expoll.notification.sendNotification
+import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.serializable.request.CreatePollRequest
 import net.mt32.expoll.serializable.request.EditPollRequest
 import net.mt32.expoll.serializable.responses.PollCreatedResponse
@@ -78,13 +76,16 @@ private suspend fun editPoll(call: ApplicationCall) {
     poll.allowsEditing = editPollRequest.allowsEditing ?: poll.allowsEditing
 
     if(editPollRequest.allowsEditing == false){
-        sendNotification(ExpollNotification(ExpollNotificationType.PollArchived, editPollRequest.pollID, null))
+        ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.PollEdited, poll, null)
+        //sendNotification(ExpollNotification(ExpollNotificationType.PollArchived, editPollRequest.pollID, null))
     }
 
     // remove users
     editPollRequest.userRemove.forEach {
         poll.removeUser(it)
-        sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, editPollRequest.pollID, it))
+        val user = User.loadFromID(it)
+        ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.UserRemoved, poll, user)
+        //sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, editPollRequest.pollID, it))
     }
 
     // add users
@@ -94,7 +95,8 @@ private suspend fun editPoll(call: ApplicationCall) {
         if(user == null) user = User.byMail(it)
         if(user == null) return@forEach
         poll.addUser(user.id)
-        sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, editPollRequest.pollID, user.id))
+        ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.UserAdded, poll, user)
+        //sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, editPollRequest.pollID, user.id))
     }
 
     // add/remove options
@@ -118,11 +120,13 @@ private suspend fun editPoll(call: ApplicationCall) {
     call.startNewTiming("poll.save", "Save poll to database")
 
     poll.save()
-    sendNotification(ExpollNotification(ExpollNotificationType.PollEdited, editPollRequest.pollID, null))
+    ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.PollEdited, poll, null)
+    //sendNotification(ExpollNotification(ExpollNotificationType.PollEdited, editPollRequest.pollID, null))
 
     if (editPollRequest.delete == true) {
         poll.delete()
-        sendNotification(ExpollNotification(ExpollNotificationType.PollDeleted, editPollRequest.pollID, null))
+        ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.PollDeleted, poll, null)
+        //sendNotification(ExpollNotification(ExpollNotificationType.PollDeleted, editPollRequest.pollID, null))
     }
     call.respond(ReturnCode.OK)
 }
@@ -143,7 +147,9 @@ private suspend fun leavePoll(call: ApplicationCall) {
         return
     }
     principal.user.removePoll(pollID)
-    sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, pollID, principal.userID))
+    val poll = Poll.fromID(pollID)
+    ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.UserRemoved, poll, principal.user)
+    //sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, pollID, principal.userID))
     call.respond(ReturnCode.OK)
 }
 
@@ -168,7 +174,9 @@ private suspend fun joinPoll(call: ApplicationCall) {
         return
     }
     principal.user.addPoll(pollID)
-    sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, pollID, principal.userID))
+    val poll = Poll.fromID(pollID)
+    ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.UserAdded, poll, principal.user)
+    //sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, pollID, principal.userID))
     call.respond(ReturnCode.OK)
 }
 

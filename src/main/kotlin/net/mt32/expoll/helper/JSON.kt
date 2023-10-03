@@ -4,8 +4,8 @@ import kotlinx.serialization.json.*
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import net.mt32.expoll.notification.APNsNotificationHandler
 import net.mt32.expoll.notification.APNsPayload
-import net.mt32.expoll.notification.ExpollAPNsPayload
 import net.mt32.expoll.notification.IAPNsPayload
 
 val defaultJSON = Json {
@@ -13,7 +13,7 @@ val defaultJSON = Json {
     prettyPrint = true
     serializersModule = SerializersModule {
         polymorphic(IAPNsPayload::class){
-            subclass(ExpollAPNsPayload::class)
+            subclass(APNsNotificationHandler.ExpollAPNsPayload::class)
             subclass(APNsPayload::class)
         }
     }

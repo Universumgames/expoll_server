@@ -2,7 +2,7 @@ package net.mt32.expoll.database.transform
 
 import net.mt32.expoll.database.DatabaseFactory
 import net.mt32.expoll.database.Transformer
-import net.mt32.expoll.entities.APNDevice
+import net.mt32.expoll.entities.notifications.APNDevice
 
 fun Transformer.linkAPNDeviceToSession() {
     if (columnExists(APNDevice.tableName, APNDevice.sessionNonce.name))

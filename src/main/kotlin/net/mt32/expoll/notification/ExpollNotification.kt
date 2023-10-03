@@ -1,19 +1,6 @@
 package net.mt32.expoll.notification
 
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import net.mt32.expoll.analytics.AnalyticsStorage
-import net.mt32.expoll.config
-import net.mt32.expoll.entities.APNDevice
-import net.mt32.expoll.entities.Poll
-import net.mt32.expoll.entities.User
-import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.tPollID
-import net.mt32.expoll.tUserID
+/*
 
 interface IExpollNotificationType {
     val body: String
@@ -99,10 +86,11 @@ fun sendNotificationAllowed(notification: ExpollNotification): Boolean {
 }
 
 @OptIn(DelicateCoroutinesApi::class)
+@Deprecated("use ExpollNotificationHandler.sendNotification instead")
 fun sendNotification(notification: ExpollNotification) {
     //if (!sendNotificationAllowed(notification)) return
-    AnalyticsStorage.notificationCount[notification.type] =
-        (AnalyticsStorage.notificationCount[notification.type] ?: 0) + 1
+    //AnalyticsStorage.notificationCount[notification.type] =
+    //    (AnalyticsStorage.notificationCount[notification.type] ?: 0) + 1
     GlobalScope.launch {
         val poll = Poll.fromID(notification.pollID)
         val affectedUser = notification.affectedUserID?.let { User.loadFromID(it) }
@@ -124,10 +112,12 @@ fun sendNotification(notification: ExpollNotification) {
     }
 }
 
+@Deprecated("use ExpollNotificationHandler.sendNotification instead")
 fun sendNotification(payload: IAPNsPayload, user: User, expiration: UnixTimestamp, priority: APNsPriority) {
     sendNotification(payload, user.apnDevices, expiration, priority)
 }
 
+@Deprecated("use ExpollNotificationHandler.sendNotification instead")
 fun sendNotification(
     payload: IAPNsPayload,
     devices: List<APNDevice>,
@@ -139,6 +129,7 @@ fun sendNotification(
     }
 }
 
+@Deprecated("use ExpollNotificationHandler.sendNotification instead")
 fun sendNotification(payload: IAPNsPayload, device: APNDevice, expiration: UnixTimestamp, priority: APNsPriority) {
     if (device.session == null)
         device.delete()
@@ -146,4 +137,114 @@ fun sendNotification(payload: IAPNsPayload, device: APNDevice, expiration: UnixT
         runBlocking {
             APNsNotificationHandler.sendAPN(device.deviceID, expiration, payload, priority)
         }
+}*/
+
+/*
+
+fun generateAESKey(): SecretKey? {
+    val aesKeyInst = KeyGenerator.getInstance("AES")
+    aesKeyInst.init(128)
+    return aesKeyInst.generateKey()
 }
+
+fun generateAESKey(sharedSecret: ByteArray, authSecret: ByteArray): SecretKey {
+    // Combine the shared secret and auth secret to generate the AES key
+    val combinedSecret = sharedSecret + authSecret
+    return SecretKeySpec(combinedSecret, "AES")
+}
+
+fun encryptAESGCM(
+    data: ByteArray,
+    userPublicKey: ByteArray,
+    privateKey: ByteArray,
+    salt: ByteArray,
+    authSecret: ByteArray
+): ByteArray {
+    // Derive a shared secret from userPublicKey and privateKey
+    val sharedSecret = deriveSharedSecret(userPublicKey, privateKey, salt)
+
+    // Generate an AES key from the shared secret and authSecret
+    val aesKey = generateAESKey(sharedSecret, authSecret)
+
+    val cipher = Cipher.getInstance("AES/GCM/NoPadding")
+    val iv = ByteArray(12) // IV (Initialization Vector) should be 12 bytes for AES-GCM
+    SecureRandom().nextBytes(iv)
+
+    val gcmParameterSpec = GCMParameterSpec(128, iv)
+    cipher.init(Cipher.ENCRYPT_MODE, aesKey, gcmParameterSpec)
+
+    val encryptedData = cipher.doFinal(data)
+    return iv + encryptedData // Combine IV and encrypted data
+}
+
+fun deriveSharedSecret(userPublicKey: ByteArray, privateKey: ByteArray, salt: ByteArray): ByteArray {
+    // Convert userPublicKey to a PublicKey object
+    val publicKeySpec = X509EncodedKeySpec(userPublicKey)
+    val publicKeyFactory = KeyFactory.getInstance("EC")
+    val publicKey = publicKeyFactory.generatePublic(publicKeySpec)
+
+    // Convert privateKey to a PrivateKey object
+    val privateKeySpec = PKCS8EncodedKeySpec(privateKey)
+    val privateKeyFactory = KeyFactory.getInstance("EC")
+    val privateKeyObj = privateKeyFactory.generatePrivate(privateKeySpec)
+
+    val localKeysCurve = KeyPairGenerator.getInstance("EC").generateKeyPair()
+
+
+    val sharedSecret = performECDHKeyAgreement(publicKey, localKeysCurve.private)
+
+    return sharedSecret // Replace with the actual derived sharedSecret
+}
+
+fun performECDHKeyAgreement(publicKey: PublicKey, privateKey: PrivateKey): ByteArray {
+    val sharedSecret: ByteArray
+
+    // Perform ECDH Key Agreement
+    val keyAgreement = KeyAgreement.getInstance("ECDH")
+    keyAgreement.init(privateKey)
+    keyAgreement.doPhase(publicKey, true)
+
+    // Generate the shared secret
+    sharedSecret = keyAgreement.generateSecret()
+
+    return sharedSecret
+}
+
+suspend fun sendWebNotification(){
+    val notificationDevice: WebNotificationDevice = WebNotificationDevice("test", "test", "test", "test", UnixTimestamp.now(), 0)
+    val privateApplicationServerKey = KeyFactory.getInstance("EC").generatePrivate(PKCS8EncodedKeySpec(config.notifications.privateApplicationServerKey.toByteArray()))
+    val publicApplicationServerKey = config.notifications.publicApplicationServerKey
+    val subject = "mailto:programming@universegame.de"
+    val jwt = JWT.create()
+        .withAudience(notificationDevice.endpoint.getHostPartFromURL())
+        .withIssuer("Expoll")
+        .withSubject(subject)
+        .withExpiresAt(UnixTimestamp.now().addDays(5).toDate())
+        .sign(Algorithm.ECDSA256(privateApplicationServerKey.toECPrivateKey()))
+
+    val message = "test"
+    val salt = Random.nextBytes(16).toBase64()
+    // create local prime256v1 keypair
+    val keyPairGen = KeyPairGenerator.getInstance("EC")
+    val spec = ECGenParameterSpec("prime256v1")
+    keyPairGen.initialize(spec)
+    val keyPair = keyPairGen.generateKeyPair()
+    val publicKey = keyPair.public
+    val privateKey = keyPair.private
+    // encrypt message  AES_128_GCM
+    val encryptedMessage = encryptAESGCM(message.toByteArray(), notificationDevice.p256dh.toByteArray(), privateKey.encoded, salt.toByteArray(), notificationDevice.auth.toByteArray())
+    val client = HttpClient {  }
+    client.request(URL(notificationDevice.endpoint)){
+        method = HttpMethod.Post
+        headers{
+            append("Authorization", "WebPush ${jwt}")
+            append("Crypto-Key", "p256ecdsa=${publicApplicationServerKey};dh=${publicKey.encoded.toBase64()}")
+            append("Content-Encoding", "aesgcm")
+            append("Encryption", "keyid=p256ecdsa;salt=${salt}")
+            append("TTL", "60")
+            append("Content-Type", "application/octet-stream")
+        }
+        setBody(encryptedMessage)
+    }
+}*/
+

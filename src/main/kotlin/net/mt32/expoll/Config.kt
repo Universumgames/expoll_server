@@ -38,7 +38,9 @@ data class NotificationConfig(
     val teamID: String = "",
     val apnsKeyID: String = "",
     val apnsKeyPath: String = "",
-    val apnsURL: String = ""
+    val apnsURL: String = "",
+    val privateApplicationServerKey : String = "",
+    val publicApplicationServerKey : String = "",
 )
 
 @Serializable
