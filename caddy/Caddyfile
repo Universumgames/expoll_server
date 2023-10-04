@@ -20,6 +20,8 @@
 	}
 	file_server
 
+	encode zstd gzip
+
 	@phpFiles path *.php /fpm-ping
 	reverse_proxy @phpFiles unix//run/php-fpm.sock {
 		transport fastcgi {
