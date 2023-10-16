@@ -1,0 +1,40 @@
+version: '2'
+
+services:
+  db:
+    image: mariadb
+    command: --default-authentication-plugin=mysql_native_password
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: expoll
+    env_file:
+      - db.env
+    hostname: db
+    volumes:
+      - expoll_db:/var/lib/mysql
+    container_name: expoll_database
+    networks:
+      - expoll_net
+  api:
+    image: "expoll-backend:latest"
+    build:
+      context: ../
+      dockerfile: ./Dockerfile
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    container_name: expoll_apiServer
+    hostname: api
+    depends_on:
+      - "db"
+    links:
+      - "db"
+    networks:
+      - expoll_net
+
+volumes:
+  expoll_db:
+networks:
+  expoll_net:
+    name: expoll_net
+    attachable: true

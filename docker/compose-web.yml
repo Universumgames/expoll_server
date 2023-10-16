@@ -1,0 +1,27 @@
+version: '2'
+
+services:
+  caddy:
+    image: "expoll-web:latest"
+    build:
+      context: ../
+      dockerfile: ./server/caddy/Dockerfile
+    restart: unless-stopped
+    container_name: expoll_caddy
+    depends_on:
+      - "api"
+      - "db"
+    hostname: nginx
+    links:
+      - "api"
+    networks:
+      - expoll_net
+      - out
+
+networks:
+  expoll_net:
+    name: expoll_net
+    external: true
+  out:
+    name: out
+    external: true

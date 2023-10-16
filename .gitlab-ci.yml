@@ -15,13 +15,27 @@
 
 stages: # List of stages for jobs, and their order of execution
     - build
-    - test
+    - deploy
 
 compiling: # This job runs in the build stage, which runs first.
     image: gradle:7-jdk11
     stage: build
     script:
         - gradle buildFatJar --no-daemon
-#    artifacts:
-#        paths:
-#            - build/libs/*.jar
+
+build_docker:
+    stage: deploy
+    variables:
+        GIT_SUBMODULE_STRATEGY: recursive
+    image: ubuntu:latest
+    tags:
+        - docker_local
+    script:
+        - apt-get update && apt-get install -y curl
+        - curl -fsSL https://get.docker.com | sh # Install Docker
+        # https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files
+        - curl -s https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer | bash # Install the secure files tool
+        - cp .secure_files/production.json ./config/
+        - cp .secure_files/db.env ./docker/
+        - cp .secure_files/AuthKey_58V5WA3RLA.p8 ./config/
+        - ./run-backend.sh

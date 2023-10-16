@@ -16,6 +16,7 @@ services:
         networks:
             - expoll_net
     api:
+        image: "expoll-backend:latest"
         build:
             context: ../../
             dockerfile: ./server/Dockerfile
@@ -31,6 +32,7 @@ services:
         networks:
             - expoll_net
     caddy:
+        image: "expoll-web:latest"
         build:
             context: ../../
             dockerfile: ./server/caddy/Dockerfile
