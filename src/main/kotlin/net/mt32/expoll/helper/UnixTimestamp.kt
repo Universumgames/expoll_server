@@ -114,7 +114,7 @@ class UnixTimestamp private constructor() {
 
         fun fromDateTimeComponents(year: Int, month: Int, day: Int, hour: Int, minute: Int, second: Int): UnixTimestamp {
             val cal = Calendar.getInstance()
-            cal.set(year, month, day, hour, minute, second)
+            cal.set(year, month - 1, day, hour, minute, second)
             return fromDate(cal.time)
         }
 
