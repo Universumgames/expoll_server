@@ -58,11 +58,11 @@ fun Route.apiRouting() {
         }
         authRoutes()
         simpleRoutes()
+        userRoutes()
         authenticate(normalAuth) {
             pollRoutes()
             voteRoutes()
             notificationRoutes()
-            userRoutes()
         }
         adminRoute()
     }

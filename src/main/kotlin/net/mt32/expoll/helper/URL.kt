@@ -28,5 +28,9 @@ object URLBuilder {
     fun deleteConfirmationURL(call: ApplicationCall, confirmation: UserDeletionConfirmation): String{
         return config.deleteURLPrefix + confirmation.key
     }
+
+    fun webSignupURL(call: ApplicationCall, mail: String): String{
+        return "http://" + config.loginLinkURL + "/#/login?mail=" + mail
+    }
 }
 

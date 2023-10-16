@@ -1,6 +1,5 @@
 package net.mt32.expoll.routes
 
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -13,10 +12,7 @@ import net.mt32.expoll.config
 import net.mt32.expoll.entities.MailRule
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.UserDeletionConfirmation
-import net.mt32.expoll.helper.ReturnCode
-import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.getDataFromAny
-import net.mt32.expoll.helper.startNewTiming
+import net.mt32.expoll.helper.*
 import net.mt32.expoll.serializable.request.CreateUserRequest
 import net.mt32.expoll.serializable.request.EditUserRequest
 import net.mt32.expoll.serializable.request.VoteChange
@@ -36,7 +32,7 @@ fun Route.userRoutes() {
         }
 
         get("appCreateRedirect") {
-            call.respondRedirect(URLBuilder("http://" + config.loginLinkURL + "/#/login?mail=" + call.parameters["mail"]).build())
+            call.respondRedirect(URLBuilder.webSignupURL(call, call.getDataFromAny("mail") ?: return@get))
         }
         authenticate(normalAuth) {
             get {
