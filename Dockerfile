@@ -1,6 +1,6 @@
 FROM gradle:8.3-jdk17 AS build
 WORKDIR /expoll/api_server
-COPY --chown=gradle:gradle ./server/ .
+COPY --chown=gradle:gradle ./ .
 RUN gradle buildFatJar --no-daemon --warning-mode all
 #ENTRYPOINT ["gradle", "run", "--no-deamon"]
 
