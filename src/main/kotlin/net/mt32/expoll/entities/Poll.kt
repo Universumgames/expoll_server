@@ -297,8 +297,8 @@ class Poll : DatabaseEntity, IPoll {
         )
     }
 
-    fun asSimplePoll(): SimplePoll {
-        return SimplePoll(
+    fun asSimplePoll(): PollSummary {
+        return PollSummary(
             id,
             name,
             admin.asSimpleUser(),

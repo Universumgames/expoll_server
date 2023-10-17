@@ -64,7 +64,7 @@ data class SimpleVote(
     val votedFor: Int?,
 )
 
-fun List<Poll>.asSimpleList(): List<SimplePoll> {
+fun List<Poll>.asSummaryList(): List<PollSummary> {
     return sortedBy {
         it.updatedTimestamp.secondsSince1970
     }
@@ -76,17 +76,17 @@ fun List<Poll>.asSimpleList(): List<SimplePoll> {
 
 fun List<Poll>.asPollListResponse(): PollListResponse {
     return PollListResponse(
-        asSimpleList()
+        asSummaryList()
     )
 }
 
 @Serializable
 data class PollListResponse(
-    val polls: List<SimplePoll>,
+    val polls: List<PollSummary>,
 )
 
 @Serializable
-data class SimplePoll(
+data class PollSummary(
     val pollID: String,
     val name: String,
     val admin: SimpleUser,
