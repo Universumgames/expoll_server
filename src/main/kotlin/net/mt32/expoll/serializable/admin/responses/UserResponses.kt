@@ -15,7 +15,8 @@ data class UserInfo(
     val superAdmin: Boolean,
     val active: Boolean,
     val oidcConnections: List<String>,
-    val createdTimestamp: tClientDateTime
+    val createdTimestamp: tClientDateTime,
+    val deletedTimestamp: tClientDateTime? = null
 )
 
 @Serializable

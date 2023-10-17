@@ -56,7 +56,8 @@ private suspend fun getUsers(call: ApplicationCall) {
             user.mail.equals(config.superAdminMail, ignoreCase = true),
             user.active,
             user.oidConnections.map { it.toConnectionOverview().name },
-            user.created.toClient()
+            user.created.toClient(),
+            user.deleted?.toClient()
         )
     }
     call.respond(UserListResponse(userInfos, users.size))

@@ -22,9 +22,9 @@ data class AppInfo(
 val iosPlatformInfo = PlatformInfo(
     beta = AppInfo(
         version = "3.0.0",
-        build = 92,
+        build = 95,
         url = "https://testflight.apple.com/join/OpUycQnW",
-        releasedTimestamp = UnixTimestamp.fromDateTimeComponents(2023, 9, 23, 18, 40, 0).toClient()
+        releasedTimestamp = UnixTimestamp.fromDateTimeComponents(2023, 10, 17, 0, 0, 0).toClient()
     ),
     stable = AppInfo(
         version = "2.6.0",

@@ -169,6 +169,7 @@ class User : IUser, DatabaseEntity {
         apnDevices.forEach { it.delete() }
         OIDCUserData.byUser(id).forEach { it.delete() }
         UserDeletionConfirmation.getPendingConfirmationForUser(id)?.delete()
+        webNotificationDevices.forEach { it.delete() }
         //votes.forEach { it.delete() }
         //polls.forEach { if(it.adminID != id) UserPolls.removeConnection(id, it.id) }
         val oldActive = active
