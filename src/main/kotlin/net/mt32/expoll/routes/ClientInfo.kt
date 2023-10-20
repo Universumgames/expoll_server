@@ -20,7 +20,6 @@ fun Route.clientCompatibilityRoute(){
     // TODO remove this route, just for backwards compatibility
     options("compliance") {
         val body = call.receiveText()
-        println(body)
         val clientVersion = call.receive<ClientInfo>()
         val compatible = checkVersionCompatibility(clientVersion)
         if (compatible) call.respond(ReturnCode.OK)

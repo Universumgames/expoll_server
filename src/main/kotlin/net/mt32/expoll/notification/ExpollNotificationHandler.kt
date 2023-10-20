@@ -12,7 +12,7 @@ object ExpollNotificationHandler {
     var lastNotification: Triple<ExpollNotification, Poll?, User?> = Triple(ExpollNotification.EMPTY, null, null)
     var lastNotificationTime: UnixTimestamp = UnixTimestamp.zero()
 
-    enum class ExpollNotification(val body: String, val title: String = "Poll \$poll was updated") {
+    enum class ExpollNotification(val body: String, val title: String = "notification.poll.update %@") {
         EMPTY(""),
         STARTUP("notification.server.backend.update %@", "notification.server.backend.update.title"),
         VoteChange("notification.vote.change %@ %@"),
@@ -83,6 +83,7 @@ object ExpollNotificationHandler {
     }
 
     fun sendNotification(user: User, notification: Triple<ExpollNotification, Poll?, User?>) {
+        if (config.developmentMode) return
         if (notification.first.isWantedByUser(user).not()) return
 
         val apnDevices = user.apnDevices

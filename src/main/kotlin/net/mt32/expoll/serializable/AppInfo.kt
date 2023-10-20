@@ -30,7 +30,7 @@ val iosPlatformInfo = PlatformInfo(
         version = "3.0.0",
         build = 98,
         url = "https://apps.apple.com/app/expoll/id1639799209",
-        releasedTimestamp = UnixTimestamp.fromDateTimeComponents(2023, 9, 20, 0, 0,0).toClient()
+        releasedTimestamp = UnixTimestamp.fromDateTimeComponents(2023, 9, 23, 0, 0,0).toClient()
     ),
     platformKeys = listOf("ios", "macos")
 )
