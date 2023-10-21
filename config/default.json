@@ -29,8 +29,8 @@
     {
       "platform": "ios",
       "from": {
-        "version": "2.6.0",
-        "build": 81
+        "version": "3.0.0",
+        "build": 99
       }
     }
   ],
