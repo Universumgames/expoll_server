@@ -17,14 +17,6 @@ data class ClientInfo(
 
 
 fun Route.clientCompatibilityRoute(){
-    // TODO remove this route, just for backwards compatibility
-    options("compliance") {
-        val body = call.receiveText()
-        val clientVersion = call.receive<ClientInfo>()
-        val compatible = checkVersionCompatibility(clientVersion)
-        if (compatible) call.respond(ReturnCode.OK)
-        else call.respond(ReturnCode.CONFLICT)
-    }
     post("compatibility") {
         val clientVersion = call.receive<ClientInfo>()
         val compatible = checkVersionCompatibility(clientVersion)

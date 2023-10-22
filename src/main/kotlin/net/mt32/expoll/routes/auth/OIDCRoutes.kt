@@ -299,6 +299,6 @@ private suspend fun loginUser(
 
 private suspend fun createAndRespondWithSession(call: ApplicationCall, user: User, state: State, isNewUser: Boolean = false) {
     val otp = user.createOTP(forApp = state.isApp)
-    val url = URLBuilder.buildLoginLink(call, user, otp.otp, isNewUser = isNewUser)
+    val url = URLBuilder.buildLoginLink(call, user, otp, isNewUser = isNewUser)
     call.respondRedirect(url)
 }

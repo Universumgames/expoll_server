@@ -51,7 +51,7 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
             user.mail, user.fullName, "Login to expoll", "Here is your OTP for logging in on the expoll website: \n\t" +
                     otp.otp +
                     "\n alternatively you can click this link \n" +
-                    URLBuilder.buildLoginLink(call, user, otp.otp, false)
+                    URLBuilder.buildLoginLink(call, user, otp, false)
         )
         call.respond(ReturnCode.OK)
         return
@@ -84,5 +84,5 @@ private suspend fun loginApp(call: ApplicationCall) {
         return
     }
     val otp = principal.user.createOTP(true)
-    call.respondRedirect(DeepLinkBuilder.buildLoginLink(call, otp.otp))
+    call.respondRedirect(DeepLinkBuilder.buildLoginLink(call, otp, false))
 }
