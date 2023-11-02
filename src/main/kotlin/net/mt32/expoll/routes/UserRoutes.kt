@@ -165,7 +165,7 @@ private suspend fun getPersonalizedData(call: ApplicationCall) {
     val user = principal.user
 
     call.startNewTiming("user.polls", "Gather polls")
-    val polls = user.polls.map { it.asSimplePoll() }
+    val polls = user.polls.map { it.asSimplePoll(user) }
     call.startNewTiming("user.votes", "Gather votes")
     val votes = user.votes.map { VoteChange(it.pollID, it.optionID, it.votedFor.id) }
     call.startNewTiming("user.sessions", "Gather sessions")

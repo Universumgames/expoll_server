@@ -79,6 +79,7 @@ object Transformer {
         removeGhostVotes()
         linkAPNDeviceToSession()
         addPollJoinedTimestampColumn()
+        addHiddenInListProperty()
     }
 
     /**

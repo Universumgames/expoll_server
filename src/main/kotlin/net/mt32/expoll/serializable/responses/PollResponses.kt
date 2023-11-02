@@ -3,6 +3,7 @@ package net.mt32.expoll.serializable.responses
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.entities.ISimpleUser
 import net.mt32.expoll.entities.Poll
+import net.mt32.expoll.entities.User
 import net.mt32.expoll.tClientDate
 import net.mt32.expoll.tClientDateTime
 import net.mt32.expoll.tUserID
@@ -32,7 +33,8 @@ data class DetailedPollResponse(
     val userNotes: List<UserNote>,
     val allowsMaybe: Boolean,
     val allowsEditing: Boolean,
-    val shareURL: String
+    val shareURL: String,
+    val hidden: Boolean
 )
 
 @Serializable
@@ -64,19 +66,19 @@ data class SimpleVote(
     val votedFor: Int?,
 )
 
-fun List<Poll>.asSummaryList(): List<PollSummary> {
+fun List<Poll>.asSummaryList(user: User?): List<PollSummary> {
     return sortedBy {
         it.updatedTimestamp.secondsSince1970
     }
         .reversed()
         .map { poll ->
-            poll.asSimplePoll()
+            poll.asSimplePoll(user)
         }
 }
 
-fun List<Poll>.asPollListResponse(): PollListResponse {
+fun List<Poll>.asPollListResponse(user: User?): PollListResponse {
     return PollListResponse(
-        asSummaryList()
+        asSummaryList(user)
     )
 }
 
@@ -95,6 +97,7 @@ data class PollSummary(
     val lastUpdated: tClientDateTime,
     val type: Int,
     val editable: Boolean,
+    val hidden: Boolean
 )
 
 @Serializable

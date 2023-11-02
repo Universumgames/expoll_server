@@ -39,6 +39,9 @@ fun Route.pollRoutes() {
         post("/join") {
             joinPoll(call)
         }
+        post("/hide"){
+            hidePoll(call)
+        }
     }
 }
 
@@ -244,7 +247,7 @@ private suspend fun getPollList(call: ApplicationCall) {
     call.startNewTiming("polls.list", "Retrieve poll data from database")
     val polls = principal.user.polls
     call.startNewTiming("polls.transform", "Transform poll data to simplified list format")
-    val simplePolls = polls.asPollListResponse()
+    val simplePolls = polls.asPollListResponse(principal.user)
     call.startNewTiming("polls.serialize", "Serialize data and prepare to send")
     call.respond(simplePolls)
 }
@@ -264,4 +267,23 @@ private suspend fun getDetailedPoll(call: ApplicationCall, pollID: tPollID) {
     call.startNewTiming("poll.transform", "Transform poll data to detailed format")
     val detailedPoll = poll.asDetailedPoll()
     call.respond(detailedPoll)
+}
+
+private suspend fun hidePoll(call: ApplicationCall){
+    val principal = call.principal<JWTSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+        return
+    }
+    val pollID: String = call.getDataFromAny("pollID") ?: return
+    val hide: Boolean = call.getDataFromAny("hide")?.toBoolean() ?: true
+
+    val poll = Poll.fromID(pollID)
+    if(poll == null){
+        call.respond(ReturnCode.INVALID_PARAMS)
+        return
+    }
+
+    UserPolls.hideFromListForUser(pollID, principal.userID, hide)
+    call.respond(ReturnCode.OK)
 }

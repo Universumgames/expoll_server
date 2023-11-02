@@ -293,11 +293,12 @@ class Poll : DatabaseEntity, IPoll {
             }.filterNot { it.note == null },
             allowsMaybe,
             allowsEditing,
-            shareURL
+            shareURL,
+            UserPolls.getHidden(id, adminID)
         )
     }
 
-    fun asSimplePoll(): PollSummary {
+    fun asSimplePoll(user: User?): PollSummary {
         return PollSummary(
             id,
             name,
@@ -306,7 +307,8 @@ class Poll : DatabaseEntity, IPoll {
             userCount,
             updatedTimestamp.toClient(),
             type.id,
-            allowsEditing
+            allowsEditing,
+            user?.let { UserPolls.getHidden(id, user.id) } ?: false
         )
     }
 
@@ -371,6 +373,7 @@ object UserPolls : Table("user_polls_poll") {
     val userID = varchar("userId", UUIDLength)
     val pollID = varchar("pollId", UUIDLength)
     val joinedTimestamp = long("joinedTimestamp")
+    val listHidden = bool("listHidden")
 
     override val primaryKey = PrimaryKey(userID, pollID)
 
@@ -383,13 +386,19 @@ object UserPolls : Table("user_polls_poll") {
         }
     }
 
-    fun addConnection(userID: tUserID, pollID: tPollID) {
+    fun addConnection(
+        userID: tUserID,
+        pollID: tPollID,
+        joinTimestamp: UnixTimestamp = UnixTimestamp.now(),
+        hide: Boolean = false
+    ) {
         if (connectionExists(userID, pollID)) return
         transaction {
             UserPolls.insert {
                 it[UserPolls.pollID] = pollID
                 it[UserPolls.userID] = userID
-                it[UserPolls.joinedTimestamp] = UnixTimestamp.now().toDB()
+                it[UserPolls.joinedTimestamp] = joinTimestamp.toDB()
+                it[UserPolls.listHidden] = hide
             }
         }
     }
@@ -421,6 +430,23 @@ object UserPolls : Table("user_polls_poll") {
                 UserPolls.pollID eq pollID
             }.toList()
                 .map { PollJoinTimestamp(it[UserPolls.userID], it[UserPolls.joinedTimestamp].toUnixTimestampFromDB()) }
+        }
+    }
+
+    fun hideFromListForUser(pollID: tPollID, userID: tUserID, hidden: Boolean = true) {
+        val joinTimestamp = transaction {
+            UserPolls.select { (UserPolls.pollID eq pollID) and (UserPolls.userID eq userID) }.firstOrNull()
+                ?.get(UserPolls.joinedTimestamp)
+        }?.toUnixTimestampAsSecondsSince1970() ?: UnixTimestamp.now()
+        removeConnection(userID, pollID)
+        addConnection(userID, pollID, joinTimestamp, hidden)
+    }
+
+    fun getHidden(pollID: tPollID, userID: tUserID): Boolean {
+        return transaction {
+            val rs = UserPolls.select { (UserPolls.pollID eq pollID) and (UserPolls.userID eq userID) }.firstOrNull()
+            val hidden = rs?.getOrNull(UserPolls.listHidden)
+            return@transaction hidden ?: false
         }
     }
 }
