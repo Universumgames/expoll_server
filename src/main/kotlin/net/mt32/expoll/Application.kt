@@ -70,6 +70,10 @@ private fun cleanupCoroutine() {
     transaction {
         Session.all().forEach { if (!it.isValid) it.delete() }
     }
+    // clean apn devices
+    transaction {
+        APNDevice.all().forEach { if (!it.isValid) it.delete() }
+    }
 }
 
 private fun sendStartupNotification() {
