@@ -89,6 +89,8 @@ private fun sendStartupNotification() {
     )
     val aps = APS(notification)
     val payload = APNsPayload(aps)
-    ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.STARTUP)
+    admins.forEach {
+        ExpollNotificationHandler.sendNotification(it, Triple(ExpollNotificationHandler.ExpollNotification.STARTUP, null, null))
+    }
     //sendNotification(payload, adminDevices, UnixTimestamp.now().addHours(1), APNsPriority.medium)
 }

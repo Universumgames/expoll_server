@@ -78,12 +78,12 @@ object ExpollNotificationHandler {
         }
     }
 
-    fun sendNotification(notification: ExpollNotification, affectedPoll: Poll? = null, affectedUser: User? = null) {
+    fun sendNotification(notification: ExpollNotification, affectedPoll: Poll, affectedUser: User? = null) {
         lastNotification = Triple(notification, affectedPoll, affectedUser)
         lastNotificationTime = UnixTimestamp.now()
         AnalyticsStorage.notificationCount[notification] =
             (AnalyticsStorage.notificationCount[notification] ?: 0) + 1
-        User.all().forEach {
+        affectedPoll.users.forEach {
             sendNotification(it, lastNotification)
         }
     }
@@ -100,9 +100,11 @@ object ExpollNotificationHandler {
         )
 
         apnDevices.forEach {
+            if (it.session == null) return@forEach
             APNsNotificationHandler.sendNotification(universalNotification, it)
         }
         webDevices.forEach {
+            if (it.session == null) return@forEach
             WebNotificationHandler.sendNotification(universalNotification, it)
         }
     }
