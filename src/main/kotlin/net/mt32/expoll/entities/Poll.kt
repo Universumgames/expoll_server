@@ -114,6 +114,7 @@ class Poll : DatabaseEntity, IPoll {
     }
 
     override fun save(): Boolean {
+        updatedTimestamp = UnixTimestamp.now()
         transaction {
             options.forEach { option ->
                 option.save()

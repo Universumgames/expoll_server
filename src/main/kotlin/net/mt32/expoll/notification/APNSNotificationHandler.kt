@@ -159,6 +159,7 @@ object APNsNotificationHandler: NotificationHandler<APNDevice> {
             null,
             null,
             titleLocalisationKey = notification.title,
+            titleLocalisationArgs = notification.titleArgs,
             bodyLocalisationKey = notification.body,
             bodyLocalisationArgs = notification.bodyArgs,
         )
