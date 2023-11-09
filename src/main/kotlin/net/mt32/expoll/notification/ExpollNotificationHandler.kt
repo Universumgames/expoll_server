@@ -23,11 +23,17 @@ object ExpollNotificationHandler {
         PollArchived("notification.poll.archived %@");
 
         fun getBodyArgs(user: User? = null, poll: Poll? = null): List<String> {
+            val username = user?.let {
+                it.username.substring(
+                    0,
+                    minOf(it.username.length, 20)
+                ) + if (it.username.length > 20) "..." else ""
+            } ?: ""
             return when (this) {
                 STARTUP -> listOf(config.serverVersion)
-                VoteChange -> listOf(user?.username ?: "", poll?.name ?: "")
-                UserAdded -> listOf(user?.username ?: "", poll?.name ?: "")
-                UserRemoved -> listOf(user?.username ?: "", poll?.name ?: "")
+                VoteChange -> listOf(username, poll?.name ?: "")
+                UserAdded -> listOf(username, poll?.name ?: "")
+                UserRemoved -> listOf(username, poll?.name ?: "")
                 PollDeleted -> listOf(poll?.name ?: "")
                 PollEdited -> listOf(poll?.name ?: "")
                 PollArchived -> listOf(poll?.name ?: "")
@@ -88,7 +94,10 @@ object ExpollNotificationHandler {
 
         val apnDevices = user.apnDevices
         val webDevices = user.webNotificationDevices
-        val universalNotification = notification.first.asUniversalNotification(affectedPoll = notification.second, affectedUser = notification.third)
+        val universalNotification = notification.first.asUniversalNotification(
+            affectedPoll = notification.second,
+            affectedUser = notification.third
+        )
 
         apnDevices.forEach {
             APNsNotificationHandler.sendNotification(universalNotification, it)
