@@ -39,7 +39,7 @@ fun Route.pollRoutes() {
         post("/join") {
             joinPoll(call)
         }
-        post("/hide"){
+        post("/hide") {
             hidePoll(call)
         }
     }
@@ -65,7 +65,7 @@ private suspend fun editPoll(call: ApplicationCall) {
         return
     }
 
-    if(!poll.allowsEditing && editPollRequest.allowsEditing == false){
+    if (!poll.allowsEditing && editPollRequest.allowsEditing == false) {
         call.respond(ReturnCode.CHANGE_NOT_ALLOWED)
         return
     }
@@ -78,7 +78,7 @@ private suspend fun editPoll(call: ApplicationCall) {
     poll.allowsMaybe = editPollRequest.allowsMaybe ?: poll.allowsMaybe
     poll.allowsEditing = editPollRequest.allowsEditing ?: poll.allowsEditing
 
-    if(editPollRequest.allowsEditing == false){
+    if (editPollRequest.allowsEditing == false) {
         ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.PollEdited, poll, null)
         //sendNotification(ExpollNotification(ExpollNotificationType.PollArchived, editPollRequest.pollID, null))
     }
@@ -94,9 +94,9 @@ private suspend fun editPoll(call: ApplicationCall) {
     // add users
     editPollRequest.userAdd.forEach {
         var user = User.loadFromID(it)
-        if(user == null) user = User.byUsername(it)
-        if(user == null) user = User.byMail(it)
-        if(user == null) return@forEach
+        if (user == null) user = User.byUsername(it)
+        if (user == null) user = User.byMail(it)
+        if (user == null) return@forEach
         poll.addUser(user.id)
         ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.UserAdded, poll, user)
         //sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, editPollRequest.pollID, user.id))
@@ -151,7 +151,12 @@ private suspend fun leavePoll(call: ApplicationCall) {
     }
     principal.user.removePoll(pollID)
     val poll = Poll.fromID(pollID)
-    ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.UserRemoved, poll, principal.user)
+    if (poll != null)
+        ExpollNotificationHandler.sendNotification(
+            ExpollNotificationHandler.ExpollNotification.UserRemoved,
+            poll,
+            principal.user
+        )
     //sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, pollID, principal.userID))
     call.respond(ReturnCode.OK)
 }
@@ -172,13 +177,18 @@ private suspend fun joinPoll(call: ApplicationCall) {
         return
     }
     val alreadyJoined = UserPolls.connectionExists(principal.userID, pollID)
-    if(alreadyJoined){
+    if (alreadyJoined) {
         call.respond(ReturnCode.OK)
         return
     }
     principal.user.addPoll(pollID)
     val poll = Poll.fromID(pollID)
-    ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.UserAdded, poll, principal.user)
+
+    if (poll != null) ExpollNotificationHandler.sendNotification(
+        ExpollNotificationHandler.ExpollNotification.UserAdded,
+        poll,
+        principal.user
+    )
     //sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, pollID, principal.userID))
     call.respond(ReturnCode.OK)
 }
@@ -269,7 +279,7 @@ private suspend fun getDetailedPoll(call: ApplicationCall, pollID: tPollID) {
     call.respond(detailedPoll)
 }
 
-private suspend fun hidePoll(call: ApplicationCall){
+private suspend fun hidePoll(call: ApplicationCall) {
     val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
@@ -279,7 +289,7 @@ private suspend fun hidePoll(call: ApplicationCall){
     val hide: Boolean = call.getDataFromAny("hide")?.toBoolean() ?: true
 
     val poll = Poll.fromID(pollID)
-    if(poll == null){
+    if (poll == null) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
