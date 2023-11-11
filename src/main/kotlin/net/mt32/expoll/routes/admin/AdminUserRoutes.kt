@@ -9,12 +9,14 @@ import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.User
+import net.mt32.expoll.entities.UserSearchParameters
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.URLBuilder
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.serializable.admin.request.AdminCreateUserRequest
 import net.mt32.expoll.serializable.admin.request.AdminEditUserRequest
+import net.mt32.expoll.serializable.admin.request.AdminUserListRequest
 import net.mt32.expoll.serializable.admin.responses.UserInfo
 import net.mt32.expoll.serializable.admin.responses.UserListResponse
 
@@ -32,6 +34,9 @@ internal fun Route.adminUserRoutes() {
         delete {
             deleteUser(call)
         }
+        get("/availableSearch") {
+            getAvailableSearchParameters(call)
+        }
     }
 }
 
@@ -41,8 +46,9 @@ private suspend fun getUsers(call: ApplicationCall) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
+    val adminListRequest: AdminUserListRequest = call.receiveNullable() ?: AdminUserListRequest()
     call.startNewTiming("users.load", "Load all users")
-    val users = User.all()
+    val users = User.all(adminListRequest.limit, adminListRequest.offset, adminListRequest.searchParameters)
 
     call.startNewTiming("users.transform", "Transform user list to simple")
     val userInfos = users.map { user ->
@@ -127,4 +133,8 @@ private suspend fun deleteUser(call: ApplicationCall) {
     }
     user.delete()
     call.respond(ReturnCode.OK)
+}
+
+private suspend fun getAvailableSearchParameters(call: ApplicationCall) {
+    call.respond(UserSearchParameters.Descriptor())
 }

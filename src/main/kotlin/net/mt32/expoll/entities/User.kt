@@ -2,6 +2,7 @@ package net.mt32.expoll.entities
 
 import com.yubico.webauthn.data.ByteArray
 import io.ktor.util.*
+import kotlinx.serialization.Serializable
 import net.mt32.expoll.config
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
@@ -11,6 +12,7 @@ import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsertCustom
 import net.mt32.expoll.serializable.admin.responses.UserInfo
+import net.mt32.expoll.serializable.request.SortingOrder
 import net.mt32.expoll.serializable.responses.SimpleUser
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
@@ -18,6 +20,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
+import kotlin.reflect.full.memberProperties
 
 interface ISimpleUser {
     val firstName: String
@@ -260,6 +263,59 @@ class User : IUser, DatabaseEntity {
             }
         }
 
+        fun all(limit: Int, offset: Long, searchParameters: UserSearchParameters? = null): List<User> {
+            return transaction {
+                val query = if (searchParameters == null) User.selectAll()
+                else User.select {
+                    val specialFilter = when (searchParameters.specialFilter) {
+                        UserSearchParameters.SpecialFilter.ALL -> Op.TRUE
+                        UserSearchParameters.SpecialFilter.DELETED -> User.deleted.isNotNull()
+                        UserSearchParameters.SpecialFilter.OIDC -> User.id inSubQuery OIDCUserData.select { OIDCUserData.userID eq User.id }
+                            .adjustSlice { slice(OIDCUserData.userID) }
+
+                        UserSearchParameters.SpecialFilter.ADMIN -> User.admin
+                    }
+
+                    val username =
+                        (if (searchParameters.searchQuery.username != null) (User.username like "%${searchParameters.searchQuery.username}%") else Op.TRUE)
+                    val firstName =
+                        (if (searchParameters.searchQuery.firstName != null) (User.firstName like "%${searchParameters.searchQuery.firstName}%") else Op.TRUE)
+                    val lastName =
+                        (if (searchParameters.searchQuery.lastName != null) (User.lastName like "%${searchParameters.searchQuery.lastName}%") else Op.TRUE)
+                    val memberInPoll =
+                        (if (searchParameters.searchQuery.memberInPoll != null) (User.id inSubQuery UserPolls.select { UserPolls.pollID like "%${searchParameters.searchQuery.memberInPoll}%" }
+                            .adjustSlice { slice(UserPolls.userID) }) else Op.TRUE)
+                    val any = (if (searchParameters.searchQuery.any != null)
+                        ((User.username like "%${searchParameters.searchQuery.any}%") or
+                                (User.firstName like "%${searchParameters.searchQuery.any}%") or
+                                (User.lastName like "%${searchParameters.searchQuery.any}%")
+                                ) else Op.FALSE)
+
+                    val query = (username and firstName and lastName and memberInPoll) or any
+
+                    return@select query and specialFilter
+
+                }
+                val sorted = query.orderBy(
+                    when (searchParameters?.sortingStrategy) {
+                        UserSearchParameters.SortingStrategy.USERNAME -> username
+                        UserSearchParameters.SortingStrategy.FIRST_NAME -> firstName
+                        UserSearchParameters.SortingStrategy.LAST_NAME -> lastName
+                        UserSearchParameters.SortingStrategy.MAIL -> mail
+                        UserSearchParameters.SortingStrategy.CREATED -> created
+                        UserSearchParameters.SortingStrategy.DELETED -> deleted
+                        null -> created
+                    } to
+                            when (searchParameters?.sortingOrder) {
+                                SortingOrder.ASCENDING -> SortOrder.ASC
+                                SortingOrder.DESCENDING -> SortOrder.DESC
+                                null -> SortOrder.ASC
+                            }
+                )
+                return@transaction sorted.limit(limit, offset).toList().map { User(it) }
+            }
+        }
+
         fun fromUserHandle(handle: ByteArray?): User? {
             if (handle == null) return null
             val b64 = handle.base64
@@ -336,6 +392,48 @@ class User : IUser, DatabaseEntity {
     fun removePoll(pollID: tPollID) {
         UserPolls.removeConnection(id, pollID)
     }
+
+}
+
+@Serializable
+data class UserSearchParameters(
+    val sortingOrder: SortingOrder = SortingOrder.ASCENDING,
+    val sortingStrategy: SortingStrategy = SortingStrategy.CREATED,
+    val specialFilter: SpecialFilter = SpecialFilter.ALL,
+    val searchQuery: Query = Query()
+) {
+    enum class SortingStrategy {
+        USERNAME,
+        FIRST_NAME,
+        LAST_NAME,
+        MAIL,
+        CREATED,
+        DELETED
+    }
+
+    enum class SpecialFilter {
+        ALL,
+        DELETED,
+        OIDC,
+        ADMIN
+    }
+
+    @Serializable
+    data class Query(
+        val username: String? = null,
+        val firstName: String? = null,
+        val lastName: String? = null,
+        val memberInPoll: tPollID? = null,
+        val any: String? = null
+    )
+
+    @Serializable
+    data class Descriptor(
+        val sortingOrder: List<SortingOrder> = SortingOrder.values().toList(),
+        val sortingStrategy: List<SortingStrategy> = SortingStrategy.values().toList(),
+        val specialFilter: List<SpecialFilter> = SpecialFilter.values().toList(),
+        val searchQuery: List<String> = Query::class.memberProperties.map { it.name }
+    )
 }
 
 class UserDeletionConfirmation : DatabaseEntity {

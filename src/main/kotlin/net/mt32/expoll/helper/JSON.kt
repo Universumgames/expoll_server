@@ -11,6 +11,7 @@ import net.mt32.expoll.notification.IAPNsPayload
 val defaultJSON = Json {
     ignoreUnknownKeys = true
     prettyPrint = true
+    encodeDefaults = true
     serializersModule = SerializersModule {
         polymorphic(IAPNsPayload::class){
             subclass(APNsNotificationHandler.ExpollAPNsPayload::class)

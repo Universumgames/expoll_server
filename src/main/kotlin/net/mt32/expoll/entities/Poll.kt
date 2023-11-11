@@ -1,9 +1,11 @@
 package net.mt32.expoll.entities
 
+import kotlinx.serialization.Serializable
 import net.mt32.expoll.PollType
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.*
+import net.mt32.expoll.serializable.request.SortingOrder
 import net.mt32.expoll.serializable.responses.*
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
@@ -11,6 +13,7 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
+import kotlin.reflect.full.memberProperties
 
 interface IPoll {
     val admin: User
@@ -243,6 +246,60 @@ class Poll : DatabaseEntity, IPoll {
             }
         }
 
+        fun all(
+            limit: Int, offset: Long, searchParameters: PollSearchParameters? = null, forUserId: tUserID? = null
+        ): List<Poll> {
+            return transaction {
+                val query = if (searchParameters == null) Poll.selectAll()
+                else Poll.select {
+                    val specialFilter = when (searchParameters.specialFilter) {
+                        PollSearchParameters.SpecialFilter.ALL -> Op.TRUE
+                        PollSearchParameters.SpecialFilter.JOINED -> forUserId?.let {
+                            Poll.id inSubQuery UserPolls.select { UserPolls.userID eq forUserId }
+                                .adjustSlice { slice(Poll.id) }
+                        } ?: Op.TRUE
+
+                        PollSearchParameters.SpecialFilter.NOT_JOINED -> forUserId?.let {
+                            Poll.id notInSubQuery UserPolls.select { UserPolls.userID eq forUserId }
+                                .adjustSlice { slice(Poll.id) }
+                        } ?: Op.TRUE
+                    }
+
+                    val adminID =
+                        (if (searchParameters.searchQuery.adminID != null) (Poll.adminID like "%${searchParameters.searchQuery.adminID}%") else Op.TRUE)
+                    val name =
+                        (if (searchParameters.searchQuery.name != null) (Poll.name like "%${searchParameters.searchQuery.name}%") else Op.TRUE)
+                    val description =
+                        (if (searchParameters.searchQuery.description != null) (Poll.description like "%${searchParameters.searchQuery.description}%") else Op.TRUE)
+                    val memberID =
+                        (if (searchParameters.searchQuery.memberID != null) (Poll.id inSubQuery UserPolls.select { UserPolls.userID like "${searchParameters.searchQuery.memberID}%" }
+                            .adjustSlice { slice(UserPolls.pollID) }) else Op.TRUE)
+                    val any = (if (searchParameters.searchQuery.any != null) (
+                            (Poll.name eq searchParameters.searchQuery.any) or
+                                    (Poll.id like "%${searchParameters.searchQuery.any}%") or
+                                    (Poll.description like "%${searchParameters.searchQuery.any}%")) else Op.FALSE)
+
+                    val query = (adminID and name and description and memberID) or any
+
+                    return@select query and specialFilter
+                }
+                val sorted = query.orderBy(
+                    when (searchParameters?.sortingStrategy) {
+                        PollSearchParameters.SortingStrategy.CREATED -> Poll.createdTimestamp
+                        PollSearchParameters.SortingStrategy.UPDATED -> Poll.updatedTimestamp
+                        PollSearchParameters.SortingStrategy.NAME -> Poll.name
+                        PollSearchParameters.SortingStrategy.USER_COUNT -> Poll.id
+                        else -> Poll.updatedTimestamp
+                    } to when (searchParameters?.sortingOrder) {
+                        SortingOrder.ASCENDING -> SortOrder.ASC
+                        SortingOrder.DESCENDING -> SortOrder.DESC
+                        null -> SortOrder.ASC
+                    }
+                )
+                return@transaction sorted.limit(limit, offset).toList().map { Poll(it) }
+            }
+        }
+
         fun exists(pollID: tPollID): Boolean {
             return transaction {
                 !Poll.select { Poll.id eq pollID }.empty()
@@ -256,8 +313,7 @@ class Poll : DatabaseEntity, IPoll {
         val options = this.options
         val notes = this.notes
         val joinTimestamps = this.joinedTimestamps
-        return DetailedPollResponse(
-            id,
+        return DetailedPollResponse(id,
             name,
             admin.asSimpleUser(),
             description,
@@ -271,22 +327,19 @@ class Poll : DatabaseEntity, IPoll {
                 val votes = Vote.fromUserPoll(user.id, id)//.filter { options.map { it.id }.contains(it.optionID) }
                 val existingVotesOptionIds = votes.map { it.optionID }
                 val missingVotes = options.map { it.id }.filterNot { existingVotesOptionIds.contains(it) }
-                UserVote(
-                    PollSimpleUser(
-                        user.firstName,
-                        user.lastName,
-                        user.username,
-                        user.id,
-                        joinTimestamps.find { it.userID == user.id }!!.joinTimestamp.toClient()
-                    ),
-                    votes.map { note -> SimpleVote(note.optionID, note.votedFor.id) } +
-                            // add null votes for non existing votes on options
-                            missingVotes.map {
-                                SimpleVote(
-                                    it,
-                                    null
-                                )
-                            })
+                UserVote(PollSimpleUser(
+                    user.firstName,
+                    user.lastName,
+                    user.username,
+                    user.id,
+                    joinTimestamps.find { it.userID == user.id }!!.joinTimestamp.toClient()
+                ), votes.map { note -> SimpleVote(note.optionID, note.votedFor.id) } +
+                        // add null votes for non existing votes on options
+                        missingVotes.map {
+                            SimpleVote(
+                                it, null
+                            )
+                        })
             },
             userIDs.map { userID ->
                 val note = notes.find { note -> note.userID == userID }
@@ -300,8 +353,7 @@ class Poll : DatabaseEntity, IPoll {
     }
 
     fun asSimplePoll(user: User?): PollSummary {
-        return PollSummary(
-            id,
+        return PollSummary(id,
             name,
             admin.asSimpleUser(),
             description,
@@ -309,8 +361,7 @@ class Poll : DatabaseEntity, IPoll {
             updatedTimestamp.toClient(),
             type.id,
             allowsEditing,
-            user?.let { UserPolls.getHidden(id, user.id) } ?: false
-        )
+            user?.let { UserPolls.getHidden(id, user.id) } ?: false)
     }
 
     /**
@@ -358,12 +409,44 @@ class Poll : DatabaseEntity, IPoll {
         UserPolls.removeConnection(userID, id)
         transaction {
             Vote.deleteWhere {
-                (Vote.pollID eq pollID) and
-                        (Vote.userID eq userID)
+                (Vote.pollID eq pollID) and (Vote.userID eq userID)
             }
         }
     }
 
+}
+
+@Serializable
+data class PollSearchParameters(
+    val sortingOrder: SortingOrder = SortingOrder.ASCENDING,
+    val sortingStrategy: SortingStrategy = SortingStrategy.UPDATED,
+    val specialFilter: SpecialFilter = SpecialFilter.ALL,
+    val searchQuery: Query = Query()
+) {
+    enum class SortingStrategy {
+        CREATED, UPDATED, NAME, USER_COUNT
+    }
+
+    enum class SpecialFilter {
+        ALL, JOINED, NOT_JOINED
+    }
+
+    @Serializable
+    data class Query(
+        val adminID: String? = null,
+        val description: String? = null,
+        val name: String? = null,
+        val memberID: String? = null,
+        val any: String? = null
+    )
+
+    @Serializable
+    data class Descriptor(
+        val sortingOrder: List<SortingOrder> = SortingOrder.values().toList(),
+        val sortingStrategy: List<SortingStrategy> = SortingStrategy.values().toList(),
+        val specialFilter: List<SpecialFilter> = SpecialFilter.values().toList(),
+        val searchQuery: List<String> = Query::class.memberProperties.map { it.name }
+    )
 }
 
 data class PollJoinTimestamp(val userID: tUserID, val joinTimestamp: UnixTimestamp) {
@@ -381,17 +464,13 @@ object UserPolls : Table("user_polls_poll") {
     fun connectionExists(userID: tUserID, pollID: tPollID): Boolean {
         return transaction {
             return@transaction !UserPolls.select {
-                (UserPolls.userID eq userID) and
-                        (UserPolls.pollID eq pollID)
+                (UserPolls.userID eq userID) and (UserPolls.pollID eq pollID)
             }.empty()
         }
     }
 
     fun addConnection(
-        userID: tUserID,
-        pollID: tPollID,
-        joinTimestamp: UnixTimestamp = UnixTimestamp.now(),
-        hide: Boolean = false
+        userID: tUserID, pollID: tPollID, joinTimestamp: UnixTimestamp = UnixTimestamp.now(), hide: Boolean = false
     ) {
         if (connectionExists(userID, pollID)) return
         transaction {
@@ -407,8 +486,7 @@ object UserPolls : Table("user_polls_poll") {
     fun removeConnection(userID: tUserID, pollID: tPollID) {
         transaction {
             UserPolls.deleteWhere {
-                (UserPolls.userID eq userID) and
-                        (UserPolls.pollID eq pollID)
+                (UserPolls.userID eq userID) and (UserPolls.pollID eq pollID)
             }
         }
     }
