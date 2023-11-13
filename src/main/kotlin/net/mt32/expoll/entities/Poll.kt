@@ -424,7 +424,7 @@ data class PollSearchParameters(
     val searchQuery: Query = Query()
 ) {
     enum class SortingStrategy {
-        CREATED, UPDATED, NAME, USER_COUNT
+        UPDATED, CREATED, NAME, USER_COUNT
     }
 
     enum class SpecialFilter {

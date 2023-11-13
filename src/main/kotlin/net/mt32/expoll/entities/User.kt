@@ -403,11 +403,11 @@ data class UserSearchParameters(
     val searchQuery: Query = Query()
 ) {
     enum class SortingStrategy {
+        CREATED,
         USERNAME,
         FIRST_NAME,
         LAST_NAME,
         MAIL,
-        CREATED,
         DELETED
     }
 

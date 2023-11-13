@@ -12,6 +12,7 @@ import net.mt32.expoll.config
 import net.mt32.expoll.entities.MailRule
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.UserDeletionConfirmation
+import net.mt32.expoll.entities.UserSearchParameters
 import net.mt32.expoll.helper.*
 import net.mt32.expoll.serializable.request.CreateUserRequest
 import net.mt32.expoll.serializable.request.EditUserRequest
@@ -34,6 +35,7 @@ fun Route.userRoutes() {
         get("appCreateRedirect") {
             call.respondRedirect(URLBuilder.webSignupURL(call, call.getDataFromAny("mail") ?: return@get))
         }
+
         authenticate(normalAuth) {
             get {
                 getUserData(call)
@@ -53,11 +55,10 @@ fun Route.userRoutes() {
             post("deleteCancel"){
                 deleteCancel(call)
             }
-            // TODO implement delete user endpoint
-            // TODO implement delete user confirmation endpoint
+            get("/availableSearch") {
+                getAvailableSearchParameters(call)
+            }
         }
-
-
     }
 }
 
@@ -279,4 +280,8 @@ private suspend fun deleteCancel(call: ApplicationCall){
     }
     confirmation.delete()
     call.respond(ReturnCode.OK)
+}
+
+private suspend fun getAvailableSearchParameters(call: ApplicationCall) {
+    call.respond(UserSearchParameters.Descriptor())
 }

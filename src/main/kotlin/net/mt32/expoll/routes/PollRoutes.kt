@@ -8,10 +8,7 @@ import io.ktor.server.routing.*
 import net.mt32.expoll.PollType
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
-import net.mt32.expoll.entities.Poll
-import net.mt32.expoll.entities.PollUserNote
-import net.mt32.expoll.entities.User
-import net.mt32.expoll.entities.UserPolls
+import net.mt32.expoll.entities.*
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
@@ -41,6 +38,9 @@ fun Route.pollRoutes() {
         }
         post("/hide") {
             hidePoll(call)
+        }
+        get("/availableSearch") {
+            getAvailableSearchParameters(call)
         }
     }
 }
@@ -296,4 +296,8 @@ private suspend fun hidePoll(call: ApplicationCall) {
 
     UserPolls.hideFromListForUser(pollID, principal.userID, hide)
     call.respond(ReturnCode.OK)
+}
+
+private suspend fun getAvailableSearchParameters(call: ApplicationCall) {
+    call.respond(PollSearchParameters.Descriptor())
 }

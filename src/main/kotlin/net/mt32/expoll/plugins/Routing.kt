@@ -6,6 +6,7 @@ import io.ktor.server.plugins.*
 import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.pipeline.*
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.routes.apiRouting
 
@@ -29,4 +30,8 @@ fun Application.configureRouting() {
     routing {
         apiRouting()
     }
+}
+
+fun Route.query(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
+    return method(HttpMethod("QUERY")) { handle(body) }
 }
