@@ -271,13 +271,14 @@ class Poll : DatabaseEntity, IPoll {
                         (if (searchParameters.searchQuery.name != null) (Poll.name like "%${searchParameters.searchQuery.name}%") else Op.TRUE)
                     val description =
                         (if (searchParameters.searchQuery.description != null) (Poll.description like "%${searchParameters.searchQuery.description}%") else Op.TRUE)
+                    val userPolls = UserPolls.select { UserPolls.userID like "%${searchParameters.searchQuery.memberID}%" }
+                        .adjustSlice { slice(UserPolls.pollID) }
                     val memberID =
-                        (if (searchParameters.searchQuery.memberID != null) (Poll.id inSubQuery UserPolls.select { UserPolls.userID like "${searchParameters.searchQuery.memberID}%" }
-                            .adjustSlice { slice(UserPolls.pollID) }) else Op.TRUE)
+                        (if (searchParameters.searchQuery.memberID != null) (Poll.id inSubQuery userPolls) else Op.TRUE)
                     val any = (if (searchParameters.searchQuery.any != null) (
                             (Poll.name eq searchParameters.searchQuery.any) or
                                     (Poll.id like "%${searchParameters.searchQuery.any}%") or
-                                    (Poll.description like "%${searchParameters.searchQuery.any}%")) else Op.TRUE)
+                                    (Poll.description like "%${searchParameters.searchQuery.any}%") or memberID) else Op.TRUE)
 
                     val query = adminID and name and description and memberID and any
 

@@ -47,7 +47,7 @@ private suspend fun getUsers(call: ApplicationCall) {
         return
     }
     println(call.receiveText())
-    val adminListRequest: AdminUserListRequest = call.receive()
+    val adminListRequest: AdminUserListRequest = call.receiveNullable() ?: AdminUserListRequest()
     call.startNewTiming("users.load", "Load all users")
     val users = User.all(adminListRequest.limit, adminListRequest.offset, adminListRequest.searchParameters)
 
