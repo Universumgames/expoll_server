@@ -277,9 +277,9 @@ class Poll : DatabaseEntity, IPoll {
                     val any = (if (searchParameters.searchQuery.any != null) (
                             (Poll.name eq searchParameters.searchQuery.any) or
                                     (Poll.id like "%${searchParameters.searchQuery.any}%") or
-                                    (Poll.description like "%${searchParameters.searchQuery.any}%")) else Op.FALSE)
+                                    (Poll.description like "%${searchParameters.searchQuery.any}%")) else Op.TRUE)
 
-                    val query = (adminID and name and description and memberID) or any
+                    val query = adminID and name and description and memberID and any
 
                     return@select query and specialFilter
                 }

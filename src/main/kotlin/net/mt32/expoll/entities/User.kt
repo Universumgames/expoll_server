@@ -289,9 +289,9 @@ class User : IUser, DatabaseEntity {
                         ((User.username like "%${searchParameters.searchQuery.any}%") or
                                 (User.firstName like "%${searchParameters.searchQuery.any}%") or
                                 (User.lastName like "%${searchParameters.searchQuery.any}%")
-                                ) else Op.FALSE)
+                                ) else Op.TRUE)
 
-                    val query = (username and firstName and lastName and memberInPoll) or any
+                    val query = username and firstName and lastName and memberInPoll and any
 
                     return@select query and specialFilter
 
