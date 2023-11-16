@@ -13,8 +13,10 @@ import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.notification.ExpollNotificationHandler
+import net.mt32.expoll.plugins.query
 import net.mt32.expoll.serializable.request.CreatePollRequest
 import net.mt32.expoll.serializable.request.EditPollRequest
+import net.mt32.expoll.serializable.request.PollRequest
 import net.mt32.expoll.serializable.responses.PollCreatedResponse
 import net.mt32.expoll.serializable.responses.asPollListResponse
 import net.mt32.expoll.tPollID
@@ -22,6 +24,9 @@ import net.mt32.expoll.tPollID
 fun Route.pollRoutes() {
     route("/poll") {
         get {
+            getPolls(call)
+        }
+        query {
             getPolls(call)
         }
         post {
@@ -240,14 +245,15 @@ private suspend fun getPolls(call: ApplicationCall) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    val pollID = call.getDataFromAny("pollID")
-    if (pollID != null) {
-        getDetailedPoll(call, pollID)
+    val pollRequest: PollRequest = call.receiveNullable() ?: PollRequest()
+    val oldPollID = call.getDataFromAny("pollID")
+    if (pollRequest.pollID != null || oldPollID != null) {
+        (pollRequest.pollID ?: oldPollID)?.let { getDetailedPoll(call, it) }
     } else
-        getPollList(call)
+        getPollList(call, pollRequest)
 }
 
-private suspend fun getPollList(call: ApplicationCall) {
+private suspend fun getPollList(call: ApplicationCall, pollRequest: PollRequest) {
     val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
@@ -255,7 +261,9 @@ private suspend fun getPollList(call: ApplicationCall) {
     }
 
     call.startNewTiming("polls.list", "Retrieve poll data from database")
-    val polls = principal.user.polls
+    val searchParameters = pollRequest.searchParameters ?: PollSearchParameters()
+    searchParameters.specialFilter = PollSearchParameters.SpecialFilter.JOINED
+    val polls = if(pollRequest.searchParameters == null) principal.user.polls else Poll.all(searchParameters = searchParameters)
     call.startNewTiming("polls.transform", "Transform poll data to simplified list format")
     val simplePolls = polls.asPollListResponse(principal.user)
     call.startNewTiming("polls.serialize", "Serialize data and prepare to send")

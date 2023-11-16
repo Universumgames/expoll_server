@@ -247,7 +247,7 @@ class Poll : DatabaseEntity, IPoll {
         }
 
         fun all(
-            limit: Int, offset: Long, searchParameters: PollSearchParameters? = null, forUserId: tUserID? = null
+            limit: Int = -1, offset: Long = 0, searchParameters: PollSearchParameters? = null, forUserId: tUserID? = null
         ): List<Poll> {
             return transaction {
                 val query = if (searchParameters == null) Poll.selectAll()
@@ -276,7 +276,7 @@ class Poll : DatabaseEntity, IPoll {
                     val memberID =
                         (if (searchParameters.searchQuery.memberID != null) (Poll.id inSubQuery userPolls) else Op.TRUE)
                     val any = (if (searchParameters.searchQuery.any != null) (
-                            (Poll.name eq searchParameters.searchQuery.any) or
+                            (Poll.name eq "%${searchParameters.searchQuery.any}%") or
                                     (Poll.id like "%${searchParameters.searchQuery.any}%") or
                                     (Poll.description like "%${searchParameters.searchQuery.any}%") or memberID) else Op.TRUE)
 
@@ -297,7 +297,8 @@ class Poll : DatabaseEntity, IPoll {
                         null -> SortOrder.ASC
                     }
                 )
-                return@transaction sorted.limit(limit, offset).toList().map { Poll(it) }
+                val limited = if (limit > 0) sorted.limit(limit, offset) else sorted
+                return@transaction limited.toList().map { Poll(it) }
             }
         }
 
@@ -419,10 +420,10 @@ class Poll : DatabaseEntity, IPoll {
 
 @Serializable
 data class PollSearchParameters(
-    val sortingOrder: SortingOrder = SortingOrder.ASCENDING,
-    val sortingStrategy: SortingStrategy = SortingStrategy.UPDATED,
-    val specialFilter: SpecialFilter = SpecialFilter.ALL,
-    val searchQuery: Query = Query()
+    var sortingOrder: SortingOrder = SortingOrder.ASCENDING,
+    var sortingStrategy: SortingStrategy = SortingStrategy.UPDATED,
+    var specialFilter: SpecialFilter = SpecialFilter.ALL,
+    var searchQuery: Query = Query()
 ) {
     enum class SortingStrategy {
         UPDATED, CREATED, NAME, USER_COUNT

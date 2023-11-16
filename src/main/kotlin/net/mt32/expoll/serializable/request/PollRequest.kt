@@ -1,6 +1,7 @@
 package net.mt32.expoll.serializable.request
 
 import kotlinx.serialization.Serializable
+import net.mt32.expoll.entities.PollSearchParameters
 import net.mt32.expoll.serializable.responses.ComplexOption
 import net.mt32.expoll.serializable.responses.UserNote
 import net.mt32.expoll.tPollID
@@ -31,4 +32,10 @@ data class EditPollRequest(
     val votes: List<VoteChange> = listOf(),
     val options: List<ComplexOption> = listOf(),
     val notes: List<UserNote> = listOf()
+)
+
+@Serializable
+data class PollRequest(
+    val pollID: tPollID? = null,
+    val searchParameters: PollSearchParameters? = null,
 )
