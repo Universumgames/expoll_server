@@ -420,7 +420,7 @@ class Poll : DatabaseEntity, IPoll {
 
 @Serializable
 data class PollSearchParameters(
-    var sortingOrder: SortingOrder = SortingOrder.ASCENDING,
+    var sortingOrder: SortingOrder = SortingOrder.DESCENDING,
     var sortingStrategy: SortingStrategy = SortingStrategy.UPDATED,
     var specialFilter: SpecialFilter = SpecialFilter.ALL,
     var searchQuery: Query = Query()

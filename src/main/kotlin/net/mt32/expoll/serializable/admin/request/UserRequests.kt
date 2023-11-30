@@ -16,5 +16,6 @@ data class AdminEditUserRequest(
     val userID: tUserID,
     val firstName: String? = null,
     val lastName: String? = null,
-    val mail: String? = null
+    val mail: String? = null,
+    val username: String? = null,
 )

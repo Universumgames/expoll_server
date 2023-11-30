@@ -116,6 +116,7 @@ private suspend fun editUser(call: ApplicationCall) {
     user.firstName = editUserRequest.firstName ?: user.firstName
     user.lastName = editUserRequest.lastName ?: user.lastName
     user.mail = editUserRequest.mail ?: user.mail
+    user.username = editUserRequest.username ?: user.username
 
     user.save()
     call.respond(ReturnCode.OK)

@@ -397,7 +397,7 @@ class User : IUser, DatabaseEntity {
 
 @Serializable
 data class UserSearchParameters(
-    val sortingOrder: SortingOrder = SortingOrder.ASCENDING,
+    val sortingOrder: SortingOrder = SortingOrder.DESCENDING,
     val sortingStrategy: SortingStrategy = SortingStrategy.CREATED,
     val specialFilter: SpecialFilter = SpecialFilter.ALL,
     val searchQuery: Query = Query()
