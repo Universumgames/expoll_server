@@ -247,7 +247,10 @@ class Poll : DatabaseEntity, IPoll {
         }
 
         fun all(
-            limit: Int = -1, offset: Long = 0, searchParameters: PollSearchParameters? = null, forUserId: tUserID? = null
+            limit: Int = -1,
+            offset: Long = 0,
+            searchParameters: PollSearchParameters? = null,
+            forUserId: tUserID? = null
         ): List<Poll> {
             return transaction {
                 val query = if (searchParameters == null) Poll.selectAll()
@@ -271,8 +274,9 @@ class Poll : DatabaseEntity, IPoll {
                         (if (searchParameters.searchQuery.name != null) (Poll.name like "%${searchParameters.searchQuery.name}%") else Op.TRUE)
                     val description =
                         (if (searchParameters.searchQuery.description != null) (Poll.description like "%${searchParameters.searchQuery.description}%") else Op.TRUE)
-                    val userPolls = UserPolls.select { UserPolls.userID like "%${searchParameters.searchQuery.memberID}%" }
-                        .adjustSlice { slice(UserPolls.pollID) }
+                    val userPolls =
+                        UserPolls.select { UserPolls.userID like "%${searchParameters.searchQuery.memberID}%" }
+                            .adjustSlice { slice(UserPolls.pollID) }
                     val memberID =
                         (if (searchParameters.searchQuery.memberID != null) (Poll.id inSubQuery userPolls) else Op.TRUE)
                     val any = (if (searchParameters.searchQuery.any != null) (
@@ -315,6 +319,17 @@ class Poll : DatabaseEntity, IPoll {
         val options = this.options
         val notes = this.notes
         val joinTimestamps = this.joinedTimestamps
+
+        val relevantOptionID = if (type == PollType.STRING) null else {
+            val optionIndex = options.indexOfFirst { option ->
+                when (type) {
+                    PollType.DATE -> (option as PollOptionDate).dateStartTimestamp.addDays(1) > UnixTimestamp.now()
+                    PollType.DATETIME -> (option as PollOptionDateTime).dateTimeStartTimestamp > UnixTimestamp.now()
+                    else -> false
+                }
+            }
+            if (optionIndex == -1) null else options[optionIndex].id
+        }
         return DetailedPollResponse(id,
             name,
             admin.asSimpleUser(),
@@ -324,7 +339,11 @@ class Poll : DatabaseEntity, IPoll {
             updatedTimestamp.toClient(),
             createdTimestamp.toClient(),
             type.id,
-            options.map { it.toComplexOption() },
+            options.map {
+                val opt = it.toComplexOption()
+                opt.isMostRelevant = it.id == relevantOptionID
+                opt
+            },
             users.map { user ->
                 val votes = Vote.fromUserPoll(user.id, id)//.filter { options.map { it.id }.contains(it.optionID) }
                 val existingVotesOptionIds = votes.map { it.optionID }

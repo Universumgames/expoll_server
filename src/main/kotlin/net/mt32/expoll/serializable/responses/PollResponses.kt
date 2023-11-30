@@ -52,6 +52,7 @@ data class UserNote(
 @Serializable
 data class ComplexOption(
     val id: Int? = null,
+    var isMostRelevant: Boolean? = null,
     val value: String? = null,
     val dateStart: tClientDate? = null,
     val dateEnd: tClientDate? = null,
