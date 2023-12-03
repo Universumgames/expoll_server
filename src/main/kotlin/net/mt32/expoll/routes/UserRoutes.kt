@@ -19,7 +19,6 @@ import net.mt32.expoll.serializable.request.EditUserRequest
 import net.mt32.expoll.serializable.request.VoteChange
 import net.mt32.expoll.serializable.responses.CreateUserResponse
 import net.mt32.expoll.serializable.responses.StrippedPollData
-import net.mt32.expoll.serializable.responses.UserDataResponse
 import net.mt32.expoll.serializable.responses.UserPersonalizeResponse
 
 fun Route.userRoutes() {
@@ -142,16 +141,7 @@ private suspend fun getUserData(call: ApplicationCall) {
     }
     val user = principal.user
 
-    val simpleUserResponse = UserDataResponse(
-        user.id,
-        user.username,
-        user.firstName,
-        user.lastName,
-        user.mail,
-        user.active,
-        principal.admin || principal.superAdmin,
-        user.created.toClient()
-    )
+    val simpleUserResponse = user.asUserDataResponse()
     call.respond(simpleUserResponse)
 }
 
@@ -188,7 +178,10 @@ private suspend fun getPersonalizedData(call: ApplicationCall) {
         user.active,
         user.admin,
         user.superAdmin,
-        auths
+        auths,
+        user.created.toClient(),
+        user.pollsOwned,
+        user.maxPollsOwned
     )
     call.respond(personalizedData)
 }

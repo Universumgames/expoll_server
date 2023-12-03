@@ -1,23 +1,26 @@
 package net.mt32.expoll.serializable.admin.responses
 
 import kotlinx.serialization.Serializable
+import net.mt32.expoll.serializable.responses.IUserDataResponse
 import net.mt32.expoll.tClientDateTime
 import net.mt32.expoll.tUserID
 
 @Serializable
 data class UserInfo(
-    val id: tUserID,
-    val username: String,
-    val firstName: String,
-    val lastName: String,
-    val mail: String,
-    val admin: Boolean,
+    override val id: tUserID,
+    override val username: String,
+    override val firstName: String,
+    override val lastName: String,
+    override val mail: String,
+    override val admin: Boolean,
     val superAdmin: Boolean,
-    val active: Boolean,
+    override val active: Boolean,
     val oidcConnections: List<String>,
-    val createdTimestamp: tClientDateTime,
-    val deletedTimestamp: tClientDateTime? = null
-)
+    override val createdTimestamp: tClientDateTime,
+    val deletedTimestamp: tClientDateTime? = null,
+    override val pollsOwned: Long,
+    override val maxPollsOwned: Long
+): IUserDataResponse
 
 @Serializable
 data class UserListResponse(

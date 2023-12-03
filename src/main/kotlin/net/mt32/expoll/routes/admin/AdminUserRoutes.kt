@@ -46,7 +46,6 @@ private suspend fun getUsers(call: ApplicationCall) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    println(call.receiveText())
     val adminListRequest: AdminUserListRequest = call.receiveNullable() ?: AdminUserListRequest()
     call.startNewTiming("users.load", "Load all users")
     val users = User.all(adminListRequest.limit, adminListRequest.offset, adminListRequest.searchParameters)
@@ -64,7 +63,9 @@ private suspend fun getUsers(call: ApplicationCall) {
             user.active,
             user.oidConnections.map { it.toConnectionOverview().name },
             user.created.toClient(),
-            user.deleted?.toClient()
+            user.deleted?.toClient(),
+            user.pollsOwned,
+            user.maxPollsOwned
         )
     }
     call.respond(UserListResponse(userInfos, users.size))

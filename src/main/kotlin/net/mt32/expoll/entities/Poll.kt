@@ -311,6 +311,18 @@ class Poll : DatabaseEntity, IPoll {
                 !Poll.select { Poll.id eq pollID }.empty()
             }
         }
+
+        fun ownedByUser(userID: tUserID): List<Poll> {
+            return transaction {
+                return@transaction Poll.select {(Poll.adminID eq userID) }.map { Poll(it) }
+            }
+        }
+
+        fun ownedByUserCount(userID: tUserID): Long {
+            return transaction {
+                return@transaction Poll.select {(Poll.adminID eq userID) }.count()
+            }
+        }
     }
 
     fun asDetailedPoll(): DetailedPollResponse {

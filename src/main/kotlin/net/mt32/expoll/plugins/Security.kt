@@ -7,6 +7,8 @@ import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.plugins.ratelimit.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import kotlinx.coroutines.runBlocking
@@ -19,6 +21,7 @@ import net.mt32.expoll.entities.Session
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDataFromAny
 import kotlin.collections.set
+import kotlin.time.Duration.Companion.seconds
 
 
 fun Application.configureSecurity() {
@@ -84,6 +87,24 @@ fun Application.configureSecurity() {
             //if (!config.developmentMode) cookie.secure = true
             serializer = ExpollJWTCookie.Companion
             cookie.maxAgeInSeconds = UnixTimestamp.zero().addDays(120).secondsSince1970 // 120 days ?
+        }
+    }
+
+    install(RateLimit){
+        global{
+            rateLimiter(limit = 100, refillPeriod = 5.seconds)
+            requestKey { applicationCall ->
+                if(applicationCall.request.headers.contains("Authorization"))
+                    applicationCall.request.headers["Authorization"]!!
+                else
+                    applicationCall.request.host() + applicationCall.request.uri
+            }
+            requestWeight { applicationCall, key ->
+                if(applicationCall.request.headers.contains("Authorization"))
+                    1
+                else
+                    5
+            }
         }
     }
 }

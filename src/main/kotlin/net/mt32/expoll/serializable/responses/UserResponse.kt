@@ -8,17 +8,32 @@ import net.mt32.expoll.tClientDateTime
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
 
+interface IUserDataResponse{
+    val id: String
+    val username: String
+    val firstName: String
+    val lastName: String
+    val mail: String
+    val active: Boolean
+    val admin: Boolean
+    val createdTimestamp: tClientDateTime
+    val pollsOwned: Long
+    val maxPollsOwned: Long
+}
+
 @Serializable
 data class UserDataResponse(
-    val id: String,
-    val username: String,
-    val firstName: String,
-    val lastName: String,
-    val mail: String,
-    val active: Boolean,
-    val admin: Boolean,
-    val createdTimestamp: tClientDateTime
-)
+    override val id: String,
+    override val username: String,
+    override val firstName: String,
+    override val lastName: String,
+    override val mail: String,
+    override val active: Boolean,
+    override val admin: Boolean,
+    override val createdTimestamp: tClientDateTime,
+    override val pollsOwned: Long,
+    override val maxPollsOwned: Long
+): IUserDataResponse
 
 @Serializable
 data class CreateUserResponse(
@@ -35,20 +50,23 @@ data class SimpleUser(
 
 @Serializable
 data class UserPersonalizeResponse(
-    val id: tUserID,
-    var username: String,
-    var firstName: String,
-    var lastName: String,
-    var mail: String,
+    override val id: tUserID,
+    override var username: String,
+    override var firstName: String,
+    override var lastName: String,
+    override  var mail: String,
     var polls: List<StrippedPollData>,
     val votes: List<VoteChange>,
     var sessions: List<SafeSession>,
     var notes: List<PollUserNote>,
-    var active: Boolean,
-    var admin: Boolean,
+    override var active: Boolean,
+    override var admin: Boolean,
     var superAdmin: Boolean,
     var authenticators: List<SimpleAuthenticator>,
-)
+    override val createdTimestamp: tClientDateTime,
+    override val pollsOwned: Long,
+    override val maxPollsOwned: Long
+): IUserDataResponse
 
 @Serializable
 data class StrippedPollData(

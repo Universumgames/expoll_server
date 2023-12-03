@@ -80,6 +80,7 @@ object Transformer {
         linkAPNDeviceToSession()
         addPollJoinedTimestampColumn()
         addHiddenInListProperty()
+        addMaxPollsOwnedColumn()
     }
 
     /**

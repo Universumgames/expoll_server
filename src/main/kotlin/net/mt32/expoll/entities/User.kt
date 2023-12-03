@@ -14,6 +14,7 @@ import net.mt32.expoll.helper.upsertCustom
 import net.mt32.expoll.serializable.admin.responses.UserInfo
 import net.mt32.expoll.serializable.request.SortingOrder
 import net.mt32.expoll.serializable.responses.SimpleUser
+import net.mt32.expoll.serializable.responses.UserDataResponse
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.*
@@ -43,6 +44,7 @@ interface IUser : ISimpleUser {
     var admin: Boolean
     val challenges: List<Challenge>
     val authenticators: List<Authenticator>
+    var maxPollsOwned: Long
 }
 
 class User : IUser, DatabaseEntity {
@@ -104,6 +106,17 @@ class User : IUser, DatabaseEntity {
     val oidConnections: List<OIDCUserData>
         get() = OIDCUserData.byUser(id)
 
+    val pollsOwned: Long
+        get() = Poll.ownedByUserCount(id)
+
+    override var maxPollsOwned: Long
+        get() = if(admin || superAdmin) -1 else _maxPollsOwned
+        set(value) {
+            _maxPollsOwned = value
+        }
+
+    private var _maxPollsOwned: Long
+
 
     constructor(
         username: String,
@@ -122,6 +135,7 @@ class User : IUser, DatabaseEntity {
         this.admin = admin
         this.created = UnixTimestamp.now()
         this.deleted = null
+        this._maxPollsOwned = 10
     }
 
     constructor(userRow: ResultRow) {
@@ -134,6 +148,7 @@ class User : IUser, DatabaseEntity {
         this.admin = userRow[User.admin] || config.superAdminMail.equals(mail, ignoreCase = true)
         this.created = userRow[User.created].toUnixTimestampFromDB()
         this.deleted = userRow[User.deleted]?.toUnixTimestampFromDB()
+        this._maxPollsOwned = userRow[User.maxPollsOwned]
     }
 
     override fun save(): Boolean {
@@ -148,6 +163,7 @@ class User : IUser, DatabaseEntity {
                 it[admin] = this@User.admin
                 it[created] = this@User.created.toDB()
                 it[deleted] = this@User.deleted?.toDB()
+                it[maxPollsOwned] = this@User._maxPollsOwned
             }
         }
         return true
@@ -232,6 +248,7 @@ class User : IUser, DatabaseEntity {
         val admin = bool("admin")
         val created = long("createdTimestamp")
         val deleted = long("deletedTimestamp").nullable()
+        val maxPollsOwned = long("maxPollsOwned").default(10)
 
 
         override val primaryKey = PrimaryKey(id)
@@ -371,11 +388,29 @@ class User : IUser, DatabaseEntity {
             firstName,
             lastName,
             mail,
-            admin,
+            admin || superAdmin,
             superAdmin,
             active,
             oidConnections.map { it.toConnectionOverview().name },
-            created.toClient()
+            created.toClient(),
+            deleted?.toClient(),
+            pollsOwned,
+            maxPollsOwned
+        )
+    }
+
+    fun asUserDataResponse(): UserDataResponse {
+        return UserDataResponse(
+            id,
+            username,
+            firstName,
+            lastName,
+            mail,
+            active,
+            admin,
+            created.toClient(),
+            pollsOwned,
+            maxPollsOwned
         )
     }
 
