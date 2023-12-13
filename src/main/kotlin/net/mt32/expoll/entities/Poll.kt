@@ -335,8 +335,8 @@ class Poll : DatabaseEntity, IPoll {
         val relevantOptionID = if (type == PollType.STRING) null else {
             val optionIndex = options.indexOfFirst { option ->
                 when (type) {
-                    PollType.DATE -> (option as PollOptionDate).dateStartTimestamp.addDays(1) > UnixTimestamp.now()
-                    PollType.DATETIME -> (option as PollOptionDateTime).dateTimeStartTimestamp > UnixTimestamp.now()
+                    PollType.DATE -> (option as PollOptionDate).dateStartTimestamp.asMidnight().addDays(1) > UnixTimestamp.now() && option.dateStartTimestamp < UnixTimestamp.now().asMidnight().addDays(1)
+                    PollType.DATETIME -> (option as PollOptionDateTime).dateTimeStartTimestamp.addDays(1) > UnixTimestamp.now().addDays(1)
                     else -> false
                 }
             }
@@ -352,10 +352,12 @@ class Poll : DatabaseEntity, IPoll {
             createdTimestamp.toClient(),
             type.id,
             options.map {
+                // TODO remove after backwards compatibility
                 val opt = it.toComplexOption()
                 opt.isMostRelevant = it.id == relevantOptionID
                 opt
             },
+            relevantOptionID,
             users.map { user ->
                 val votes = Vote.fromUserPoll(user.id, id)//.filter { options.map { it.id }.contains(it.optionID) }
                 val existingVotesOptionIds = votes.map { it.optionID }

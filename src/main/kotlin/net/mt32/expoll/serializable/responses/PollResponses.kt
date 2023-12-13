@@ -6,6 +6,7 @@ import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.tClientDate
 import net.mt32.expoll.tClientDateTime
+import net.mt32.expoll.tOptionID
 import net.mt32.expoll.tUserID
 
 @Serializable
@@ -29,6 +30,7 @@ data class DetailedPollResponse(
     val created: tClientDateTime,
     val type: Int,
     val options: List<ComplexOption>,
+    val mostRelevantOptionID: tOptionID?,
     val userVotes: List<UserVote>,
     val userNotes: List<UserNote>,
     val allowsMaybe: Boolean,
@@ -52,6 +54,7 @@ data class UserNote(
 @Serializable
 data class ComplexOption(
     val id: Int? = null,
+    // TODO remove after backwards compatibility
     var isMostRelevant: Boolean? = null,
     val value: String? = null,
     val dateStart: tClientDate? = null,

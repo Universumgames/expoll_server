@@ -83,6 +83,15 @@ class UnixTimestamp private constructor() {
         return secondsSince1970
     }
 
+    fun asMidnight(): UnixTimestamp {
+        val cal = Calendar.getInstance()
+        cal.time = toDate()
+        cal.add(Calendar.DAY_OF_MONTH, 1)
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        return UnixTimestamp.fromDate(cal.time)
+    }
+
     companion object {
         fun now(): UnixTimestamp {
             return Date().toUnixTimestamp()
