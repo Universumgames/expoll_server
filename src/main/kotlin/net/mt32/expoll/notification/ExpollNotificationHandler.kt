@@ -73,7 +73,11 @@ object ExpollNotificationHandler {
                 title,
                 body,
                 titleArgs = getTitleArgs(affectedUser, affectedPoll),
-                bodyArgs = getBodyArgs(affectedUser, affectedPoll)
+                bodyArgs = getBodyArgs(affectedUser, affectedPoll),
+                additionalData = mapOf(
+                    "pollID" to affectedPoll?.id,
+                    "userID" to affectedUser?.id
+                ).toMap().filterValues { it != null }.mapValues { it.value.toString() }
             )
         }
     }
