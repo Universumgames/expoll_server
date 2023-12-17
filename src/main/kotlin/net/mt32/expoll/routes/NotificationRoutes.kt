@@ -8,6 +8,7 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.entities.NotificationPreferences
+import net.mt32.expoll.entities.NotificationPreferencesSerial
 import net.mt32.expoll.entities.notifications.APNDevice
 import net.mt32.expoll.entities.notifications.WebNotificationDevice
 import net.mt32.expoll.helper.*
@@ -77,15 +78,16 @@ private suspend fun setNotification(call: ApplicationCall){
         call.respond(ReturnCode.UNAUTHORIZED)
         return
     }
-    val sentPreferences: NotificationPreferences = defaultJSON.decodeFromString(call.receiveText())
+    val sentPreferences: NotificationPreferencesSerial = defaultJSON.decodeFromString(call.receiveText())
     val originalPreferences = NotificationPreferences.fromUser(principal.userID)
 
-    originalPreferences.pollArchived = sentPreferences.pollArchived
-    originalPreferences.pollDeleted = sentPreferences.pollDeleted
-    originalPreferences.pollEdited = sentPreferences.pollEdited
-    originalPreferences.userAdded = sentPreferences.userAdded
-    originalPreferences.userRemoved = sentPreferences.userRemoved
-    originalPreferences.voteChange = sentPreferences.voteChange
+    originalPreferences.pollArchived = sentPreferences.pollArchived == true
+    originalPreferences.pollDeleted = sentPreferences.pollDeleted == true
+    originalPreferences.pollEdited = sentPreferences.pollEdited == true
+    originalPreferences.userAdded = sentPreferences.userAdded == true
+    originalPreferences.userRemoved = sentPreferences.userRemoved == true
+    originalPreferences.voteChange = sentPreferences.voteChange == true
+    originalPreferences.voteChangeDetailed = sentPreferences.voteChangeDetailed == true
     originalPreferences.save()
 
     call.respond(ReturnCode.OK)
@@ -97,7 +99,7 @@ private suspend fun getNotifications(call: ApplicationCall) {
         call.respond(ReturnCode.UNAUTHORIZED)
         return
     }
-    call.respond(NotificationPreferences.fromUser(principal.userID))
+    call.respond(NotificationPreferences.fromUser(principal.userID).toSerializable())
 }
 
 @Serializable

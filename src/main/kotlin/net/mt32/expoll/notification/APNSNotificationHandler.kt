@@ -4,6 +4,7 @@ import io.github.nefilim.kjwt.*
 import io.ktor.client.*
 import io.ktor.client.engine.java.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
@@ -11,6 +12,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.notifications.APNDevice
+import net.mt32.expoll.helper.Hash
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.security.loadECKeyFile
@@ -20,6 +22,7 @@ import java.security.PrivateKey
 import java.security.interfaces.ECPrivateKey
 import java.security.spec.ECPrivateKeySpec
 import java.util.*
+import kotlin.math.min
 
 
 fun PrivateKey.toECPrivateKey(): ECPrivateKey? {
@@ -38,7 +41,7 @@ fun <T : JWSAlgorithm> SignedJWT<T>.asToken(): String {
     return this.rendered
 }
 
-object APNsNotificationHandler: NotificationHandler<APNDevice> {
+object APNsNotificationHandler : NotificationHandler<APNDevice> {
 
     private var client = HttpClient(Java) {
         engine {
@@ -129,12 +132,12 @@ object APNsNotificationHandler: NotificationHandler<APNDevice> {
                 append("apns-priority", data.priority.priority.toString())
                 append("apns-topic", config.notifications.bundleID)
                 if (data.collapseID != null)
-                    append("apns-collapse-id", data.collapseID.substring(0, 8))
+                    append("apns-collapse-id", data.collapseID.substring(0, min(data.collapseID.length, 64)))
             }
             contentType(ContentType.Application.Json)
             setBody(defaultJSON.encodeToString(data.payload))
         }
-        //println(response.bodyAsText())
+        println(response.bodyAsText())
     }
 
     private data class APNData(
@@ -148,10 +151,13 @@ object APNsNotificationHandler: NotificationHandler<APNDevice> {
 
     @Serializable
     @SerialName("expollPayload")
+    @Deprecated("use normal APNsPayload instead after iOS App Version 3.2.0")
     class ExpollAPNsPayload(
         override val aps: APS,
+        override val additionalData: Map<String, String>,
         val pollID: tPollID? = null
-    ) : IAPNsPayload
+    ) : IAPNsPayload {
+    }
 
     override fun sendNotification(notification: UniversalNotification, device: APNDevice) {
         val apnsNotification = APNsNotification(
@@ -164,7 +170,16 @@ object APNsNotificationHandler: NotificationHandler<APNDevice> {
             bodyLocalisationArgs = notification.bodyArgs,
         )
         val pollID = notification.additionalData["pollID"]
-        val payload = ExpollAPNsPayload(APS(apnsNotification), pollID)
-        apnQueue.add(APNData(device.deviceID, notification.expiration, payload, APNsPriority.medium, APNsPushType.ALERT, pollID))
+        val payload = ExpollAPNsPayload(APS(apnsNotification), notification.additionalData, pollID)
+        apnQueue.add(
+            APNData(
+                device.deviceID,
+                notification.expiration,
+                payload,
+                APNsPriority.medium,
+                APNsPushType.ALERT,
+                Hash.md5(notification.additionalData.values.toList().joinToString())
+            )
+        )
     }
 }

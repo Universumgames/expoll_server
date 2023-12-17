@@ -12,9 +12,6 @@ import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.notifications.APNDevice
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDelayToMidnight
-import net.mt32.expoll.notification.APNsNotification
-import net.mt32.expoll.notification.APNsPayload
-import net.mt32.expoll.notification.APS
 import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.plugins.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -77,24 +74,5 @@ private fun cleanupCoroutine() {
 }
 
 private fun sendStartupNotification() {
-    val admins = User.admins()
-    val adminDevices = admins.map { APNDevice.fromUser(it.id) }.flatten()
-    val notification = APNsNotification(
-        "Test",
-        null,
-        null,
-        null,
-        "notification.server.backend.update.title",
-        listOf(),
-        null,
-        null,
-        "notification.server.backend.update %@",
-        listOf(config.serverVersion)
-    )
-    val aps = APS(notification)
-    val payload = APNsPayload(aps)
-    admins.forEach {
-        ExpollNotificationHandler.sendNotification(it, Triple(ExpollNotificationHandler.ExpollNotification.STARTUP, null, null))
-    }
-    //sendNotification(payload, adminDevices, UnixTimestamp.now().addHours(1), APNsPriority.medium)
+    ExpollNotificationHandler.sendServerStartup()
 }

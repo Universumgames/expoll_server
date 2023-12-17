@@ -23,5 +23,12 @@ enum class PollType(val id: Int){
 enum class VoteValue(val id: Int){
     NO(0),
     YES(1),
-    MAYBE(2)
+    MAYBE(2);
+
+    val translationKey: String
+        get() = when(this){
+            NO -> "vote.no"
+            YES -> "vote.yes"
+            MAYBE -> "vote.maybe"
+        }
 }

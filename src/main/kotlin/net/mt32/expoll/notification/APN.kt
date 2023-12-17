@@ -57,16 +57,20 @@ data class APNsNotification(
 data class APS(
     val alert: APNsNotification,
     val badge: Int? = 0,
-    val sound: String? = null
+    val sound: String? = null,
+    @SerialName("mutable-content")
+    val mutableContent: Int = 1
     // TODO add interruption level
 )
 
 sealed interface IAPNsPayload{
     val aps: APS
+    val additionalData: Map<String, String>
 }
 
 @Serializable
 @SerialName("payload")
 data class APNsPayload(
-    override val aps: APS
+    override val aps: APS,
+    override val additionalData: Map<String, String>
 ): IAPNsPayload

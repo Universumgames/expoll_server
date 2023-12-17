@@ -59,7 +59,7 @@ suspend fun voteRoute(call: ApplicationCall) {
     }
 
     val userIDToUse = voteChange.userID ?: principal.userID
-    val oldOption = Vote.fromUserPollOption(userIDToUse, voteChange.pollID, voteChange.optionID)
+    val oldVote = Vote.fromUserPollOption(userIDToUse, voteChange.pollID, voteChange.optionID)?.votedFor
 
     val votes = Vote.fromUserPoll(userIDToUse, voteChange.pollID)
     val filteredVotes = votes
@@ -80,8 +80,8 @@ suspend fun voteRoute(call: ApplicationCall) {
     poll.updatedTimestamp = UnixTimestamp.now()
     poll.save()
 
-    val changedUser = if(voteChange.userID == null) principal.user else User.loadFromID(voteChange.userID)
-    ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.VoteChange, poll, changedUser)
+    val changedUser = if(userIDToUse == principal.userID) principal.user else User.loadFromID(userIDToUse)
+    if(changedUser != null) ExpollNotificationHandler.sendVoteChange(poll, changedUser, voteChange.optionID, oldVote, votedForEnum)
     //sendNotification(ExpollNotification(ExpollNotificationType.VoteChange, poll.id, userIDToUse))
     call.respond(ReturnCode.OK)
 }

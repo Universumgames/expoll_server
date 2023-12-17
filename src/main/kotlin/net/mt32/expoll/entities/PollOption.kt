@@ -18,6 +18,8 @@ interface PollOption : IDatabaseEntity {
     val id: tOptionID
 
     fun toComplexOption(): ComplexOption
+
+    override fun toString(): String
 }
 
 class PollOptionString : PollOption, DatabaseEntity {
@@ -65,6 +67,10 @@ class PollOptionString : PollOption, DatabaseEntity {
         return ComplexOption(
             id, value = value
         )
+    }
+
+    override fun toString(): String {
+        return value
     }
 
     companion object : Table("poll_option_string") {
@@ -152,6 +158,10 @@ class PollOptionDate : PollOption, DatabaseEntity {
         return ComplexOption(
             id, dateStart = dateStartTimestamp.toClient(), dateEnd = dateEndTimestamp?.toClient()
         )
+    }
+
+    override fun toString(): String {
+        return dateStartTimestamp.toString()
     }
 
     companion object : Table("poll_option_date") {
@@ -245,6 +255,10 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
         return ComplexOption(
             id, dateTimeStart = dateTimeStartTimestamp.toClient(), dateTimeEnd = dateTimeEndTimestamp?.toClient()
         )
+    }
+
+    override fun toString(): String {
+        return dateTimeStartTimestamp.toString()
     }
 
     companion object : Table("poll_option_date_time") {

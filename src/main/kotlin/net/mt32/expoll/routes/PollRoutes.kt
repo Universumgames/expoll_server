@@ -84,7 +84,7 @@ private suspend fun editPoll(call: ApplicationCall) {
     poll.allowsEditing = editPollRequest.allowsEditing ?: poll.allowsEditing
 
     if (editPollRequest.allowsEditing == false) {
-        ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.PollEdited, poll, null)
+        ExpollNotificationHandler.sendPollEdit(poll)
         //sendNotification(ExpollNotification(ExpollNotificationType.PollArchived, editPollRequest.pollID, null))
     }
 
@@ -92,7 +92,7 @@ private suspend fun editPoll(call: ApplicationCall) {
     editPollRequest.userRemove.forEach {
         poll.removeUser(it)
         val user = User.loadFromID(it)
-        ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.UserRemoved, poll, user)
+        if(user != null) ExpollNotificationHandler.sendPollLeave(poll, user)
         //sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, editPollRequest.pollID, it))
     }
 
@@ -103,7 +103,7 @@ private suspend fun editPoll(call: ApplicationCall) {
         if (user == null) user = User.byMail(it)
         if (user == null) return@forEach
         poll.addUser(user.id)
-        ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.UserAdded, poll, user)
+        ExpollNotificationHandler.sendPollJoin(poll, user)
         //sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, editPollRequest.pollID, user.id))
     }
 
@@ -128,12 +128,12 @@ private suspend fun editPoll(call: ApplicationCall) {
     call.startNewTiming("poll.save", "Save poll to database")
 
     poll.save()
-    ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.PollEdited, poll, null)
+    ExpollNotificationHandler.sendPollEdit(poll)
     //sendNotification(ExpollNotification(ExpollNotificationType.PollEdited, editPollRequest.pollID, null))
 
     if (editPollRequest.delete == true) {
         poll.delete()
-        ExpollNotificationHandler.sendNotification(ExpollNotificationHandler.ExpollNotification.PollDeleted, poll, null)
+        ExpollNotificationHandler.sendPollDelete(poll)
         //sendNotification(ExpollNotification(ExpollNotificationType.PollDeleted, editPollRequest.pollID, null))
     }
     call.respond(ReturnCode.OK)
@@ -157,11 +157,7 @@ private suspend fun leavePoll(call: ApplicationCall) {
     principal.user.removePoll(pollID)
     val poll = Poll.fromID(pollID)
     if (poll != null)
-        ExpollNotificationHandler.sendNotification(
-            ExpollNotificationHandler.ExpollNotification.UserRemoved,
-            poll,
-            principal.user
-        )
+        ExpollNotificationHandler.sendPollLeave(poll, principal.user)
     //sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, pollID, principal.userID))
     call.respond(ReturnCode.OK)
 }
@@ -189,11 +185,7 @@ private suspend fun joinPoll(call: ApplicationCall) {
     principal.user.addPoll(pollID)
     val poll = Poll.fromID(pollID)
 
-    if (poll != null) ExpollNotificationHandler.sendNotification(
-        ExpollNotificationHandler.ExpollNotification.UserAdded,
-        poll,
-        principal.user
-    )
+    if (poll != null) ExpollNotificationHandler.sendPollJoin(poll, principal.user)
     //sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, pollID, principal.userID))
     call.respond(ReturnCode.OK)
 }

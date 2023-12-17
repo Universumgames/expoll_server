@@ -13,12 +13,22 @@ import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
-
 @Serializable
+data class NotificationPreferencesSerial(
+    val voteChange: Boolean? = null,
+    val voteChangeDetailed: Boolean? = null,
+    val userAdded: Boolean? = null,
+    val userRemoved: Boolean? = null,
+    val pollDeleted: Boolean? = null,
+    val pollEdited: Boolean? = null,
+    val pollArchived: Boolean? = null
+)
+
 class NotificationPreferences : DatabaseEntity {
     val id: String
     val userID: tUserID
     var voteChange: Boolean
+    var voteChangeDetailed: Boolean
     var userAdded: Boolean
     var userRemoved: Boolean
     var pollDeleted: Boolean
@@ -29,6 +39,7 @@ class NotificationPreferences : DatabaseEntity {
         id: String,
         userID: tUserID,
         voteChange: Boolean,
+        voteChangeDetailed: Boolean,
         userAdded: Boolean,
         userRemoved: Boolean,
         pollDeleted: Boolean,
@@ -38,6 +49,7 @@ class NotificationPreferences : DatabaseEntity {
         this.id = id
         this.userID = userID
         this.voteChange = voteChange
+        this.voteChangeDetailed = voteChangeDetailed
         this.userAdded = userAdded
         this.userRemoved = userRemoved
         this.pollDeleted = pollDeleted
@@ -53,6 +65,7 @@ class NotificationPreferences : DatabaseEntity {
         this.id = uuid
         this.userID = userID
         this.voteChange = true
+        this.voteChangeDetailed = false
         this.userAdded = true
         this.userRemoved = true
         this.pollDeleted = true
@@ -64,6 +77,7 @@ class NotificationPreferences : DatabaseEntity {
         this.id = notificationRow[NotificationPreferences.id]
         this.userID = notificationRow[NotificationPreferences.userID]
         this.voteChange = notificationRow[NotificationPreferences.voteChange]
+        this.voteChangeDetailed = notificationRow[NotificationPreferences.voteChangeDetailed]
         this.userAdded = notificationRow[NotificationPreferences.userAdded]
         this.userRemoved = notificationRow[NotificationPreferences.userRemoved]
         this.pollDeleted = notificationRow[NotificationPreferences.pollDeleted]
@@ -77,6 +91,7 @@ class NotificationPreferences : DatabaseEntity {
                 it[id] = this@NotificationPreferences.id
                 it[userID] = this@NotificationPreferences.userID
                 it[voteChange] = this@NotificationPreferences.voteChange
+                it[voteChangeDetailed] = this@NotificationPreferences.voteChangeDetailed
                 it[userAdded] = this@NotificationPreferences.userAdded
                 it[userRemoved] = this@NotificationPreferences.userRemoved
                 it[pollDeleted] = this@NotificationPreferences.pollDeleted
@@ -96,10 +111,23 @@ class NotificationPreferences : DatabaseEntity {
         return true
     }
 
+    fun toSerializable(): NotificationPreferencesSerial {
+        return NotificationPreferencesSerial(
+            voteChange = voteChange,
+            voteChangeDetailed = voteChangeDetailed,
+            userAdded = userAdded,
+            userRemoved = userRemoved,
+            pollDeleted = pollDeleted,
+            pollEdited = pollEdited,
+            pollArchived = pollArchived
+        )
+    }
+
     companion object : Table("notification_preferences_entity") {
         val id = varchar("id", UUIDLength)
         val userID = varchar("userId", UUIDLength).uniqueIndex()
         val voteChange = bool("voteChange")
+        val voteChangeDetailed = bool("voteChangeDetailed")
         val userAdded = bool("userAdded")
         val userRemoved = bool("userRemoved")
         val pollDeleted = bool("pollDeleted")

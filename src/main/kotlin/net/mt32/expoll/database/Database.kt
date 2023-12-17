@@ -81,6 +81,7 @@ object Transformer {
         addPollJoinedTimestampColumn()
         addHiddenInListProperty()
         addMaxPollsOwnedColumn()
+        addVoteChangeDetailedNotificationSetting()
     }
 
     /**
