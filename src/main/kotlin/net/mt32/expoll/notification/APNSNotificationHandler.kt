@@ -2,9 +2,9 @@ package net.mt32.expoll.notification
 
 import io.github.nefilim.kjwt.*
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.engine.java.*
 import io.ktor.client.request.*
-import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
@@ -42,6 +42,68 @@ fun <T : JWSAlgorithm> SignedJWT<T>.asToken(): String {
 }
 
 object APNsNotificationHandler : NotificationHandler<APNDevice> {
+
+    enum class APNStatusCodes(val value: Int) {
+        NoErrors(200),
+        BadDeviceToken(400),
+        BadCollapseID(400),
+        BadExpirationDate(400),
+        BadMessageID(400),
+        BadPriority(400),
+        BadTopic(400),
+        DeviceTokenNotForTopic(400),
+        DuplicateHeaders(400),
+        IdleTimeout(400),
+        MissingDeviceToken(400),
+        MissingTopic(400),
+        PayloadEmpty(400),
+        TopicDisallowed(400),
+        BadCertificate(403),
+        BadCertificateEnvironment(403),
+        ExpiredProviderToken(403),
+        Forbidden(403),
+        InvalidProviderToken(403),
+        MissingProviderToken(403),
+        BadPath(404),
+        MethodNotAllowed(405),
+        Unregistered(410),
+        PayloadTooLarge(413),
+        TooManyProviderTokenUpdates(429),
+        TooManyRequests(429),
+        InternalServerError(500),
+        ServiceUnavailable(503),
+        Shutdown(503),
+        Unknown(0);
+
+        companion object {
+            fun fromInt(value: Int): APNStatusCodes {
+                return values().firstOrNull { it.value == value } ?: Unknown
+            }
+        }
+    }
+
+    @Serializable
+    private data class APNResponseData(
+        val reason: String,
+        val timestamp: Long? = null
+    )
+
+    enum class APNStatus(val value: String, val isOK: Boolean = true) {
+        BadDeviceToken("BadDeviceToken", false),
+        OK("OK"),
+        UNKNOWN_ERROR("UnknownError", false),
+        UNKNOWN("");
+
+        companion object {
+            fun fromString(value: String): APNStatus? {
+                return values().firstOrNull { it.value == value }
+            }
+        }
+
+        override fun toString(): String {
+            return value
+        }
+    }
 
     private var client = HttpClient(Java) {
         engine {
@@ -118,8 +180,8 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
         apnQueue.add(APNData(deviceToken, expiration, payload, priority, pushType, collapseID))
     }
 
-    private suspend fun sendAPN(data: APNData) {
-        val bearer = getAPNSBearer()?.asToken() ?: return
+    private suspend fun sendAPN(data: APNData): APNStatus {
+        val bearer = getAPNSBearer()?.asToken() ?: return APNStatus.UNKNOWN_ERROR
 
         val response = client.request(Url(config.notifications.apnsURL + "/3/device/${data.deviceToken}")) {
             method = HttpMethod.Post
@@ -137,7 +199,13 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
             contentType(ContentType.Application.Json)
             setBody(defaultJSON.encodeToString(data.payload))
         }
-        println(response.bodyAsText())
+        if (response.status.value in (400..499)) {
+            val errorData: APNResponseData = response.body()
+            val error = APNStatus.fromString(errorData.reason)
+            println(errorData)
+            return error ?: APNStatus.UNKNOWN_ERROR
+        }
+        return APNStatus.OK
     }
 
     private data class APNData(

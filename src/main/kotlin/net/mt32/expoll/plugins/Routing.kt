@@ -13,6 +13,7 @@ import net.mt32.expoll.routes.apiRouting
 fun Application.configureRouting() {
     install(StatusPages) {
         exception<NotImplementedError>{call, notImplementedError ->
+            notImplementedError.printStackTrace()
             call.respondText(text = "501: ${notImplementedError.message}", status = ReturnCode.NOT_IMPLEMENTED)
         }
         exception<BadRequestException>{ call, _ ->

@@ -202,8 +202,6 @@ object ExpollNotificationHandler {
         //if (config.developmentMode) return
         if (notification.notification.isWantedByUser(user).not()) return
 
-        val apnDevices = user.apnDevices
-        val webDevices = user.webNotificationDevices
         val universalNotification = notification.notification.asUniversalNotification(
             poll = notification.poll,
             user = notification.user,
@@ -212,6 +210,13 @@ object ExpollNotificationHandler {
             newVote = notification.newVote
         )
 
+        sendNotificationInternal(user, universalNotification)
+    }
+
+    private fun sendNotificationInternal(user: User, universalNotification: UniversalNotification){
+        val apnDevices = user.apnDevices
+        val webDevices = user.webNotificationDevices
+
         apnDevices.forEach {
             if (it.session == null) return@forEach
             APNsNotificationHandler.sendNotification(universalNotification, it)
@@ -219,6 +224,17 @@ object ExpollNotificationHandler {
         webDevices.forEach {
             if (it.session == null) return@forEach
             WebNotificationHandler.sendNotification(universalNotification, it)
+        }
+    }
+
+    // TODO improve error handling
+    fun sendInternalErrorNotification(error: String){
+        val admins = User.admins()
+        admins.forEach {
+            sendNotificationInternal(it, UniversalNotification(
+                "An Internal Server Error occured",
+                body = error
+            ))
         }
     }
 }
