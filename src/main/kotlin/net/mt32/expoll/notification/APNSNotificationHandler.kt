@@ -4,8 +4,11 @@ import io.github.nefilim.kjwt.*
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.java.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -109,6 +112,9 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
         engine {
             protocolVersion = java.net.http.HttpClient.Version.HTTP_2
         }
+        install(ContentNegotiation){
+            json(defaultJSON)
+        }
     }
 
     suspend fun getAPNSBearer(): SignedJWT<JWSES256Algorithm>? {
@@ -200,7 +206,12 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
             setBody(defaultJSON.encodeToString(data.payload))
         }
         if (response.status.value in (400..499)) {
-            val errorData: APNResponseData = response.body()
+            val errorData: APNResponseData? = response.jsonBodyOrNull()
+            if(errorData == null){
+                println("Error while sending APN: ${response.status}")
+                println(response.bodyAsText())
+                return APNStatus.UNKNOWN_ERROR
+            }
             val error = APNStatus.fromString(errorData.reason)
             println(errorData)
             return error ?: APNStatus.UNKNOWN_ERROR
@@ -249,5 +260,21 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
                 Hash.md5(notification.additionalData.values.toList().joinToString())
             )
         )
+    }
+}
+
+private suspend inline fun <reified T> HttpResponse.bodyOrNull(): T? {
+    try {
+        return this.body()
+    } catch (e: Exception) {
+        return null
+    }
+}
+
+private suspend inline fun <reified T> HttpResponse.jsonBodyOrNull(): T? {
+    try {
+        return defaultJSON.decodeFromString(this.bodyAsText())
+    } catch (e: Exception) {
+        return null
     }
 }
