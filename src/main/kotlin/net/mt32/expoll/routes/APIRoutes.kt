@@ -24,6 +24,9 @@ fun Route.apiRouting() {
         get("serverInfo") {
             call.respond(ServerInfo.instance)
         }
+        get("ping"){
+            call.respondText("pong", ContentType.Text.Plain)
+        }
         route("appInfo"){
             get("ios"){
                 call.respond(iosPlatformInfo)
