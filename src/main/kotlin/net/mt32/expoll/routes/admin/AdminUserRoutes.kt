@@ -106,6 +106,7 @@ private suspend fun createUser(call: ApplicationCall) {
 }
 
 private suspend fun editUser(call: ApplicationCall) {
+    val admin = call.principal<JWTSessionPrincipal>()?.user ?: return
     val editUserRequest: AdminEditUserRequest = call.receive()
 
     val user = User.loadFromID(editUserRequest.userID)
@@ -118,6 +119,7 @@ private suspend fun editUser(call: ApplicationCall) {
     user.lastName = editUserRequest.lastName ?: user.lastName
     user.mail = editUserRequest.mail ?: user.mail
     user.username = editUserRequest.username ?: user.username
+    if(!user.admin || admin.superAdmin) user.admin = editUserRequest.admin ?: user.admin
 
     user.save()
     call.respond(ReturnCode.OK)
