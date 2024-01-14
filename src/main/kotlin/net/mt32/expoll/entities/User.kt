@@ -80,6 +80,10 @@ class User : IUser, DatabaseEntity {
 
     val superAdmin: Boolean
         get() = mail.equals(config.superAdminMail, ignoreCase = true)
+
+    val superAdminOrAdmin: Boolean
+        get() = superAdmin || admin
+
     override val challenges: List<Challenge>
         get() {
             return Challenge.forUser(id)

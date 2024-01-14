@@ -16,6 +16,7 @@ data class CreatePollRequest(
     val options: List<ComplexOption>,
     val allowsMaybe: Boolean,
     val allowsEditing: Boolean,
+    val privateVoting: Boolean = false,
 )
 
 @Serializable
@@ -27,6 +28,7 @@ data class EditPollRequest(
     val maxPerUserVoteCount: Int? = null,
     val allowsMaybe: Boolean? = null,
     val allowsEditing: Boolean? = null,
+    val privateVoting: Boolean? = null,
     val userRemove: List<tUserID> = listOf(),
     val userAdd: List<tUserID> = listOf(),
     val votes: List<VoteChange> = listOf(),

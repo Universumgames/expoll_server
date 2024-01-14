@@ -50,6 +50,13 @@ fun Route.oidcRoutes() {
                     }
                 }
             }
+            route("/removeConnection"){
+                for (idp in OIDC.data.values) {
+                    delete(idp.name) {
+                        TODO()
+                    }
+                }
+            }
         }
 
         for (idp in OIDC.data.values) {

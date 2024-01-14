@@ -45,10 +45,6 @@ object DatabaseFactory {
                 Vote,
                 WebNotificationDevice
             )
-            //SchemaUtils.createMissingTablesAndColumns(Users)
-            /*Users.insert {
-                it[username] = "Testuiaskojfs"
-            }*/
         }
     }
 
@@ -76,12 +72,14 @@ object Transformer {
         dateToTimestamp()
         dropUnnecessaryColumns()
         addUserCreationColumn()
-        removeGhostVotes()
         linkAPNDeviceToSession()
         addPollJoinedTimestampColumn()
         addHiddenInListProperty()
         addMaxPollsOwnedColumn()
         addVoteChangeDetailedNotificationSetting()
+        addPrivateVotingOption()
+
+        removeGhostVotes() // always last
     }
 
     /**

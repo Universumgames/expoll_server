@@ -35,6 +35,7 @@ data class DetailedPollResponse(
     val userNotes: List<UserNote>,
     val allowsMaybe: Boolean,
     val allowsEditing: Boolean,
+    val privateVoting: Boolean,
     val shareURL: String,
     val hidden: Boolean
 )

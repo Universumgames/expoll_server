@@ -82,6 +82,7 @@ private suspend fun editPoll(call: ApplicationCall) {
     poll.maxPerUserVoteCount = editPollRequest.maxPerUserVoteCount ?: poll.maxPerUserVoteCount
     poll.allowsMaybe = editPollRequest.allowsMaybe ?: poll.allowsMaybe
     poll.allowsEditing = editPollRequest.allowsEditing ?: poll.allowsEditing
+    poll.privateVoting = editPollRequest.privateVoting ?: poll.privateVoting
 
     if (editPollRequest.allowsEditing == false) {
         ExpollNotificationHandler.sendPollEdit(poll)
@@ -217,7 +218,8 @@ private suspend fun createPoll(call: ApplicationCall) {
         type,
         createPollRequest.maxPerUserVoteCount,
         createPollRequest.allowsMaybe,
-        createPollRequest.allowsEditing
+        createPollRequest.allowsEditing,
+        createPollRequest.privateVoting
     )
 
 
@@ -238,7 +240,7 @@ private suspend fun getPolls(call: ApplicationCall) {
         return
     }
     val pollRequest: PollRequest = call.receiveNullable() ?: PollRequest()
-    val oldPollID = call.getDataFromAny("pollID")
+    val oldPollID = call.getDataFromAny("pollID") // TODO why is that still here?
     if (pollRequest.pollID != null || oldPollID != null) {
         (pollRequest.pollID ?: oldPollID)?.let { getDetailedPoll(call, it) }
     } else
@@ -275,7 +277,7 @@ private suspend fun getDetailedPoll(call: ApplicationCall, pollID: tPollID) {
         return
     }
     call.startNewTiming("poll.transform", "Transform poll data to detailed format")
-    val detailedPoll = poll.asDetailedPoll()
+    val detailedPoll = poll.asDetailedPoll(principal.user)
     call.respond(detailedPoll)
 }
 

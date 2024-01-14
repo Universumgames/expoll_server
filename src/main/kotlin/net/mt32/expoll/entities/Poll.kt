@@ -26,6 +26,7 @@ interface IPoll {
     var maxPerUserVoteCount: Int
     var allowsMaybe: Boolean
     var allowsEditing: Boolean
+    var privateVoting: Boolean
 }
 
 class Poll : DatabaseEntity, IPoll {
@@ -65,6 +66,7 @@ class Poll : DatabaseEntity, IPoll {
     override var maxPerUserVoteCount: Int
     override var allowsMaybe: Boolean
     override var allowsEditing: Boolean
+    override var privateVoting: Boolean
 
     val shareURL: String
         get() = URLBuilder.shareURLBuilder(id)
@@ -88,7 +90,8 @@ class Poll : DatabaseEntity, IPoll {
         type: PollType,
         maxPerUserVoteCount: Int,
         allowsMaybe: Boolean,
-        allowsEditing: Boolean
+        allowsEditing: Boolean,
+        privateVoting: Boolean
     ) : super() {
         this.adminID = adminID
         this.id = id
@@ -100,6 +103,7 @@ class Poll : DatabaseEntity, IPoll {
         this.maxPerUserVoteCount = maxPerUserVoteCount
         this.allowsMaybe = allowsMaybe
         this.allowsEditing = allowsEditing
+        this.privateVoting = privateVoting
     }
 
 
@@ -114,6 +118,7 @@ class Poll : DatabaseEntity, IPoll {
         this.maxPerUserVoteCount = pollRow[Poll.maxPerUserVoteCount]
         this.allowsMaybe = pollRow[Poll.allowsMaybe]
         this.allowsEditing = pollRow[Poll.allowsEditing]
+        this.privateVoting = pollRow[Poll.privateVoting]
     }
 
     override fun save(): Boolean {
@@ -140,6 +145,7 @@ class Poll : DatabaseEntity, IPoll {
                     it[Poll.maxPerUserVoteCount] = this@Poll.maxPerUserVoteCount
                     it[Poll.allowsMaybe] = this@Poll.allowsMaybe
                     it[Poll.allowsEditing] = this@Poll.allowsEditing
+                    it[Poll.privateVoting] = this@Poll.privateVoting
                 }
             }
         }
@@ -173,6 +179,7 @@ class Poll : DatabaseEntity, IPoll {
         val maxPerUserVoteCount = integer("maxPerUserVoteCount")
         val allowsMaybe = bool("allowsMaybe")
         val allowsEditing = bool("allowsEditing")
+        val privateVoting = bool("privateVoting")
 
         override val primaryKey = PrimaryKey(id)
 
@@ -224,7 +231,8 @@ class Poll : DatabaseEntity, IPoll {
             type: PollType,
             maxPerUserVoteCount: Int,
             allowsMaybe: Boolean,
-            allowsEditing: Boolean
+            allowsEditing: Boolean,
+            privateVoting: Boolean
         ): Poll {
             return Poll(
                 adminID,
@@ -236,7 +244,8 @@ class Poll : DatabaseEntity, IPoll {
                 type,
                 maxPerUserVoteCount,
                 allowsMaybe,
-                allowsEditing
+                allowsEditing,
+                privateVoting
             )
         }
 
@@ -325,7 +334,7 @@ class Poll : DatabaseEntity, IPoll {
         }
     }
 
-    fun asDetailedPoll(): DetailedPollResponse {
+    fun asDetailedPoll(forUser: User): DetailedPollResponse {
         val userIDs = this.userIDs
         val users = this.users
         val options = this.options
@@ -342,6 +351,7 @@ class Poll : DatabaseEntity, IPoll {
             }
             if (optionIndex == -1) null else options[optionIndex].id
         }
+        val usersThatVoted = if(!privateVoting || forUser.superAdminOrAdmin || forUser.id == adminID) users else listOf(forUser)
         return DetailedPollResponse(id,
             name,
             admin.asSimpleUser(),
@@ -358,7 +368,7 @@ class Poll : DatabaseEntity, IPoll {
                 opt
             },
             relevantOptionID,
-            users.map { user ->
+            usersThatVoted.map { user ->
                 val votes = Vote.fromUserPoll(user.id, id)//.filter { options.map { it.id }.contains(it.optionID) }
                 val existingVotesOptionIds = votes.map { it.optionID }
                 val missingVotes = options.map { it.id }.filterNot { existingVotesOptionIds.contains(it) }
@@ -382,8 +392,9 @@ class Poll : DatabaseEntity, IPoll {
             }.filterNot { it.note == null },
             allowsMaybe,
             allowsEditing,
+            privateVoting,
             shareURL,
-            UserPolls.getHidden(id, adminID)
+            UserPolls.getHidden(id, adminID),
         )
     }
 
