@@ -39,14 +39,7 @@ fun Application.configureSecurity() {
             validate { credential ->
                 return@validate Session.loadAndVerify(this, credential)
             }
-            authHeader { call ->
-                var header = call.request.parseAuthorizationHeader()
-                if (header == null) {
-                    val jwt = runBlocking { return@runBlocking call.getDataFromAny("jwt") }
-                    header = if (jwt != null) parseAuthorizationHeader("Bearer $jwt") else null
-                }
-                return@authHeader header
-            }
+            authHeader { return@authHeader getAuthHeader(it) }
             challenge { _, _ ->
                 try {
                     if (call.sessions.get(cookieName) != null)
@@ -69,14 +62,7 @@ fun Application.configureSecurity() {
             validate { credential ->
                 return@validate Session.loadAndVerify(this, credential, withAdmin = true)
             }
-            authHeader { call ->
-                var header = call.request.parseAuthorizationHeader()
-                if (header == null) {
-                    val jwt = runBlocking { return@runBlocking call.getDataFromAny("jwt") }
-                    header = parseAuthorizationHeader("Bearer $jwt")
-                }
-                return@authHeader header
-            }
+            authHeader { return@authHeader getAuthHeader(it) }
         }
     }
 
@@ -107,4 +93,16 @@ fun Application.configureSecurity() {
             }
         }
     }
+
+    install(UserAgentBlocker)
+}
+
+
+fun getAuthHeader(call: ApplicationCall): HttpAuthHeader? {
+    var header = call.request.parseAuthorizationHeader()
+    if (header == null) {
+        val jwt = runBlocking { return@runBlocking call.getDataFromAny("jwt") }
+        header = parseAuthorizationHeader("Bearer $jwt")
+    }
+    return header
 }

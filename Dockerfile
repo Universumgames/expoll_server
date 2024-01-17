@@ -1,4 +1,4 @@
-FROM gradle:8.3-jdk17 AS build
+FROM gradle:8.5-jdk21 AS build
 WORKDIR /expoll/api_server
 COPY --chown=gradle:gradle ./ .
 RUN gradle buildFatJar --no-daemon --warning-mode all

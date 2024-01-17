@@ -130,6 +130,7 @@ class Session : DatabaseEntity {
     val userID: tUserID
     val nonce: Long
     val userAgent: String
+    var clientVersion: String? = null
     val createdTimestamp: UnixTimestamp
     val expirationTimestamp: UnixTimestamp
     var lastUsedTimestamp: UnixTimestamp
@@ -156,6 +157,7 @@ class Session : DatabaseEntity {
         userID: tUserID,
         nonce: Long,
         userAgent: String,
+        clientVersion: String?,
         createdTimestamp: UnixTimestamp,
         expirationTimestamp: UnixTimestamp,
         lastUsedTimestamp: UnixTimestamp
@@ -163,6 +165,7 @@ class Session : DatabaseEntity {
         this.userID = userID
         this.nonce = nonce
         this.userAgent = userAgent
+        this.clientVersion = clientVersion
         this.createdTimestamp = createdTimestamp
         this.expirationTimestamp = expirationTimestamp
         this.lastUsedTimestamp = lastUsedTimestamp
@@ -172,6 +175,7 @@ class Session : DatabaseEntity {
         this.userID = resultRow[Session.userID]
         this.nonce = resultRow[Session.nonce]
         this.userAgent = resultRow[Session.userAgent]
+        this.clientVersion = resultRow[Session.clientVersion]
         this.createdTimestamp = resultRow[Session.createdTimestamp].toUnixTimestampFromDB()
         this.expirationTimestamp = resultRow[Session.expirationTimestamp].toUnixTimestampFromDB()
         this.lastUsedTimestamp = resultRow[Session.lastUsedTimestamp].toUnixTimestampFromDB()
@@ -204,6 +208,7 @@ class Session : DatabaseEntity {
         val userID = varchar("userID", UUIDLength)
         val nonce = long("nonce")
         val userAgent = varchar("userAgent", 500)
+        val clientVersion = varchar("clientVersion", 50).nullable()
         val createdTimestamp = long("createdTimestamp")
         val expirationTimestamp = long("expirationTimestamp")
         val lastUsedTimestamp = long("lastUsedTimestamp")
@@ -282,6 +287,7 @@ class Session : DatabaseEntity {
                 it[userID] = this@Session.userID
                 it[nonce] = this@Session.nonce
                 it[userAgent] = this@Session.userAgent
+                it[clientVersion] = this@Session.clientVersion
                 it[createdTimestamp] = this@Session.createdTimestamp.toDB()
                 it[expirationTimestamp] = this@Session.expirationTimestamp.toDB()
                 it[lastUsedTimestamp] = this@Session.lastUsedTimestamp.toDB()

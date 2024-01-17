@@ -2,19 +2,25 @@ val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
 val exposed_version: String by project
+val kotlinx_serialization_version: String by project
+val maria_db_version: String by project
+val arrow_kt_version: String by project
+val jakarta_mail_version: String by project
+val angus_mail_version: String by project
+val kotlinx_coroutines_version: String by project
 
 plugins {
-    kotlin("jvm") version "1.8.21"
-    id("io.ktor.plugin") version "2.3.3"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.8.10"
+    kotlin("jvm") version "1.9.22"
+    id("io.ktor.plugin") version "2.3.7"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
 }
 
 group = "net.mt32.expoll"
-version = "3.0.0"
+version = "3.8.0"
 application {
     mainClass.set("net.mt32.expoll.ApplicationKt")
 
@@ -66,8 +72,8 @@ dependencies {
     implementation("io.ktor:ktor-server-config-yaml:$ktor_version")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.1")
-    implementation("org.mariadb.jdbc:mariadb-java-client:2.1.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinx_serialization_version")
+    implementation("org.mariadb.jdbc:mariadb-java-client:$maria_db_version")
     implementation("io.ktor:ktor-server-double-receive:$ktor_version")
     implementation("io.ktor:ktor-server-auth:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jwt:$ktor_version")
@@ -76,22 +82,22 @@ dependencies {
     implementation("io.ktor:ktor-client-java:$ktor_version")
     implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
     implementation("io.ktor:ktor-server-rate-limit:$ktor_version")
-    implementation("io.arrow-kt:arrow-core:1.1.2")
+    implementation("io.arrow-kt:arrow-core:$arrow_kt_version")
     implementation("io.github.nefilim.kjwt:kjwt-core:0.8.0")
-    implementation("jakarta.mail:jakarta.mail-api:2.1.1")
-    implementation("org.eclipse.angus:angus-mail:2.0.1")
+    implementation("jakarta.mail:jakarta.mail-api:$jakarta_mail_version")
+    implementation("org.eclipse.angus:angus-mail:$angus_mail_version")
     //implementation("com.webauthn4j:webauthn4j-core:0.21.0.RELEASE")
-    implementation("com.yubico:webauthn-server-core:2.4.0")
-    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+    implementation("com.yubico:webauthn-server-core:2.5.0")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
     testImplementation(platform("org.junit:junit-bom:5.7.0"))
     testImplementation(kotlin("test-junit5"))
-    implementation("com.auth0:java-jwt:3.18.1")
+    implementation("com.auth0:java-jwt:4.4.0")
     implementation("io.ktor:ktor-server-cors:$ktor_version")
     implementation("nl.martijndwars:web-push:5.1.1")
-    implementation("org.bouncycastle:bcprov-jdk15on:1.70")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.77")
 
 
     //testImplementation(kotlin("test"))
 
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.0-Beta")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version")
 }

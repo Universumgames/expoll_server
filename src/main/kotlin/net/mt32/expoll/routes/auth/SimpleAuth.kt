@@ -2,6 +2,7 @@ package net.mt32.expoll.routes.auth
 
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
@@ -15,7 +16,7 @@ import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.DeepLinkBuilder
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.URLBuilder
-import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.serializable.request.SimpleLoginRequest
 
 fun Route.simpleAuthRoutes() {
     route("simple") {
@@ -31,8 +32,9 @@ fun Route.simpleAuthRoutes() {
 }
 
 suspend fun simpleLoginRoute(call: ApplicationCall) {
-    val otpString = call.getDataFromAny("otp")
-    val mail = call.getDataFromAny("mail")
+    val simpleLoginRequest: SimpleLoginRequest = call.receive()
+    val otpString = simpleLoginRequest.otp
+    val mail = simpleLoginRequest.mail
 
     if (otpString.isNullOrEmpty() && mail.isNullOrEmpty()) {
         call.respond(ReturnCode.MISSING_PARAMS)
@@ -40,7 +42,7 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
     }
 
     if (!mail.isNullOrEmpty()) {
-        val forApp = call.getDataFromAny("forApp")?.toBoolean() ?: false
+        val forApp = simpleLoginRequest.forApp ?: false
         val user = User.byMail(mail)
         if (user == null || !user.active) {
             call.respond(ReturnCode.BAD_REQUEST)
@@ -67,6 +69,10 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
             return
         }
         val session = otp.createSessionAndDeleteSelf(call.request.headers["User-Agent"] ?: "unknown")
+        val clientVersion = simpleLoginRequest.version
+        val clientPlatform = simpleLoginRequest.platform
+        session.clientVersion = clientVersion
+        session.save()
         val jwt = session.getJWT()
         call.sessions.clear(cookieName)
         call.sessions.set(ExpollJWTCookie(jwt))
