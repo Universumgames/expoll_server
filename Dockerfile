@@ -4,7 +4,7 @@ COPY --chown=gradle:gradle ./ .
 RUN gradle buildFatJar --no-daemon --warning-mode all
 #ENTRYPOINT ["gradle", "run", "--no-deamon"]
 
-FROM openjdk:19
+FROM openjdk:23
 EXPOSE 6060:6060
 RUN mkdir -p /expoll/api_server
 COPY --from=build /expoll/api_server/build/libs/*.jar /expoll/api_server/server.jar
