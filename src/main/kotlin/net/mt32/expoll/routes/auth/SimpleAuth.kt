@@ -68,11 +68,11 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
             call.respond(ReturnCode.UNAUTHORIZED)
             return
         }
-        val session = otp.createSessionAndDeleteSelf(call.request.headers["User-Agent"] ?: "unknown")
-        val clientVersion = simpleLoginRequest.version
-        val clientPlatform = simpleLoginRequest.platform
-        session.clientVersion = clientVersion
-        session.save()
+        val session = otp.createSessionAndDeleteSelf(
+            call.request.headers["User-Agent"] ?: "unknown",
+            simpleLoginRequest.version,
+            simpleLoginRequest.platform
+        )
         val jwt = session.getJWT()
         call.sessions.clear(cookieName)
         call.sessions.set(ExpollJWTCookie(jwt))

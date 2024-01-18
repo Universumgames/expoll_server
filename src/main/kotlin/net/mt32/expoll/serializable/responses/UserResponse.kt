@@ -3,6 +3,7 @@ package net.mt32.expoll.serializable.responses
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.entities.ISimpleUser
 import net.mt32.expoll.entities.PollUserNote
+import net.mt32.expoll.serializable.request.Platform
 import net.mt32.expoll.serializable.request.VoteChange
 import net.mt32.expoll.tClientDateTime
 import net.mt32.expoll.tPollID
@@ -77,6 +78,8 @@ data class StrippedPollData(
 data class SafeSession(
     val expiration: tClientDateTime,
     val userAgent: String?,
+    val platform: Platform,
+    val version: String?,
     val nonce: String,
     val active: Boolean
 )

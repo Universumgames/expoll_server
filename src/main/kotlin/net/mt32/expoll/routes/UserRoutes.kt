@@ -42,6 +42,9 @@ fun Route.userRoutes() {
             get("/personalizeddata") {
                 getPersonalizedData(call)
             }
+            get("/sessions"){
+                getSessions(call)
+            }
             put{
                 editUser(call)
             }
@@ -184,6 +187,18 @@ private suspend fun getPersonalizedData(call: ApplicationCall) {
         user.maxPollsOwned
     )
     call.respond(personalizedData)
+}
+
+private suspend fun getSessions(call: ApplicationCall){
+    val principal = call.principal<JWTSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+        return
+    }
+    val user = principal.user
+    val sessions = user.sessions.map { it.asSafeSession(principal.session) }
+    call.respond(sessions)
+
 }
 
 private suspend fun createChallenge(call: ApplicationCall) {
