@@ -399,7 +399,8 @@ class User : IUser, DatabaseEntity {
             created.toClient(),
             deleted?.toClient(),
             pollsOwned,
-            maxPollsOwned
+            maxPollsOwned,
+            sessions.map { it.asSafeSession(null) }
         )
     }
 

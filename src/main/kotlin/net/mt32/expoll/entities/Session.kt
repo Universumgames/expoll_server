@@ -317,7 +317,7 @@ class Session : DatabaseEntity {
         return true
     }
 
-    fun asSafeSession(currentSession: Session): SafeSession {
-        return SafeSession(expirationTimestamp.toClient(), userAgent, platform, clientVersion, nonce.toString(), currentSession.nonce == nonce)
+    fun asSafeSession(currentSession: Session?): SafeSession {
+        return SafeSession(expirationTimestamp.toClient(), userAgent, platform, clientVersion, nonce.toString(), currentSession?.nonce == nonce)
     }
 }

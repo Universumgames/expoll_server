@@ -2,6 +2,7 @@ package net.mt32.expoll.serializable.admin.responses
 
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.serializable.responses.IUserDataResponse
+import net.mt32.expoll.serializable.responses.SafeSession
 import net.mt32.expoll.tClientDateTime
 import net.mt32.expoll.tUserID
 
@@ -19,7 +20,8 @@ data class UserInfo(
     override val createdTimestamp: tClientDateTime,
     val deletedTimestamp: tClientDateTime? = null,
     override val pollsOwned: Long,
-    override val maxPollsOwned: Long
+    override val maxPollsOwned: Long,
+    val sessions: List<SafeSession>
 ): IUserDataResponse
 
 @Serializable

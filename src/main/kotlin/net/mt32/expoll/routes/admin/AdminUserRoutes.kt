@@ -7,7 +7,6 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.JWTSessionPrincipal
-import net.mt32.expoll.config
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.URLBuilder
@@ -17,7 +16,6 @@ import net.mt32.expoll.plugins.query
 import net.mt32.expoll.serializable.admin.request.AdminCreateUserRequest
 import net.mt32.expoll.serializable.admin.request.AdminEditUserRequest
 import net.mt32.expoll.serializable.admin.request.AdminUserListRequest
-import net.mt32.expoll.serializable.admin.responses.UserInfo
 import net.mt32.expoll.serializable.admin.responses.UserListResponse
 
 internal fun Route.adminUserRoutes() {
@@ -52,21 +50,7 @@ private suspend fun getUsers(call: ApplicationCall) {
 
     call.startNewTiming("users.transform", "Transform user list to simple")
     val userInfos = users.map { user ->
-        UserInfo(
-            user.id,
-            user.username,
-            user.firstName,
-            user.lastName,
-            user.mail,
-            user.admin || user.mail.equals(config.superAdminMail, ignoreCase = true),
-            user.mail.equals(config.superAdminMail, ignoreCase = true),
-            user.active,
-            user.oidConnections.map { it.toConnectionOverview().name },
-            user.created.toClient(),
-            user.deleted?.toClient(),
-            user.pollsOwned,
-            user.maxPollsOwned
-        )
+        user.asUserInfo()
     }
     call.respond(UserListResponse(userInfos, users.size))
 }
@@ -119,7 +103,7 @@ private suspend fun editUser(call: ApplicationCall) {
     user.lastName = editUserRequest.lastName ?: user.lastName
     user.mail = editUserRequest.mail ?: user.mail
     user.username = editUserRequest.username ?: user.username
-    if(!user.admin || admin.superAdmin) user.admin = editUserRequest.admin ?: user.admin
+    if (!user.admin || admin.superAdmin) user.admin = editUserRequest.admin ?: user.admin
 
     user.save()
     call.respond(ReturnCode.OK)
