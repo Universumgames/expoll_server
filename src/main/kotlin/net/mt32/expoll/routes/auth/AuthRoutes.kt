@@ -52,7 +52,7 @@ private suspend fun logout(call: ApplicationCall){
     val nonce = call.getDataFromAny("nonce")?.toLong()
     if(nonce != null){
         val session = Session.fromNonce(nonce)
-        if(session?.userID != principal.userID) return
+        if(session?.userID != principal.userID || principal.user.superAdminOrAdmin) return
         session.delete()
         call.respond(ReturnCode.OK)
     }else {

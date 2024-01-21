@@ -104,6 +104,7 @@ private suspend fun editUser(call: ApplicationCall) {
     user.mail = editUserRequest.mail ?: user.mail
     user.username = editUserRequest.username ?: user.username
     if (!user.admin || admin.superAdmin) user.admin = editUserRequest.admin ?: user.admin
+    user.maxPollsOwned = editUserRequest.maxPollsOwned ?: user.maxPollsOwned
 
     user.save()
     call.respond(ReturnCode.OK)
