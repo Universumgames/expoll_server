@@ -18,7 +18,7 @@
   },
   "maxPollCountPerUser": 10,
   "recaptchaAPIKey": "your google recaptcha api key goes here",
-  "serverVersion": "4.0.3",
+  "serverVersion": "4.0.4",
   "compatibleVersions": [
     {
       "platform": "web",
@@ -97,5 +97,8 @@
   "cookieDomain": "expoll.mt32.net",
   "developmentMode": false,
   "deleteURLPrefix": "https://expoll.mt32.net/#/delete/",
-  "deleteConfirmationTimeoutSeconds": 600
+  "deleteConfirmationTimeoutSeconds": 600,
+  "initialUserConfig": {
+    "pollID": "00000000-0000-0000-0000-000000000000"
+  }
 }

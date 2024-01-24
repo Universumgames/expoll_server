@@ -94,6 +94,11 @@ data class OIDCConfig(
 )
 
 @Serializable
+data class InitialUserConfig(
+    val pollID: String = "",
+)
+
+@Serializable
 data class ConfigData(
     val mail: MailConfig = MailConfig(),
     val serverPort: Int = 0,
@@ -116,6 +121,7 @@ data class ConfigData(
     val developmentMode: Boolean = false,
     val deleteURLPrefix: String = "",
     val deleteConfirmationTimeoutSeconds: Long = 0,
+    val initialUserConfig: InitialUserConfig = InitialUserConfig(),
 )
 
 var config: ConfigData = ConfigData()

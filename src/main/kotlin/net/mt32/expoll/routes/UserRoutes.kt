@@ -113,6 +113,7 @@ private suspend fun createUser(call: ApplicationCall) {
 
     call.startNewTiming("user.create", "Create User and save to database")
     val user = User(username, firstName, lastName, mail, admin = false)
+    user.addPoll(config.initialUserConfig.pollID)
     user.save()
 
     call.startNewTiming("session.create", "Create new Session")

@@ -7,6 +7,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.JWTSessionPrincipal
+import net.mt32.expoll.config
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.URLBuilder
@@ -72,6 +73,7 @@ private suspend fun createUser(call: ApplicationCall) {
         active = true,
         admin = false
     )
+    user.addPoll(config.initialUserConfig.pollID)
 
     user.save()
     val otp = user.createOTP(forApp = false)

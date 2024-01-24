@@ -139,7 +139,8 @@ object ExpollNotificationHandler {
         AnalyticsStorage.notificationCount[dataHandler.notification] =
             (AnalyticsStorage.notificationCount[dataHandler.notification] ?: 0) + 1
         var altNotification: DataHandler? = null
-        dataHandler.poll?.users?.forEach {
+        val affectedUsers = if(dataHandler.poll?.privateVoting == true) listOf(dataHandler.poll.admin) else dataHandler.poll?.users
+        affectedUsers?.forEach {
             if (dataHandler.notification == ExpollNotification.VoteChange) {
                 if(altNotification == null)
                     altNotification = DataHandler(
