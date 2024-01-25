@@ -35,7 +35,7 @@ build_docker:
         - curl -fsSL https://get.docker.com | sh # Install Docker
         # https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files
         - curl -s https://gitlab.com/gitlab-org/incubation-engineering/mobile-devops/download-secure-files/-/raw/main/installer | bash # Install the secure files tool
-        - cp .secure_files/production.json ./config/
-        - cp .secure_files/db.env ./docker/
-        - cp .secure_files/AuthKey_58V5WA3RLA.p8 ./config/
+        - cp .secure_files/production.json ./config/ # Copy the production.json file to the config folder uploaded to GitLab before
+        - cp .secure_files/db.env ./docker/ # Copy the db.env file to the config folder uploaded to GitLab before
+        - cp .secure_files/AuthKey_58V5WA3RLA.p8 ./config/ # Copy the Apple Notification Key file to the config folder uploaded to GitLab before
         - ./run-backend.sh
