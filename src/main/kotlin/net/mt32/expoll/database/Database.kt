@@ -13,13 +13,32 @@ import java.sql.ResultSet
 
 object DatabaseFactory {
 
+    var db: Database? = null
+    private var connectionTries = 0
+
     /**
      * Initialize database connection, create scheme and missing tables
      */
     fun init() {
+
+        if(connectionTries > 10){
+            println("Database connection failed 5 times, aborting...")
+            throw Exception("Database connection failed")
+        }
+
         val jdbcUrl = "jdbc:mariadb://${config.database.host}:${config.database.port}/expoll"
 
-        Database.connect(jdbcUrl, user = "root", password = "password")
+        println("Connecting to database...")
+
+        db = Database.connect(jdbcUrl, user = "root", password = "password")
+
+        if (!connected) {
+            connectionTries++
+            println("Connection failed ($connectionTries), retrying in 5 seconds...")
+            Thread.sleep(5000)
+            init()
+            return
+        }
 
         transaction {
             SchemaUtils.createDatabase("expoll")
@@ -59,6 +78,17 @@ object DatabaseFactory {
             }
         }
     }
+
+    val connected: Boolean
+        get() {
+            return try {
+                runRawSQL("SELECT 1;") {
+                    return@runRawSQL it.next()
+                } ?: false
+            } catch (e: Exception) {
+                false
+            }
+        }
 }
 
 object Transformer {
