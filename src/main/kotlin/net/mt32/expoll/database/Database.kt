@@ -22,7 +22,7 @@ object DatabaseFactory {
     fun init() {
 
         if(connectionTries > 10){
-            println("Database connection failed 5 times, aborting...")
+            println("Database connection failed too many times ($connectionTries tries), aborting...")
             throw Exception("Database connection failed")
         }
 
@@ -39,6 +39,7 @@ object DatabaseFactory {
             init()
             return
         }
+        println("Connected to database")
 
         transaction {
             SchemaUtils.createDatabase("expoll")
