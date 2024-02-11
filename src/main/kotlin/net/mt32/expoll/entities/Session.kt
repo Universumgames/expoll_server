@@ -193,6 +193,8 @@ class Session : DatabaseEntity {
 
     fun getJWT(): String {
         val user = this.user!!
+        user.lastLogin = UnixTimestamp.now()
+        user.save()
         return JWT.create()
             .withAudience(config.jwt.audience)
 

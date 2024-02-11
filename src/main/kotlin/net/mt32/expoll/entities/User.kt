@@ -106,6 +106,7 @@ class User : IUser, DatabaseEntity {
 
     val created: UnixTimestamp
     val deleted: UnixTimestamp?
+    var lastLogin: UnixTimestamp
 
     val oidConnections: List<OIDCUserData>
         get() = OIDCUserData.byUser(id)
@@ -140,6 +141,7 @@ class User : IUser, DatabaseEntity {
         this.created = UnixTimestamp.now()
         this.deleted = null
         this._maxPollsOwned = 10
+        this.lastLogin = UnixTimestamp.now()
     }
 
     constructor(userRow: ResultRow) {
@@ -153,6 +155,7 @@ class User : IUser, DatabaseEntity {
         this.created = userRow[User.created].toUnixTimestampFromDB()
         this.deleted = userRow[User.deleted]?.toUnixTimestampFromDB()
         this._maxPollsOwned = userRow[User.maxPollsOwned]
+        this.lastLogin = userRow[User.lastLogin].toUnixTimestampFromDB()
     }
 
     override fun save(): Boolean {
@@ -167,6 +170,7 @@ class User : IUser, DatabaseEntity {
                 it[admin] = this@User.admin
                 it[created] = this@User.created.toDB()
                 it[deleted] = this@User.deleted?.toDB()
+                it[lastLogin] = this@User.lastLogin.toDB()
                 it[maxPollsOwned] = this@User._maxPollsOwned
             }
         }
@@ -252,6 +256,7 @@ class User : IUser, DatabaseEntity {
         val admin = bool("admin")
         val created = long("createdTimestamp")
         val deleted = long("deletedTimestamp").nullable()
+        val lastLogin = long("lastLogin")
         val maxPollsOwned = long("maxPollsOwned").default(10)
 
 
@@ -400,7 +405,8 @@ class User : IUser, DatabaseEntity {
             deleted?.toClient(),
             pollsOwned,
             maxPollsOwned,
-            sessions.map { it.asSafeSession(null) }
+            sessions.map { it.asSafeSession(null) },
+            lastLogin.toClient()
         )
     }
 

@@ -43,7 +43,13 @@ object DatabaseFactory {
 
         transaction {
             SchemaUtils.createDatabase("expoll")
-            Transformer.transformTables()
+            if(Transformer.tableExists(User.tableName)) // if user table exists, all other tables exist
+                try{
+                    Transformer.transformTables()
+                    println("Tables transformed")
+                } catch (e: Exception){
+                    println("Error transforming tables: ${e.message}")
+                }
             SchemaUtils.createMissingTablesAndColumns(
                 APNDevice,
                 AppAttest,
@@ -65,6 +71,7 @@ object DatabaseFactory {
                 Vote,
                 WebNotificationDevice
             )
+            println("Database initialized")
         }
     }
 
@@ -109,6 +116,7 @@ object Transformer {
         addMaxPollsOwnedColumn()
         addVoteChangeDetailedNotificationSetting()
         addPrivateVotingOption()
+        addUserLastLogin()
 
         removeGhostVotes() // always last
     }

@@ -21,7 +21,8 @@ data class UserInfo(
     val deletedTimestamp: tClientDateTime? = null,
     override val pollsOwned: Long,
     override val maxPollsOwned: Long,
-    val sessions: List<SafeSession>
+    val sessions: List<SafeSession>,
+    val lastLoginTimestamp: tClientDateTime
 ): IUserDataResponse
 
 @Serializable
