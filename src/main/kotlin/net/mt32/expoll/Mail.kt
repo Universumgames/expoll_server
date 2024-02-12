@@ -3,30 +3,60 @@ package net.mt32.expoll
 import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
+import net.mt32.expoll.entities.UserDeletionConfirmation
 import java.util.*
+
+object ExpollMail {
+    fun OTPMail(mail: String, fullName: String, otp: String, loginLink: String): Mail.MailData {
+        return Mail.MailData(
+            mail, fullName, "Login to expoll", "Here is your OTP for logging in on the expoll website: \n\t" +
+                    otp +
+                    "\n alternatively you can click this link \n" + loginLink
+        )
+    }
+
+    fun UserCreationMail(mail: String, fullName: String, scheme: String): Mail.MailData {
+        val port = config.frontEndPort
+        return Mail.MailData(
+            mail, fullName, "Thank you for registering in expoll",
+            "Thank you for creating an account at over at expoll (" +
+                    scheme +
+                    "://" +
+                    config.loginLinkURL +
+                    (if (port == 80 || port == 443) "" else ":$port") +
+                    ")"
+        )
+    }
+
+    fun UserDeactivationNotificationMail(mail: String, fullName: String): Mail.MailData {
+        return Mail.MailData(
+            mail, fullName, "Your account has been deactivated",
+            "Your account has been deactivated because you haven't used the service in a long time. To avoid account deletion, please log in.")
+    }
+
+    fun UserDeletionConfirmationMail(mail: String, fullName: String, confirmation: UserDeletionConfirmation): Mail.MailData {
+        return Mail.MailData(
+            mail, fullName, "Your account has been deleted",
+            "Your account has been deleted. All your personal information has been anonymized and is no longer associated with you. If you didn't have any polls, your account has been deleted immediately. If you had polls, your account has been deleted completely"
+        )
+    }
+}
 
 object Mail {
 
-    internal data class MailData(val toMail: String, val toName: String, val subject: String, val body: String)
-
-    //private val mailThread: Thread
-    //private val mailQueue: MutableList<MailData>
-
-    init {
-        //mailQueue = mutableListOf()
-        /*mailThread = Thread {
-            while (true) {
-                val mail = mailQueue.removeFirstOrNull()
-                if (mail != null) sendMail(mail)
-            }
-        }
-        mailThread.start()*/
-    }
+    data class MailData(val toMail: String, val toName: String, val subject: String, val body: String)
 
     fun sendMailAsync(toMail: String, toName: String, subject: String, body: String) {
         //mailQueue.add(MailData(to, subject, body))
-        Thread{
+        Thread {
             sendMail(MailData(toMail, toName, subject, body))
+        }.start()
+    }
+
+    fun sendMailAsync(mail: MailData) {
+        //mailQueue.add(MailData(to, subject, body))
+        Thread {
+            sendMail(mail)
         }.start()
     }
 

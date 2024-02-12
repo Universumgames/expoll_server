@@ -1,13 +1,15 @@
 package net.mt32.expoll.entities
 
 import com.yubico.webauthn.data.ByteArray
+import io.ktor.server.application.*
 import io.ktor.util.*
 import kotlinx.serialization.Serializable
-import net.mt32.expoll.config
+import net.mt32.expoll.*
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.entities.notifications.APNDevice
 import net.mt32.expoll.entities.notifications.WebNotificationDevice
+import net.mt32.expoll.helper.URLBuilder
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsertCustom
@@ -15,8 +17,6 @@ import net.mt32.expoll.serializable.admin.responses.UserInfo
 import net.mt32.expoll.serializable.request.SortingOrder
 import net.mt32.expoll.serializable.responses.SimpleUser
 import net.mt32.expoll.serializable.responses.UserDataResponse
-import net.mt32.expoll.tPollID
-import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -239,6 +239,17 @@ class User : IUser, DatabaseEntity {
         val session = Session(id, "unknown")
         session.save()
         return session
+    }
+
+    fun sendOTPMail(call: ApplicationCall, forApp: Boolean = false) {
+        val otp = createOTP(forApp)
+        val mailData = ExpollMail.OTPMail(mail, fullName, otp.otp, URLBuilder.buildLoginLink(call, this, otp, forApp))
+        Mail.sendMailAsync(mailData)
+    }
+
+    fun sendUserCreationMail(scheme: String) {
+        val mailData = ExpollMail.UserCreationMail(mail, fullName, scheme)
+        Mail.sendMailAsync(mailData)
     }
 
     companion object : Table("user") {

@@ -120,17 +120,8 @@ private suspend fun createUser(call: ApplicationCall) {
     val session = user.createSessionFromScratch()
 
     call.startNewTiming("user.create.welcomeMail", "Send welcome mail")
-    val port = config.frontEndPort
-    val protocol = call.request.local.scheme
-    Mail.sendMailAsync(
-        user.mail, user.fullName, "Thank you for registering in expoll",
-        "Thank you for creating an account at over at expoll (" +
-                protocol +
-                "://" +
-                config.loginLinkURL +
-                (if (port == 80 || port == 443) "" else ":$port") +
-                ")"
-    )
+
+    user.sendUserCreationMail(call.request.local.scheme)
 
     val jwt = session.getJWT()
     call.sessions.set(ExpollJWTCookie(jwt))

@@ -6,7 +6,6 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.ExpollJWTCookie
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.auth.cookieName
@@ -15,7 +14,6 @@ import net.mt32.expoll.entities.OTP
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.DeepLinkBuilder
 import net.mt32.expoll.helper.ReturnCode
-import net.mt32.expoll.helper.URLBuilder
 import net.mt32.expoll.serializable.request.SimpleLoginRequest
 
 fun Route.simpleAuthRoutes() {
@@ -48,13 +46,7 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
             call.respond(ReturnCode.BAD_REQUEST)
             return
         }
-        val otp = user.createOTP(forApp)
-        Mail.sendMailAsync(
-            user.mail, user.fullName, "Login to expoll", "Here is your OTP for logging in on the expoll website: \n\t" +
-                    otp.otp +
-                    "\n alternatively you can click this link \n" +
-                    URLBuilder.buildLoginLink(call, user, otp, false)
-        )
+        user.sendOTPMail(call, forApp)
         call.respond(ReturnCode.OK)
         return
     }
