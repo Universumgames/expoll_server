@@ -257,7 +257,7 @@ private suspend fun getPollList(call: ApplicationCall, pollRequest: PollRequest)
     call.startNewTiming("polls.list", "Retrieve poll data from database")
     val searchParameters = pollRequest.searchParameters ?: PollSearchParameters()
     searchParameters.specialFilter = PollSearchParameters.SpecialFilter.JOINED
-    val polls = if(pollRequest.searchParameters == null) principal.user.polls else Poll.all(searchParameters = searchParameters)
+    val polls = if(pollRequest.searchParameters == null) principal.user.polls else Poll.all(searchParameters = searchParameters, forUserId = principal.userID)
     call.startNewTiming("polls.transform", "Transform poll data to simplified list format")
     val simplePolls = polls.asPollListResponse(principal.user)
     call.startNewTiming("polls.serialize", "Serialize data and prepare to send")

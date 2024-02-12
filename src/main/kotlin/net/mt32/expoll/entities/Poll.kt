@@ -267,13 +267,11 @@ class Poll : DatabaseEntity, IPoll {
                     val specialFilter = when (searchParameters.specialFilter) {
                         PollSearchParameters.SpecialFilter.ALL -> Op.TRUE
                         PollSearchParameters.SpecialFilter.JOINED -> forUserId?.let {
-                            Poll.id inSubQuery UserPolls.select { UserPolls.userID eq forUserId }
-                                .adjustSlice { slice(Poll.id) }
+                            Poll.id inSubQuery UserPolls.select(Poll.id).where { UserPolls.userID eq forUserId }
                         } ?: Op.TRUE
 
                         PollSearchParameters.SpecialFilter.NOT_JOINED -> forUserId?.let {
-                            Poll.id notInSubQuery UserPolls.select { UserPolls.userID eq forUserId }
-                                .adjustSlice { slice(Poll.id) }
+                            Poll.id notInSubQuery UserPolls.select(Poll.id).where { UserPolls.userID eq forUserId }
                         } ?: Op.TRUE
                     }
 
@@ -284,14 +282,13 @@ class Poll : DatabaseEntity, IPoll {
                     val description =
                         (if (searchParameters.searchQuery.description != null) (Poll.description like "%${searchParameters.searchQuery.description}%") else Op.TRUE)
                     val userPolls =
-                        UserPolls.select { UserPolls.userID like "%${searchParameters.searchQuery.memberID}%" }
-                            .adjustSlice { slice(UserPolls.pollID) }
+                        UserPolls.select(UserPolls.pollID).where { UserPolls.userID like "%${searchParameters.searchQuery.memberID}%" }
                     val memberID =
                         (if (searchParameters.searchQuery.memberID != null) (Poll.id inSubQuery userPolls) else Op.TRUE)
                     val any = (if (searchParameters.searchQuery.any != null) (
-                            (Poll.name eq "%${searchParameters.searchQuery.any}%") or
+                            (Poll.name like "%${searchParameters.searchQuery.any}%") or
                                     (Poll.id like "%${searchParameters.searchQuery.any}%") or
-                                    (Poll.description like "%${searchParameters.searchQuery.any}%") or memberID) else Op.TRUE)
+                                    (Poll.description like "%${searchParameters.searchQuery.any}%")) else Op.TRUE)
 
                     val query = adminID and name and description and memberID and any
 

@@ -307,8 +307,7 @@ class User : IUser, DatabaseEntity {
                     val specialFilter = when (searchParameters.specialFilter) {
                         UserSearchParameters.SpecialFilter.ALL -> Op.TRUE
                         UserSearchParameters.SpecialFilter.DELETED -> User.deleted.isNotNull()
-                        UserSearchParameters.SpecialFilter.OIDC -> User.id inSubQuery OIDCUserData.select { OIDCUserData.userID eq User.id }
-                            .adjustSlice { slice(OIDCUserData.userID) }
+                        UserSearchParameters.SpecialFilter.OIDC -> User.id inSubQuery OIDCUserData.select(OIDCUserData.userID).where { OIDCUserData.userID eq User.id }
 
                         UserSearchParameters.SpecialFilter.ADMIN -> User.admin
                     }
@@ -320,8 +319,7 @@ class User : IUser, DatabaseEntity {
                     val lastName =
                         (if (searchParameters.searchQuery.lastName != null) (User.lastName like "%${searchParameters.searchQuery.lastName}%") else Op.TRUE)
                     val memberInPoll =
-                        (if (searchParameters.searchQuery.memberInPoll != null) (User.id inSubQuery UserPolls.select { UserPolls.pollID like "%${searchParameters.searchQuery.memberInPoll}%" }
-                            .adjustSlice { slice(UserPolls.userID) }) else Op.TRUE)
+                        (if (searchParameters.searchQuery.memberInPoll != null) (User.id inSubQuery UserPolls.select(UserPolls.userID).where { UserPolls.pollID like "%${searchParameters.searchQuery.memberInPoll}%" }) else Op.TRUE)
                     val any = (if (searchParameters.searchQuery.any != null)
                         ((User.username like "%${searchParameters.searchQuery.any}%") or
                                 (User.firstName like "%${searchParameters.searchQuery.any}%") or
