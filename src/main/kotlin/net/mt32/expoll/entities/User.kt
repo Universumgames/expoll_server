@@ -542,6 +542,7 @@ class User : IUser, DatabaseEntity {
     }
 
     fun reactivateUser() {
+        if(deleted != null) return
         active = true
         UserDeletionQueue.removeUserFromDeletionQueue(id)
         save()
