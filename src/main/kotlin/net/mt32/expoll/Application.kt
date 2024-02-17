@@ -58,6 +58,9 @@ private fun initCleanup() {
     }, delay, UnixTimestamp.zero().addDays(1).millisSince1970)
 }
 
+/***
+ * Cleanup all expired sessions, OTPs, APN devices and deactivate inactive users
+ */
 private fun cleanupCoroutine() {
     // clean otp
     transaction {
@@ -70,6 +73,20 @@ private fun cleanupCoroutine() {
     // clean apn devices
     transaction {
         APNDevice.all().forEach { if (!it.isValid) it.delete() }
+    }
+    // notify users of inactivity
+    transaction {
+        // TODO deactivate all users after x months of inactivity and notify them
+        // TODO delete all inactive users after x+y months of inactivity
+        // TODO final delete all deleted users after z months and their polls
+        val longLastLoginUsers = User.oldLoginUsers()
+        longLastLoginUsers.forEach { it.deactivateUser() }
+
+        val toDelete = User.usersToDelete()
+        toDelete.forEach { it.anonymizeUserData() }
+
+        val finalDelete = User.usersToFinalDelete()
+        finalDelete.forEach { it.finalDelete() }
     }
 }
 

@@ -69,7 +69,8 @@ object DatabaseFactory {
                 User,
                 UserDeletionConfirmation,
                 Vote,
-                WebNotificationDevice
+                WebNotificationDevice,
+                UserDeletionQueue
             )
             println("Database initialized")
         }

@@ -11,7 +11,7 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
@@ -65,14 +65,14 @@ class Challenge : DatabaseEntity {
 
         fun fromID(id: Int): Challenge? {
             return transaction {
-                val challengeRow = Challenge.select { Challenge.id eq id }.firstOrNull()
+                val challengeRow = Challenge.selectAll().where { Challenge.id eq id }.firstOrNull()
                 return@transaction challengeRow?.let { Challenge(it) }
             }
         }
 
         fun forUser(userID: String): List<Challenge> {
             return transaction {
-                val challengeRow = Challenge.select { Challenge.userID eq userID }
+                val challengeRow = Challenge.selectAll().where { Challenge.userID eq userID }
                 return@transaction challengeRow.map { Challenge(it) }
             }
         }
@@ -170,14 +170,14 @@ class Authenticator : DatabaseEntity {
 
         fun fromUser(userID: String): List<Authenticator> {
             return transaction {
-                val result = Authenticator.select { Authenticator.userID eq userID }
+                val result = Authenticator.selectAll().where { Authenticator.userID eq userID }
                 return@transaction result.map { Authenticator(it) }
             }
         }
 
         fun fromCredentialID(credentialID: String): Authenticator? {
             return transaction {
-                val result = Authenticator.select { Authenticator.credentialID eq credentialID }.firstOrNull()
+                val result = Authenticator.selectAll().where { Authenticator.credentialID eq credentialID }.firstOrNull()
                 return@transaction result?.let { Authenticator(it) }
             }
         }

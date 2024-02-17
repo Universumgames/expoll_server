@@ -55,7 +55,7 @@ class OTP : DatabaseEntity {
                 return OTP(otp, testuser.id, true)
             }
             return transaction {
-                val otp = OTP.select { OTP.otp eq otp }.firstOrNull()?.let { OTP(it) }
+                val otp = OTP.selectAll().where { OTP.otp eq otp }.firstOrNull()?.let { OTP(it) }
                 if (otp != null && !otp.valid) {
                     otp.delete()
                     return@transaction null
@@ -85,7 +85,7 @@ class OTP : DatabaseEntity {
 
         fun fromUser(userID: tUserID): List<OTP> {
             return transaction {
-                val result = OTP.select { OTP.userID eq userID }
+                val result = OTP.selectAll().where { OTP.userID eq userID }
                 return@transaction result.map { OTP(it) }
             }
         }
@@ -239,13 +239,13 @@ class Session : DatabaseEntity {
 
         fun forUser(userID: tUserID): List<Session> {
             return transaction {
-                return@transaction Session.select { Session.userID eq userID }.map { Session(it) }
+                return@transaction Session.selectAll().where { Session.userID eq userID }.map { Session(it) }
             }
         }
 
         fun fromNonce(nonce: Long): Session? {
             val session = transaction {
-                return@transaction Session.select { Session.nonce eq nonce }.firstOrNull()?.let { Session(it) }
+                return@transaction Session.selectAll().where { Session.nonce eq nonce }.firstOrNull()?.let { Session(it) }
             } ?: return null
             if (!session.isValid) {
                 session.delete()

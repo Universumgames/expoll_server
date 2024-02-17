@@ -70,7 +70,7 @@ class OIDCUserData : DatabaseEntity {
         fun bySubjectAndIDP(subject: String, idpName: String): OIDCUserData? {
             return transaction {
                 val row =
-                    OIDCUserData.select { (OIDCUserData.subject eq subject) and (OIDCUserData.idpName eq idpName) }
+                    OIDCUserData.selectAll().where { (OIDCUserData.subject eq subject) and (OIDCUserData.idpName eq idpName) }
                         .firstOrNull()
                 return@transaction row?.let { OIDCUserData(it) }
             }
@@ -78,7 +78,7 @@ class OIDCUserData : DatabaseEntity {
 
         fun byUser(userID: String): List<OIDCUserData> {
             return transaction {
-                val result = OIDCUserData.select { (OIDCUserData.userID eq userID) }
+                val result = OIDCUserData.selectAll().where { (OIDCUserData.userID eq userID) }
                 return@transaction result.map { OIDCUserData(it) }
             }
         }

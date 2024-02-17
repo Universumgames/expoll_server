@@ -94,7 +94,7 @@ class MailRule : DatabaseEntity {
 
         fun fromID(id: String): MailRule? {
             return transaction {
-                val row = MailRule.select { MailRule.id eq id }.firstOrNull()
+                val row = MailRule.selectAll().where { MailRule.id eq id }.firstOrNull()
                 return@transaction row?.let { MailRule(it) }
             }
         }

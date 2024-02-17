@@ -83,7 +83,7 @@ class PollOptionString : PollOption, DatabaseEntity {
         fun fromPollIDAndID(pollID: tPollID, optionID: tOptionID): PollOptionString? {
             return transaction {
                 val result =
-                    PollOptionString.select { (PollOptionString.pollID eq pollID) and (PollOptionString.id eq optionID) }
+                    PollOptionString.selectAll().where { (PollOptionString.pollID eq pollID) and (PollOptionString.id eq optionID) }
                         .firstOrNull()
                 return@transaction result?.let { PollOptionString(it) }
             }
@@ -92,7 +92,7 @@ class PollOptionString : PollOption, DatabaseEntity {
         fun fromPollID(pollID: tPollID): List<PollOptionString> {
             return transaction {
                 val result =
-                    PollOptionString.select { PollOptionString.pollID eq pollID }
+                    PollOptionString.selectAll().where { PollOptionString.pollID eq pollID }
                 return@transaction result.map { PollOptionString(it) }
             }
         }
@@ -175,7 +175,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
         fun fromPollIDAndID(pollID: tPollID, optionID: tOptionID): PollOptionDate? {
             return transaction {
                 val result =
-                    select { (PollOptionDate.pollID eq pollID) and (PollOptionDate.id eq optionID) }
+                    selectAll().where { (PollOptionDate.pollID eq pollID) and (PollOptionDate.id eq optionID) }
                         .firstOrNull()
                 return@transaction result?.let { PollOptionDate(it) }
             }
@@ -184,7 +184,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
         fun fromPollID(pollID: tPollID): List<PollOptionDate> {
             return transaction {
                 val result =
-                    select { PollOptionDate.pollID eq pollID }
+                    selectAll().where { PollOptionDate.pollID eq pollID }
                 return@transaction result.map { PollOptionDate(it) }
             }
         }
@@ -272,7 +272,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
         fun fromPollIDAndID(pollID: tPollID, optionID: tOptionID): PollOptionDateTime? {
             return transaction {
                 val result =
-                    select { (PollOptionDateTime.pollID eq pollID) and (PollOptionDateTime.id eq optionID) }
+                    selectAll().where { (PollOptionDateTime.pollID eq pollID) and (PollOptionDateTime.id eq optionID) }
                         .firstOrNull()
                 return@transaction result?.let { PollOptionDateTime(it) }
             }
@@ -281,7 +281,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
         fun fromPollID(pollID: tPollID): List<PollOptionDateTime> {
             return transaction {
                 val result =
-                    select { PollOptionDateTime.pollID eq pollID }
+                    selectAll().where { PollOptionDateTime.pollID eq pollID }
                 return@transaction result.map { PollOptionDateTime(it) }
             }
         }

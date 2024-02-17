@@ -185,21 +185,21 @@ class Poll : DatabaseEntity, IPoll {
 
         fun fromID(pollID: tPollID): Poll? {
             return transaction {
-                val pollRow = Poll.select { Poll.id eq pollID }.firstOrNull()
+                val pollRow = Poll.selectAll().where { Poll.id eq pollID }.firstOrNull()
                 return@transaction pollRow?.let { Poll(it) }
             }
         }
 
         fun accessibleForUser(userID: tUserID): List<Poll> {
             return transaction {
-                val pollIDs = UserPolls.select { UserPolls.userID eq userID }.map { it[UserPolls.pollID] }
+                val pollIDs = UserPolls.selectAll().where { UserPolls.userID eq userID }.map { it[UserPolls.pollID] }
                 return@transaction pollIDs.map { Poll.fromID(it) }.filterNotNull()
             }
         }
 
         fun usersInPoll(pollID: tPollID): List<User> {
             return transaction {
-                val userIDs = UserPolls.select { UserPolls.pollID eq pollID }.map { it[UserPolls.userID] }
+                val userIDs = UserPolls.selectAll().where { UserPolls.pollID eq pollID }.map { it[UserPolls.userID] }
                 return@transaction userIDs.map { User.loadFromID(it) }.filterNotNull()
             }
         }
@@ -263,7 +263,7 @@ class Poll : DatabaseEntity, IPoll {
         ): List<Poll> {
             return transaction {
                 val query = if (searchParameters == null) Poll.selectAll()
-                else Poll.select {
+                else Poll.selectAll().where {
                     val specialFilter = when (searchParameters.specialFilter) {
                         PollSearchParameters.SpecialFilter.ALL -> Op.TRUE
                         PollSearchParameters.SpecialFilter.JOINED -> forUserId?.let {
@@ -292,7 +292,7 @@ class Poll : DatabaseEntity, IPoll {
 
                     val query = adminID and name and description and memberID and any
 
-                    return@select query and specialFilter
+                    return@where query and specialFilter
                 }
                 val sorted = query.orderBy(
                     when (searchParameters?.sortingStrategy) {
@@ -314,19 +314,19 @@ class Poll : DatabaseEntity, IPoll {
 
         fun exists(pollID: tPollID): Boolean {
             return transaction {
-                !Poll.select { Poll.id eq pollID }.empty()
+                !Poll.selectAll().where { Poll.id eq pollID }.empty()
             }
         }
 
         fun ownedByUser(userID: tUserID): List<Poll> {
             return transaction {
-                return@transaction Poll.select {(Poll.adminID eq userID) }.map { Poll(it) }
+                return@transaction Poll.selectAll().where {(Poll.adminID eq userID) }.map { Poll(it) }
             }
         }
 
         fun ownedByUserCount(userID: tUserID): Long {
             return transaction {
-                return@transaction Poll.select {(Poll.adminID eq userID) }.count()
+                return@transaction Poll.selectAll().where {(Poll.adminID eq userID) }.count()
             }
         }
     }
@@ -506,7 +506,7 @@ object UserPolls : Table("user_polls_poll") {
 
     fun connectionExists(userID: tUserID, pollID: tPollID): Boolean {
         return transaction {
-            return@transaction !UserPolls.select {
+            return@transaction !UserPolls.selectAll().where {
                 (UserPolls.userID eq userID) and (UserPolls.pollID eq pollID)
             }.empty()
         }
@@ -536,7 +536,7 @@ object UserPolls : Table("user_polls_poll") {
 
     fun userIDs(pollID: tPollID): List<tUserID> {
         return transaction {
-            return@transaction UserPolls.select {
+            return@transaction UserPolls.selectAll().where {
                 UserPolls.pollID eq pollID
             }.toList().map { it[UserPolls.userID] }
         }
@@ -548,7 +548,7 @@ object UserPolls : Table("user_polls_poll") {
 
     fun joinedTimestamps(pollID: tPollID): List<PollJoinTimestamp> {
         return transaction {
-            return@transaction UserPolls.select {
+            return@transaction UserPolls.selectAll().where {
                 UserPolls.pollID eq pollID
             }.toList()
                 .map { PollJoinTimestamp(it[UserPolls.userID], it[UserPolls.joinedTimestamp].toUnixTimestampFromDB()) }
@@ -557,7 +557,7 @@ object UserPolls : Table("user_polls_poll") {
 
     fun hideFromListForUser(pollID: tPollID, userID: tUserID, hidden: Boolean = true) {
         val joinTimestamp = transaction {
-            UserPolls.select { (UserPolls.pollID eq pollID) and (UserPolls.userID eq userID) }.firstOrNull()
+            UserPolls.selectAll().where { (UserPolls.pollID eq pollID) and (UserPolls.userID eq userID) }.firstOrNull()
                 ?.get(UserPolls.joinedTimestamp)
         }?.toUnixTimestampAsSecondsSince1970() ?: UnixTimestamp.now()
         removeConnection(userID, pollID)
@@ -566,7 +566,7 @@ object UserPolls : Table("user_polls_poll") {
 
     fun getHidden(pollID: tPollID, userID: tUserID): Boolean {
         return transaction {
-            val rs = UserPolls.select { (UserPolls.pollID eq pollID) and (UserPolls.userID eq userID) }.firstOrNull()
+            val rs = UserPolls.selectAll().where { (UserPolls.pollID eq pollID) and (UserPolls.userID eq userID) }.firstOrNull()
             val hidden = rs?.getOrNull(UserPolls.listHidden)
             return@transaction hidden ?: false
         }

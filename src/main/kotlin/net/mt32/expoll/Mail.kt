@@ -4,6 +4,7 @@ import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import net.mt32.expoll.entities.UserDeletionConfirmation
+import net.mt32.expoll.helper.UnixTimestamp
 import java.util.*
 
 object ExpollMail {
@@ -31,10 +32,12 @@ object ExpollMail {
     fun UserDeactivationNotificationMail(mail: String, fullName: String): Mail.MailData {
         return Mail.MailData(
             mail, fullName, "Your account has been deactivated",
-            "Your account has been deactivated because you haven't used the service in a long time. To avoid account deletion, please log in.")
+            "Your account has been deactivated because you haven't used the service in a long time. To avoid account deletion, please log in.\n" +
+                    "If you don't login within the next " + config.dataRetention.userDeleteAfterAdditionalDays + " days (by ${UnixTimestamp.now().addDays(
+                config.dataRetention.userDeleteAfterAdditionalDays).toDate().toString()}), your account will be deleted.")
     }
 
-    fun UserDeletionConfirmationMail(mail: String, fullName: String, confirmation: UserDeletionConfirmation): Mail.MailData {
+    fun UserDeletionInformationMail(mail: String, fullName: String, confirmation: UserDeletionConfirmation): Mail.MailData {
         return Mail.MailData(
             mail, fullName, "Your account has been deleted",
             "Your account has been deleted. All your personal information has been anonymized and is no longer associated with you. If you didn't have any polls, your account has been deleted immediately. If you had polls, your account has been deleted completely"

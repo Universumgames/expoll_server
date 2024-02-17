@@ -79,28 +79,28 @@ class Vote : DatabaseEntity {
 
         fun fromID(id: Int): Vote? {
             return transaction {
-                val vote = Vote.select { Vote.id eq id }.firstOrNull()
+                val vote = Vote.selectAll().where { Vote.id eq id }.firstOrNull()
                 return@transaction vote?.let { Vote(it) }
             }
         }
 
         fun fromUser(user: User): List<Vote> {
             return transaction {
-                val result = Vote.select { Vote.userID eq user.id }
+                val result = Vote.selectAll().where { Vote.userID eq user.id }
                 return@transaction result.map { Vote(it) }
             }
         }
 
         fun fromPoll(poll: Poll): List<Vote> {
             return transaction {
-                val result = Vote.select { Vote.pollID eq poll.id }
+                val result = Vote.selectAll().where { Vote.pollID eq poll.id }
                 return@transaction result.map { Vote(it) }
             }
         }
 
         fun fromPoll(pollID: tPollID): List<Vote> {
             return transaction {
-                val result = Vote.select { Vote.pollID eq pollID }
+                val result = Vote.selectAll().where { Vote.pollID eq pollID }
                 return@transaction result.map { Vote(it) }
             }
         }
@@ -108,7 +108,7 @@ class Vote : DatabaseEntity {
         fun fromUserPollOption(userID: tUserID, pollID: tPollID, optionID: tOptionID): Vote? {
             return transaction {
                 val result =
-                    Vote.select {
+                    Vote.selectAll().where {
                         (Vote.userID eq userID) and
                                 (Vote.pollID eq pollID) and
                                 (Vote.optionID eq optionID)
@@ -121,7 +121,7 @@ class Vote : DatabaseEntity {
         fun fromUserPoll(userID: tUserID, pollID: tPollID): List<Vote> {
             return transaction {
                 val result =
-                    Vote.select {
+                    Vote.selectAll().where {
                         (Vote.userID eq userID) and
                                 (Vote.pollID eq pollID)
                     }

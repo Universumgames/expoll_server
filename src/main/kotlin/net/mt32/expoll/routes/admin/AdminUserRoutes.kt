@@ -9,6 +9,7 @@ import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.User
+import net.mt32.expoll.entities.UserDeletionQueue
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.URLBuilder
 import net.mt32.expoll.helper.getDataFromAny
@@ -107,6 +108,13 @@ private suspend fun editUser(call: ApplicationCall) {
     user.username = editUserRequest.username ?: user.username
     if (!user.admin || admin.superAdmin) user.admin = editUserRequest.admin ?: user.admin
     user.maxPollsOwned = editUserRequest.maxPollsOwned ?: user.maxPollsOwned
+    if (editUserRequest.active != null) {
+        if (editUserRequest.active) {
+            user.reactivateUser()
+        } else {
+            user.deactivateUser()
+        }
+    }
 
     user.save()
     call.respond(ReturnCode.OK)
@@ -123,6 +131,10 @@ private suspend fun deleteUser(call: ApplicationCall) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
-    user.delete()
+    val currentDeletion = user.outstandingDeletion
+    if (currentDeletion?.currentDeletionStage == UserDeletionQueue.DeletionStage.DELETION)
+        user.finalDelete()
+    else
+        user.anonymizeUserData()
     call.respond(ReturnCode.OK)
 }

@@ -136,7 +136,7 @@ private suspend fun authInit(call: ApplicationCall) {
         return
     }
     val user = username?.let { User.byUsername(it) } ?: mail?.let { User.byMail(it) }
-    if (user == null || !user.active) {
+    if (user == null || !user.loginAble) {
         call.respond(ReturnCode.BAD_REQUEST)
         return
     }

@@ -64,7 +64,7 @@ class PollUserNote : DatabaseEntity {
         fun forUserAndPoll(userID: tUserID, pollID: tPollID): PollUserNote? {
             return transaction {
                 val noteRow =
-                    PollUserNote.select { (PollUserNote.userID eq userID) and (PollUserNote.pollID eq pollID) }
+                    PollUserNote.selectAll().where { (PollUserNote.userID eq userID) and (PollUserNote.pollID eq pollID) }
                         .firstOrNull()
                 return@transaction noteRow?.let { PollUserNote(it) }
             }
@@ -73,7 +73,7 @@ class PollUserNote : DatabaseEntity {
         fun forPoll(pollID: tPollID): List<PollUserNote> {
             return transaction {
                 val noteRow =
-                    PollUserNote.select { (PollUserNote.userID eq userID) and (PollUserNote.pollID eq pollID) }
+                    PollUserNote.selectAll().where { (PollUserNote.userID eq userID) and (PollUserNote.pollID eq pollID) }
                 return@transaction noteRow.map { PollUserNote(it) }
             }
         }
@@ -81,7 +81,7 @@ class PollUserNote : DatabaseEntity {
         fun forUser(userID: tUserID): List<PollUserNote> {
             return transaction {
                 val noteRow =
-                    PollUserNote.select { PollUserNote.userID eq userID }
+                    PollUserNote.selectAll().where { PollUserNote.userID eq userID }
                 return@transaction noteRow.map { PollUserNote(it) }
             }
         }

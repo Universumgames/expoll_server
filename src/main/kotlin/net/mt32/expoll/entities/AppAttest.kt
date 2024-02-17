@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
@@ -59,7 +59,7 @@ class AppAttest : DatabaseEntity {
 
         fun fromUUID(uuid: String): AppAttest? {
             return transaction {
-                val attestRow = AppAttest.select { AppAttest.uuid eq uuid }.firstOrNull()
+                val attestRow = AppAttest.selectAll().where { AppAttest.uuid eq uuid }.firstOrNull()
                 return@transaction attestRow?.let { AppAttest(it) }
             }
         }

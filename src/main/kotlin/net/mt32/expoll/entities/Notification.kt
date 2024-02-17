@@ -9,7 +9,7 @@ import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
@@ -139,7 +139,7 @@ class NotificationPreferences : DatabaseEntity {
         fun fromUser(userID: tUserID): NotificationPreferences {
             return transaction {
                 val notificationRow =
-                    NotificationPreferences.select { NotificationPreferences.userID eq userID }.firstOrNull()
+                    NotificationPreferences.selectAll().where { NotificationPreferences.userID eq userID }.firstOrNull()
                 return@transaction notificationRow?.let { NotificationPreferences(it) }
             } ?: NotificationPreferences(userID)
         }
@@ -147,7 +147,7 @@ class NotificationPreferences : DatabaseEntity {
         fun fromUUID(uuid: String): NotificationPreferences? {
             return transaction {
                 val notificationRow =
-                    NotificationPreferences.select { NotificationPreferences.userID eq uuid }.firstOrNull()
+                    NotificationPreferences.selectAll().where { NotificationPreferences.userID eq uuid }.firstOrNull()
                 return@transaction notificationRow?.let { NotificationPreferences(it) }
             }
         }

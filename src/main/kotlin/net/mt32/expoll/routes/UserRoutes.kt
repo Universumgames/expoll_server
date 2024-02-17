@@ -262,7 +262,7 @@ private suspend fun deleteUserConfirm(call: ApplicationCall){
         call.respond(ReturnCode.UNPROCESSABLE_ENTITY)
         return
     }
-    user.delete()
+    user.anonymizeUserData()
     call.respond(ReturnCode.OK)
 }
 

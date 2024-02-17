@@ -99,6 +99,14 @@ data class InitialUserConfig(
 )
 
 @Serializable
+data class DataRetentionConfig(
+    val userDeactivateAfterDays: Long = 365,
+    val userDeleteAfterAdditionalDays: Long = 180,
+    val userDeletionFinalAfterDays: Long = 100,
+    val userNotifyBeforeDeletionDays: Long = 90
+)
+
+@Serializable
 data class ConfigData(
     val mail: MailConfig = MailConfig(),
     val serverPort: Int = 0,
@@ -122,6 +130,7 @@ data class ConfigData(
     val deleteURLPrefix: String = "",
     val deleteConfirmationTimeoutSeconds: Long = 0,
     val initialUserConfig: InitialUserConfig = InitialUserConfig(),
+    val dataRetention: DataRetentionConfig = DataRetentionConfig()
 )
 
 var config: ConfigData = ConfigData()

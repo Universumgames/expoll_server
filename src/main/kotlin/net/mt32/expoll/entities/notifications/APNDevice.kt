@@ -74,14 +74,14 @@ class APNDevice : DatabaseEntity {
 
         fun fromDeviceID(deviceID: String): APNDevice? {
             return transaction {
-                val deviceRow = APNDevice.select { Companion.deviceID eq deviceID }.firstOrNull()
+                val deviceRow = APNDevice.selectAll().where { Companion.deviceID eq deviceID }.firstOrNull()
                 return@transaction deviceRow?.let { APNDevice(it) }
             }
         }
 
         fun fromUser(userID: tUserID): List<APNDevice> {
             return transaction {
-                val result = APNDevice.select { Companion.userID eq userID }
+                val result = APNDevice.selectAll().where { Companion.userID eq userID }
                 return@transaction result.map { APNDevice(it) }
             }
         }

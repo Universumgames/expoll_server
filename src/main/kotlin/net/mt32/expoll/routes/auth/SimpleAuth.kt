@@ -42,7 +42,7 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
     if (!mail.isNullOrEmpty()) {
         val forApp = simpleLoginRequest.forApp ?: false
         val user = User.byMail(mail)
-        if (user == null || !user.active) {
+        if (user == null || !user.loginAble) {
             call.respond(ReturnCode.BAD_REQUEST)
             return
         }

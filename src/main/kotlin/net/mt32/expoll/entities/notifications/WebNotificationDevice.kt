@@ -7,8 +7,11 @@ import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsertCustom
 import net.mt32.expoll.tUserID
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class WebNotificationDevice : DatabaseEntity {
@@ -93,14 +96,14 @@ class WebNotificationDevice : DatabaseEntity {
         fun fromEndpoint(endpoint: String): WebNotificationDevice? {
             return transaction {
                 val deviceRow =
-                    WebNotificationDevice.select { Companion.endpoint eq endpoint }.firstOrNull()
+                    WebNotificationDevice.selectAll().where { Companion.endpoint eq endpoint }.firstOrNull()
                 return@transaction deviceRow?.let { WebNotificationDevice(it) }
             }
         }
 
         fun fromUser(userID: tUserID): List<WebNotificationDevice> {
             return transaction {
-                val result = WebNotificationDevice.select { Companion.userID eq userID }
+                val result = WebNotificationDevice.selectAll().where { Companion.userID eq userID }
                 return@transaction result.map { WebNotificationDevice(it) }
             }
         }

@@ -40,7 +40,7 @@ interface IUser : ISimpleUser {
     val votes: List<Vote>
     val sessions: List<Session>
     val notes: List<PollUserNote>
-    var active: Boolean
+    val active: Boolean
     var admin: Boolean
     val challenges: List<Challenge>
     val authenticators: List<Authenticator>
@@ -76,6 +76,7 @@ class User : IUser, DatabaseEntity {
             return PollUserNote.forUser(id)
         }
     override var active: Boolean
+        private set
     override var admin: Boolean
 
     val superAdmin: Boolean
@@ -105,7 +106,7 @@ class User : IUser, DatabaseEntity {
         get() = WebNotificationDevice.fromUser(id)
 
     val created: UnixTimestamp
-    val deleted: UnixTimestamp?
+    var deleted: UnixTimestamp?
     var lastLogin: UnixTimestamp
 
     val oidConnections: List<OIDCUserData>
@@ -115,13 +116,18 @@ class User : IUser, DatabaseEntity {
         get() = Poll.ownedByUserCount(id)
 
     override var maxPollsOwned: Long
-        get() = if(admin || superAdmin) -1 else _maxPollsOwned
+        get() = if (admin || superAdmin) -1 else _maxPollsOwned
         set(value) {
             _maxPollsOwned = value
         }
 
     private var _maxPollsOwned: Long
 
+    val loginAble: Boolean
+        get() = deleted == null
+
+    val outstandingDeletion: UserDeletionQueue?
+        get() = UserDeletionQueue.getPendingDeletionForUser(id)
 
     constructor(
         username: String,
@@ -188,42 +194,64 @@ class User : IUser, DatabaseEntity {
         return true
     }
 
-    override fun delete(): Boolean {
+    private fun cleanLoginsAndNotifications() {
         otps.forEach { it.delete() }
         sessions.forEach { it.delete() }
         challenges.forEach { it.delete() }
         authenticators.forEach { it.delete() }
-        apnDevices.forEach { it.delete() }
         OIDCUserData.byUser(id).forEach { it.delete() }
         UserDeletionConfirmation.getPendingConfirmationForUser(id)?.delete()
+
+        apnDevices.forEach { it.delete() }
         webNotificationDevices.forEach { it.delete() }
+    }
+
+    fun anonymizeUserData() {
+        notifyDeletion()
+        UserDeletionQueue.addUserToDeletionQueueOrPropagate(
+            id,
+            assumedCurrentStage = UserDeletionQueue.DeletionStage.DEACTIVATION
+        )
+        cleanLoginsAndNotifications()
+        username = "Deleted User $id"
+        firstName = "Deleted"
+        lastName = "User"
+        mail = "unknown$id"
+        active = false
+        admin = false
+        deleted = UnixTimestamp.now()
+        maxPollsOwned = 0
+        save()
+        println("Anonymized user $id")
+    }
+
+    fun finalDelete() {
+        cleanLoginsAndNotifications()
+        votes.forEach { it.delete() }
+        notes.forEach { it.delete() }
+        polls.forEach {
+            if (it.adminID == id) it.delete()
+            UserPolls.removeConnection(id, it.id)
+        }
+        notificationPreferences.delete()
+        transaction {
+            User.deleteWhere { User.id eq this@User.id }
+        }
+        UserDeletionQueue.noteFinalDeletion(id)
+        println("Final Deleted user $id")
+    }
+
+    @Deprecated("Use anonymizeUserData and finalDelete instead", ReplaceWith("anonymizeUserData()"))
+    override fun delete(): Boolean {
+        cleanLoginsAndNotifications()
         //votes.forEach { it.delete() }
         //polls.forEach { if(it.adminID != id) UserPolls.removeConnection(id, it.id) }
-        val oldActive = active
-        transaction {
-            User.upsertCustom(User.id) {
-                it[id] = this@User.id
-                it[username] = "Deleted User " + this@User.id
-                it[firstName] = "Deleted"
-                it[lastName] = "User"
-                it[mail] = "unknown" + this@User.id
-                it[created] = this@User.created.toDB()
-                it[active] = false
-                it[admin] = false
-                it[deleted] = UnixTimestamp.now().toDB()
-            }
-        }
-        if (!oldActive) {
-            votes.forEach { it.delete() }
-            notes.forEach { it.delete() }
-            polls.forEach {
-                if (it.adminID == id) it.delete()
-                UserPolls.removeConnection(id, it.id)
-            }
-            notificationPreferences.delete()
-            transaction {
-                User.deleteWhere { User.id eq this@User.id }
-            }
+        //val oldActive = active
+        val deletion = UserDeletionQueue.getPendingDeletionForUser(id)
+        if (deletion == null || deletion.currentDeletionStage < UserDeletionQueue.DeletionStage.DELETION) {
+            anonymizeUserData()
+        } else {
+            finalDelete()
         }
         return true
     }
@@ -232,6 +260,7 @@ class User : IUser, DatabaseEntity {
      * Creates and saves new OTP for current user
      */
     fun createOTP(forApp: Boolean): OTP {
+        reactivateUser()
         return OTP.create(id, forApp)
     }
 
@@ -275,21 +304,21 @@ class User : IUser, DatabaseEntity {
 
         fun loadFromID(id: String): User? {
             return transaction {
-                val userRow = User.select { User.id eq id }.limit(1).firstOrNull()
+                val userRow = User.selectAll().where { User.id eq id }.limit(1).firstOrNull()
                 return@transaction userRow?.let { User(it) }
             }
         }
 
         fun byMail(mail: String): User? {
             return transaction {
-                val userRow = User.select { User.mail eq mail }.firstOrNull()
+                val userRow = User.selectAll().where { User.mail eq mail }.firstOrNull()
                 return@transaction userRow?.let { User(it) }
             }
         }
 
         fun byUsername(username: String): User? {
             return transaction {
-                val userRow = User.select { User.username eq username }.firstOrNull()
+                val userRow = User.selectAll().where { User.username eq username }.firstOrNull()
                 return@transaction userRow?.let { User(it) }
             }
         }
@@ -303,13 +332,15 @@ class User : IUser, DatabaseEntity {
         fun all(limit: Int, offset: Long, searchParameters: UserSearchParameters? = null): List<User> {
             return transaction {
                 val query = if (searchParameters == null) User.selectAll()
-                else User.select {
+                else User.selectAll().where {
                     val specialFilter = when (searchParameters.specialFilter) {
                         UserSearchParameters.SpecialFilter.ALL -> Op.TRUE
                         UserSearchParameters.SpecialFilter.DELETED -> User.deleted.isNotNull()
-                        UserSearchParameters.SpecialFilter.OIDC -> User.id inSubQuery OIDCUserData.select(OIDCUserData.userID).where { OIDCUserData.userID eq User.id }
+                        UserSearchParameters.SpecialFilter.OIDC -> User.id inSubQuery OIDCUserData.select(OIDCUserData.userID)
+                            .where { OIDCUserData.userID eq User.id }
 
                         UserSearchParameters.SpecialFilter.ADMIN -> User.admin
+                        UserSearchParameters.SpecialFilter.DEACTIVATED -> User.active eq false
                     }
 
                     val username =
@@ -318,17 +349,23 @@ class User : IUser, DatabaseEntity {
                         (if (searchParameters.searchQuery.firstName != null) (User.firstName like "%${searchParameters.searchQuery.firstName}%") else Op.TRUE)
                     val lastName =
                         (if (searchParameters.searchQuery.lastName != null) (User.lastName like "%${searchParameters.searchQuery.lastName}%") else Op.TRUE)
+                    val mail =
+                        (if (searchParameters.searchQuery.mail != null) (User.mail like "%${searchParameters.searchQuery.mail}%") else Op.TRUE)
                     val memberInPoll =
-                        (if (searchParameters.searchQuery.memberInPoll != null) (User.id inSubQuery UserPolls.select(UserPolls.userID).where { UserPolls.pollID like "%${searchParameters.searchQuery.memberInPoll}%" }) else Op.TRUE)
+                        (if (searchParameters.searchQuery.memberInPoll != null) (User.id inSubQuery UserPolls.select(
+                            UserPolls.userID
+                        )
+                            .where { UserPolls.pollID like "%${searchParameters.searchQuery.memberInPoll}%" }) else Op.TRUE)
                     val any = (if (searchParameters.searchQuery.any != null)
                         ((User.username like "%${searchParameters.searchQuery.any}%") or
                                 (User.firstName like "%${searchParameters.searchQuery.any}%") or
-                                (User.lastName like "%${searchParameters.searchQuery.any}%")
+                                (User.lastName like "%${searchParameters.searchQuery.any}%") or
+                                (User.mail like "%${searchParameters.searchQuery.any}%")
                                 ) else Op.TRUE)
 
                     val query = username and firstName and lastName and memberInPoll and any
 
-                    return@select query and specialFilter
+                    return@where query and specialFilter
 
                 }
                 val sorted = query.orderBy(
@@ -373,8 +410,56 @@ class User : IUser, DatabaseEntity {
 
         fun admins(): List<User> {
             return transaction {
-                return@transaction User.select { (User.admin eq true) or (User.mail eq config.superAdminMail) }
+                return@transaction User.selectAll()
+                    .where { (User.admin eq true) or (User.mail eq config.superAdminMail) }
                     .map { User(it) }
+            }
+        }
+
+        fun oldLoginUsers(): List<User> {
+            return transaction {
+                return@transaction User.selectAll().where {
+                    User.lastLogin less UnixTimestamp.now().addDays(-config.dataRetention.userDeactivateAfterDays)
+                        .toDB()
+                }
+                    .map { User(it) }
+            }
+        }
+
+        fun inactiveUsers(): List<User> {
+            return transaction {
+                return@transaction User.selectAll().where {
+                    User.id inSubQuery
+                            UserDeletionQueue.select(UserDeletionQueue.userID).where {
+                                UserDeletionQueue.currentDeletionStage eq
+                                        UserDeletionQueue.DeletionStage.DEACTIVATION.value
+                            }
+
+                }.map { User(it) }
+            }
+        }
+
+        fun usersToDelete(): List<User> {
+            return transaction {
+                return@transaction User.selectAll().where {
+                    User.id inSubQuery
+                            UserDeletionQueue.select(UserDeletionQueue.userID).where {
+                                (UserDeletionQueue.currentDeletionStage eq UserDeletionQueue.DeletionStage.DEACTIVATION.value) and
+                                        (UserDeletionQueue.nextDeletionDate less UnixTimestamp.now().toDB())
+                            }
+                }.map { User(it) }
+            }
+        }
+
+        fun usersToFinalDelete(): List<User> {
+            return transaction {
+                return@transaction User.selectAll().where {
+                    User.id inSubQuery
+                            UserDeletionQueue.select(UserDeletionQueue.userID).where {
+                                (UserDeletionQueue.currentDeletionStage eq UserDeletionQueue.DeletionStage.DELETION.value) and
+                                        (UserDeletionQueue.nextDeletionDate less UnixTimestamp.now().toDB())
+                            }
+                }.map { User(it) }
             }
         }
 
@@ -448,6 +533,31 @@ class User : IUser, DatabaseEntity {
         UserPolls.removeConnection(id, pollID)
     }
 
+    fun deactivateUser() {
+        active = false
+        sessions.forEach { it.delete() }
+        UserDeletionQueue.deactivateUser(id)
+        save()
+        notifyInactivity()
+    }
+
+    fun reactivateUser() {
+        active = true
+        UserDeletionQueue.removeUserFromDeletionQueue(id)
+        save()
+    }
+
+    fun notifyInactivity() {
+        val mailData = ExpollMail.UserDeactivationNotificationMail(mail, fullName)
+        Mail.sendMailAsync(mailData)
+    }
+
+    fun notifyDeletion() {
+        val mailData =
+            ExpollMail.UserDeletionInformationMail(mail, fullName, UserDeletionConfirmation(this.id))
+        Mail.sendMailAsync(mailData)
+    }
+
 }
 
 @Serializable
@@ -470,7 +580,8 @@ data class UserSearchParameters(
         ALL,
         DELETED,
         OIDC,
-        ADMIN
+        ADMIN,
+        DEACTIVATED
     }
 
     @Serializable
@@ -479,6 +590,7 @@ data class UserSearchParameters(
         val firstName: String? = null,
         val lastName: String? = null,
         val memberInPoll: tPollID? = null,
+        val mail: String? = null,
         val any: String? = null
     )
 
@@ -491,65 +603,3 @@ data class UserSearchParameters(
     )
 }
 
-class UserDeletionConfirmation : DatabaseEntity {
-    val userID: tUserID
-    val initTimestamp: UnixTimestamp
-    val key: String
-
-    constructor(userID: tUserID) {
-        this.userID = userID
-        this.initTimestamp = UnixTimestamp.now()
-        this.key = createKey()
-    }
-
-    constructor(resultRow: ResultRow) {
-        this.userID = resultRow[UserDeletionConfirmation.userID]
-        this.initTimestamp = resultRow[UserDeletionConfirmation.initTimestamp].toUnixTimestampFromDB()
-        this.key = resultRow[UserDeletionConfirmation.key]
-    }
-
-    companion object : Table("userDeletionConfirmation") {
-        val userID = varchar("userID", UUIDLength)
-        val initTimestamp = long("initTimestamp")
-        val key = varchar("key", 255)
-
-        override val primaryKey = PrimaryKey(userID)
-
-        private fun createKey(): String {
-            return UUID.randomUUID().toString()
-        }
-
-        fun getPendingConfirmationForKey(key: String): UserDeletionConfirmation? {
-            return transaction {
-                val resultRow = UserDeletionConfirmation.select { UserDeletionConfirmation.key eq key }.firstOrNull()
-                return@transaction resultRow?.let { UserDeletionConfirmation(it) }
-            }
-        }
-
-        fun getPendingConfirmationForUser(userID: tUserID): UserDeletionConfirmation? {
-            return transaction {
-                val resultRow =
-                    UserDeletionConfirmation.select { UserDeletionConfirmation.userID eq userID }.firstOrNull()
-                return@transaction resultRow?.let { UserDeletionConfirmation(it) }
-            }
-        }
-    }
-
-    override fun save(): Boolean {
-        transaction {
-            UserDeletionConfirmation.upsertCustom(UserDeletionConfirmation.userID) {
-                it[userID] = this@UserDeletionConfirmation.userID
-                it[initTimestamp] = this@UserDeletionConfirmation.initTimestamp.toDB()
-                it[key] = this@UserDeletionConfirmation.key
-            }
-        }
-        return true
-    }
-
-    override fun delete(): Boolean {
-        transaction {
-            UserDeletionConfirmation.deleteWhere { UserDeletionConfirmation.userID eq userID }
-        }
-        return true
-    }
-}

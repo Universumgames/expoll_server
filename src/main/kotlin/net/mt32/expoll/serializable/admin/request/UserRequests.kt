@@ -20,4 +20,5 @@ data class AdminEditUserRequest(
     val username: String? = null,
     val admin: Boolean? = null,
     val maxPollsOwned: Long? = null,
+    val active: Boolean? = null
 )
