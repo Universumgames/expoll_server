@@ -5,12 +5,12 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.serialization.Serializable
 import net.mt32.expoll.PollType
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.*
 import net.mt32.expoll.helper.ReturnCode
-import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.plugins.query
@@ -93,7 +93,7 @@ private suspend fun editPoll(call: ApplicationCall) {
     editPollRequest.userRemove.forEach {
         poll.removeUser(it)
         val user = User.loadFromID(it)
-        if(user != null) ExpollNotificationHandler.sendPollLeave(poll, user)
+        if (user != null) ExpollNotificationHandler.sendPollLeave(poll, user)
         //sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, editPollRequest.pollID, it))
     }
 
@@ -140,13 +140,16 @@ private suspend fun editPoll(call: ApplicationCall) {
     call.respond(ReturnCode.OK)
 }
 
+@Serializable
+data class BasicPollOperation(val pollID: tPollID)
+
 private suspend fun leavePoll(call: ApplicationCall) {
     val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    val pollID = call.getDataFromAny("pollID")
+    val pollID = call.receive<BasicPollOperation>().pollID
     if (pollID == null) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
@@ -169,7 +172,7 @@ private suspend fun joinPoll(call: ApplicationCall) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    val pollID = call.getDataFromAny("pollID")
+    val pollID = call.receive<BasicPollOperation>().pollID
     if (pollID == null) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
@@ -240,9 +243,8 @@ private suspend fun getPolls(call: ApplicationCall) {
         return
     }
     val pollRequest: PollRequest = call.receiveNullable() ?: PollRequest()
-    val oldPollID = call.getDataFromAny("pollID") // TODO why is that still here?
-    if (pollRequest.pollID != null || oldPollID != null) {
-        (pollRequest.pollID ?: oldPollID)?.let { getDetailedPoll(call, it) }
+    if (pollRequest.pollID != null) {
+        getDetailedPoll(call, pollRequest.pollID)
     } else
         getPollList(call, pollRequest)
 }
@@ -257,7 +259,10 @@ private suspend fun getPollList(call: ApplicationCall, pollRequest: PollRequest)
     call.startNewTiming("polls.list", "Retrieve poll data from database")
     val searchParameters = pollRequest.searchParameters ?: PollSearchParameters()
     searchParameters.specialFilter = PollSearchParameters.SpecialFilter.JOINED
-    val polls = if(pollRequest.searchParameters == null) principal.user.polls else Poll.all(searchParameters = searchParameters, forUserId = principal.userID)
+    val polls = if (pollRequest.searchParameters == null) principal.user.polls else Poll.all(
+        searchParameters = searchParameters,
+        forUserId = principal.userID
+    )
     call.startNewTiming("polls.transform", "Transform poll data to simplified list format")
     val simplePolls = polls.asPollListResponse(principal.user)
     call.startNewTiming("polls.serialize", "Serialize data and prepare to send")
@@ -281,22 +286,24 @@ private suspend fun getDetailedPoll(call: ApplicationCall, pollID: tPollID) {
     call.respond(detailedPoll)
 }
 
+@Serializable
+data class PollHideRequest(val pollID: tPollID, val hide: Boolean? = true)
+
 private suspend fun hidePoll(call: ApplicationCall) {
     val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
         return
     }
-    val pollID: String = call.getDataFromAny("pollID") ?: return
-    val hide: Boolean = call.getDataFromAny("hide")?.toBoolean() ?: true
+    val pollHideRequest: PollHideRequest = call.receive()
 
-    val poll = Poll.fromID(pollID)
+    val poll = Poll.fromID(pollHideRequest.pollID)
     if (poll == null) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
 
-    UserPolls.hideFromListForUser(pollID, principal.userID, hide)
+    UserPolls.hideFromListForUser(pollHideRequest.pollID, principal.userID, pollHideRequest.hide ?: true)
     call.respond(ReturnCode.OK)
 }
 

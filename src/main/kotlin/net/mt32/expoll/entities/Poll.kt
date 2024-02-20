@@ -359,8 +359,8 @@ class Poll : DatabaseEntity, IPoll {
             createdTimestamp.toClient(),
             type.id,
             options.map {
-                // TODO remove after backwards compatibility
                 val opt = it.toComplexOption()
+                // TODO remove after backwards compatibility (used by iOS Version 3.1.0)
                 opt.isMostRelevant = it.id == relevantOptionID
                 opt
             },

@@ -17,26 +17,41 @@ object ExpollNotificationHandler {
     enum class ExpollNotification(
         val body: String,
         val title: String = "notification.poll.update %@",
-        val bodyArgIndicesRange: IntRange = 2..2,
-        val titleArgIndicesRange: IntRange = 2..2
+        val bodyArgIndicesRange: List<RequiredArg> = listOf(),
+        val titleArgIndicesRange: List<RequiredArg> = listOf()
     ) {
         EMPTY(""),
         STARTUP(
             "notification.server.backend.update %@",
             "notification.server.backend.update.title",
-            1..1,
-            titleArgIndicesRange = 0..0
+            listOf(RequiredArg.SERVER_VERSION),
+            titleArgIndicesRange = listOf(RequiredArg.EMPTY)
         ), // server version
-        VoteChange("notification.vote.change %@ %@", bodyArgIndicesRange = 2..3), // username, poll name
+        NewLogin("notification.newSession", "notification.newSession"),
+        VoteChange(
+            "notification.vote.change %@ %@",
+            bodyArgIndicesRange = listOf(RequiredArg.USER, RequiredArg.POLL)
+        ), // username, poll name
         VoteChangeDetailed(
             "notification.vote.change.detailed %1$@ %2$@ %3$@ %4$@",
-            bodyArgIndicesRange = 2..5
+            bodyArgIndicesRange = listOf(
+                RequiredArg.USER,
+                RequiredArg.POLL,
+                RequiredArg.OPTION,
+                RequiredArg.VOTE_CHANGE
+            )
         ), // username, poll name, option name, vote change
-        UserAdded("notification.user.added %@ %@", bodyArgIndicesRange = 2..3), // username, poll name
-        UserRemoved("notification.user.removed %@ %@", bodyArgIndicesRange = 2..3), // username, poll name
-        PollDeleted("notification.poll.delete %@", bodyArgIndicesRange = 3..3), // poll name
-        PollEdited("notification.poll.edited %@", bodyArgIndicesRange = 3..3), // poll name
-        PollArchived("notification.poll.archived %@", bodyArgIndicesRange = 3..3); // poll name
+        UserAdded(
+            "notification.user.added %@ %@",
+            bodyArgIndicesRange = listOf(RequiredArg.USER, RequiredArg.POLL)
+        ), // username, poll name
+        UserRemoved(
+            "notification.user.removed %@ %@",
+            bodyArgIndicesRange = listOf(RequiredArg.USER, RequiredArg.POLL)
+        ), // username, poll name
+        PollDeleted("notification.poll.delete %@", bodyArgIndicesRange = listOf(RequiredArg.POLL)), // poll name
+        PollEdited("notification.poll.edited %@", bodyArgIndicesRange = listOf(RequiredArg.POLL)), // poll name
+        PollArchived("notification.poll.archived %@", bodyArgIndicesRange = listOf(RequiredArg.POLL)); // poll name
 
         enum class RequiredArg {
             EMPTY, SERVER_VERSION, USER, POLL, VOTE_CHANGE, OPTION
@@ -50,10 +65,9 @@ object ExpollNotificationHandler {
             newVote: VoteValue?
         ): List<String> {
             val list = mutableListOf<String>()
-            for (i in bodyArgIndicesRange) {
-                val arg = RequiredArg.values()[i]
-                list.addAll(getArg(arg, user, poll, optionString, oldVote, newVote))
-            }
+
+            list.addAll(getArg(bodyArgIndicesRange, user, poll, optionString, oldVote, newVote))
+
             return list
         }
 
@@ -81,6 +95,21 @@ object ExpollNotificationHandler {
             }
         }
 
+        fun getArg(
+            arg: List<RequiredArg>,
+            user: User? = null,
+            poll: Poll? = null,
+            optionString: String? = null,
+            oldVote: VoteValue? = null,
+            newVote: VoteValue? = null
+        ): List<String> {
+            val list = mutableListOf<String>()
+            arg.forEach {
+                list.addAll(getArg(it, user, poll, optionString, oldVote, newVote))
+            }
+            return list
+        }
+
         fun getTitleArgs(
             poll: Poll?,
             user: User?,
@@ -89,10 +118,7 @@ object ExpollNotificationHandler {
             newVote: VoteValue?
         ): List<String> {
             val list = mutableListOf<String>()
-            for (i in titleArgIndicesRange) {
-                val arg = RequiredArg.values()[i]
-                list.addAll(getArg(arg, user, poll, optionString, oldVote, newVote))
-            }
+            list.addAll(getArg(titleArgIndicesRange, user, poll, optionString, oldVote, newVote))
             return list
         }
 
@@ -108,6 +134,7 @@ object ExpollNotificationHandler {
                 PollEdited -> notificationPreferences.pollEdited
                 PollArchived -> notificationPreferences.pollArchived
                 VoteChangeDetailed -> notificationPreferences.voteChangeDetailed
+                NewLogin -> true // TODO implement
             }
         }
 
@@ -139,10 +166,11 @@ object ExpollNotificationHandler {
         AnalyticsStorage.notificationCount[dataHandler.notification] =
             (AnalyticsStorage.notificationCount[dataHandler.notification] ?: 0) + 1
         var altNotification: DataHandler? = null
-        val affectedUsers = if(dataHandler.poll?.privateVoting == true) listOf(dataHandler.poll.admin) else dataHandler.poll?.users
+        val affectedUsers =
+            if (dataHandler.poll?.privateVoting == true) listOf(dataHandler.poll.admin) else dataHandler.poll?.users
         affectedUsers?.forEach {
             if (dataHandler.notification == ExpollNotification.VoteChange) {
-                if(altNotification == null)
+                if (altNotification == null)
                     altNotification = DataHandler(
                         ExpollNotification.VoteChangeDetailed,
                         dataHandler.poll,
@@ -160,7 +188,7 @@ object ExpollNotificationHandler {
         }
     }
 
-    fun sendServerStartup(){
+    fun sendServerStartup() {
         val admins = User.admins()
         admins.forEach {
             sendNotification(it, DataHandler(ExpollNotification.STARTUP, null, null, null, null, null))
@@ -185,6 +213,10 @@ object ExpollNotificationHandler {
 
     fun sendPollDelete(poll: Poll) {
         sendNotification(DataHandler(ExpollNotification.PollDeleted, poll, null, null, null, null))
+    }
+
+    fun sendNewLogin(user: User) {
+        sendNotification(DataHandler(ExpollNotification.NewLogin, null, user, null, null, null))
     }
 
     data class DataHandler(
@@ -214,7 +246,7 @@ object ExpollNotificationHandler {
         sendNotificationInternal(user, universalNotification)
     }
 
-    private fun sendNotificationInternal(user: User, universalNotification: UniversalNotification){
+    private fun sendNotificationInternal(user: User, universalNotification: UniversalNotification) {
         val apnDevices = user.apnDevices
         val webDevices = user.webNotificationDevices
 
@@ -229,13 +261,15 @@ object ExpollNotificationHandler {
     }
 
     // TODO improve error handling
-    fun sendInternalErrorNotification(error: String){
+    fun sendInternalErrorNotification(error: String) {
         val admins = User.admins()
         admins.forEach {
-            sendNotificationInternal(it, UniversalNotification(
-                "An Internal Server Error occured",
-                body = error
-            ))
+            sendNotificationInternal(
+                it, UniversalNotification(
+                    "An Internal Server Error occured",
+                    body = error
+                )
+            )
         }
     }
 }

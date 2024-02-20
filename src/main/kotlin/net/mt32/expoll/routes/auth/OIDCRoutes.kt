@@ -43,18 +43,31 @@ fun Route.oidcRoutes() {
             get("/connections") {
                 getConnections(call)
             }
-            route("/addConnection"){
+            // Deprecated routes for compatibility, remove after iOS version 3.2.0 is released
+            route("/addConnection") {
                 for (idp in OIDC.data.values) {
                     get(idp.name) {
                         oidcLoginInit(call, idp)
                     }
                 }
             }
-            route("/removeConnection"){
+            // Deprecated routes for compatibility, remove after iOS version 3.2.0 is released
+            route("/removeConnection") {
                 for (idp in OIDC.data.values) {
                     delete(idp.name) {
-                        TODO()
+                        removeOIDCConnection(call, idp)
                     }
+                }
+            }
+
+            for (idp in OIDC.data.values) {
+                get(idp.name) {
+                    oidcLoginInit(call, idp)
+                }
+            }
+            for (idp in OIDC.data.values) {
+                delete(idp.name) {
+                    removeOIDCConnection(call, idp)
                 }
             }
         }
@@ -96,8 +109,16 @@ data class OIDCInfo(
     val imageSmallURI: String,
     val altName: String
 )
+
 private suspend fun listIDPs(call: ApplicationCall) {
-    call.respond(OIDC.data.map { OIDCInfo(it.value.name, it.value.config.imageURI, it.value.config.imageSmallURI, it.value.config.altName) })
+    call.respond(OIDC.data.map {
+        OIDCInfo(
+            it.value.name,
+            it.value.config.imageURI,
+            it.value.config.imageSmallURI,
+            it.value.config.altName
+        )
+    })
 }
 
 private suspend fun getConnections(call: ApplicationCall) {
@@ -110,20 +131,22 @@ private suspend fun getConnections(call: ApplicationCall) {
     call.respond(connections.map { it.toConnectionOverview() })
 }
 
-private interface State{
+private interface State {
     val timestamp: UnixTimestamp
     val isApp: Boolean
 }
+
 private data class LoggedInState(
     override val timestamp: UnixTimestamp,
     val userID: tUserID,
     override val isApp: Boolean = false
-): State
+) : State
 
 private data class FreshState(
     override val timestamp: UnixTimestamp,
     override val isApp: Boolean
-):State
+) : State
+
 private val stateStorage: MutableMap<Long, State> = mutableMapOf()
 
 private suspend fun oidcLoginInit(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
@@ -150,10 +173,10 @@ private suspend fun oidcLoginInit(call: ApplicationCall, idp: OIDC.OIDCIDPData) 
 
         if (principal != null) {
             stateStorage[nonce] = LoggedInState(UnixTimestamp.now(), principal.userID, isApp)
-        }else
+        } else
             stateStorage[nonce] = FreshState(UnixTimestamp.now(), isApp)
     }
-    if(noRedirect)
+    if (noRedirect)
         call.respond(url.buildString())
     else call.respondRedirect(url.build())
 }
@@ -221,7 +244,15 @@ private suspend fun oidcLogin(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
     stateStorage.remove(stateParam)
     if (principal == null && state is FreshState)
         loginUser(call, userParam, tokenDataMap, baseTokenData, idp, state)
-    else if(state is LoggedInState) addOIDCConnection(call, userParam, tokenDataMap, baseTokenData, idp, principal, state)
+    else if (state is LoggedInState) addOIDCConnection(
+        call,
+        userParam,
+        tokenDataMap,
+        baseTokenData,
+        idp,
+        principal,
+        state
+    )
     else call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
 }
 
@@ -237,15 +268,15 @@ private suspend fun addOIDCConnection(
     val parsedUser = userParam?.let { defaultJSON.decodeFromString<OIDCUserParam>(it) }
     val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.contentOrNull ?: tokenDataMap["email"]?.contentOrNull
     val userID = principal?.userID ?: state.userID
-    if(OIDCUserData.bySubjectAndIDP(baseTokenData.subject, idp.name) != null){
-        if(state.isApp)
+    if (OIDCUserData.bySubjectAndIDP(baseTokenData.subject, idp.name) != null) {
+        if (state.isApp)
             call.respondRedirect("expoll://reload")
         else call.respondRedirect("/")
         return
     }
     val oidcConnection = OIDCUserData(userID, idp.name, baseTokenData.issuer, baseTokenData.subject, mailUse)
     oidcConnection.save()
-    if(state.isApp)
+    if (state.isApp)
         call.respondRedirect("expoll://reload")
     else call.respondRedirect("/")
 }
@@ -304,8 +335,29 @@ private suspend fun loginUser(
     createAndRespondWithSession(call, user, state, isNewUser = true)
 }
 
-private suspend fun createAndRespondWithSession(call: ApplicationCall, user: User, state: State, isNewUser: Boolean = false) {
+private suspend fun createAndRespondWithSession(
+    call: ApplicationCall,
+    user: User,
+    state: State,
+    isNewUser: Boolean = false
+) {
     val otp = user.createOTP(forApp = state.isApp)
     val url = URLBuilder.buildLoginLink(call, user, otp, isNewUser = isNewUser)
     call.respondRedirect(url)
+}
+
+private suspend fun removeOIDCConnection(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
+    val principal = call.principal<JWTSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+        return
+    }
+    val connections = OIDCUserData.byUser(principal.userID)
+    val connection = connections.firstOrNull { it.idpName == idp.name }
+    if (connection == null) {
+        call.respond(ReturnCode.BAD_REQUEST)
+        return
+    }
+    connection.delete()
+    call.respond(ReturnCode.OK)
 }

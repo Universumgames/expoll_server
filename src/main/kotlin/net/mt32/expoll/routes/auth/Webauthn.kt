@@ -179,6 +179,7 @@ private suspend fun authRes(call: ApplicationCall) {
                 .build()
         )
         if (result.isSuccess) {
+            // TODO change from immediate session creation to nonce based
             val session = user.createSessionFromScratch()
             call.sessions.set(ExpollJWTCookie(session.getJWT()))
             call.respondText("{\"verified\":true}", ContentType.Application.Json)

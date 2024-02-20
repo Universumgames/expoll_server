@@ -13,6 +13,7 @@ import net.mt32.expoll.helper.URLBuilder
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsertCustom
+import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.serializable.admin.responses.UserInfo
 import net.mt32.expoll.serializable.request.SortingOrder
 import net.mt32.expoll.serializable.responses.SimpleUser
@@ -265,6 +266,13 @@ class User : IUser, DatabaseEntity {
     }
 
     fun createSessionFromScratch(): Session {
+        val session = Session(id, "unknown")
+        session.save()
+        ExpollNotificationHandler.sendNewLogin(this)
+        return session
+    }
+
+    fun createAdminSessionFromScratch(): Session {
         val session = Session(id, "unknown")
         session.save()
         return session

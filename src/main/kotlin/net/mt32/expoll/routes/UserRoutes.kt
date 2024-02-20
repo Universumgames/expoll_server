@@ -6,6 +6,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import kotlinx.serialization.Serializable
 import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.*
 import net.mt32.expoll.config
@@ -193,9 +194,10 @@ private suspend fun getSessions(call: ApplicationCall){
 
 }
 
+@Serializable
+data class CreateChallengeRequest(val username: String? = null, val mail: String? = null)
 private suspend fun createChallenge(call: ApplicationCall) {
-    val userName = call.getDataFromAny("username")
-    val mail = call.getDataFromAny("mail")
+    val (userName, mail) = call.receive<CreateChallengeRequest>()
     call.respondText { "challenge${userName}${mail}" }
 }
 

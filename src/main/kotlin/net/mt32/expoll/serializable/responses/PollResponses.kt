@@ -55,7 +55,7 @@ data class UserNote(
 @Serializable
 data class ComplexOption(
     val id: Int? = null,
-    // TODO remove after backwards compatibility
+    // TODO remove after backwards compatibility (used by iOS Version 3.1.0)
     var isMostRelevant: Boolean? = null,
     val value: String? = null,
     val dateStart: tClientDate? = null,
@@ -64,7 +64,6 @@ data class ComplexOption(
     val dateTimeEnd: tClientDateTime? = null,
 )
 
-// TODO duplicate of VoteChange?
 @Serializable
 data class SimpleVote(
     val optionID: Int,

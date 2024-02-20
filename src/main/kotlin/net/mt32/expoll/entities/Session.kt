@@ -9,6 +9,7 @@ import net.mt32.expoll.config
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.*
+import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.serializable.request.Platform
 import net.mt32.expoll.serializable.responses.SafeSession
 import net.mt32.expoll.tUserID
@@ -125,6 +126,7 @@ class OTP : DatabaseEntity {
         session.platform = platform
         session.save()
         delete()
+        ExpollNotificationHandler.sendNewLogin(session.user!!)
         return session
     }
 }

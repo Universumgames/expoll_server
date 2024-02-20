@@ -174,18 +174,6 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
         return signedOrNull
     }
 
-    @Deprecated("use sendNotification instead")
-    fun sendAPN(
-        deviceToken: String,
-        expiration: UnixTimestamp,
-        payload: IAPNsPayload,
-        priority: APNsPriority,
-        pushType: APNsPushType = APNsPushType.ALERT,
-        collapseID: String? = null
-    ) {
-        apnQueue.add(APNData(deviceToken, expiration, payload, priority, pushType, collapseID))
-    }
-
     private suspend fun sendAPN(data: APNData): APNStatus {
         val bearer = getAPNSBearer()?.asToken() ?: return APNStatus.UNKNOWN_ERROR
 

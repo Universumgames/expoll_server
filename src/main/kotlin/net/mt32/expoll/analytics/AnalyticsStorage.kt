@@ -25,7 +25,7 @@ object AnalyticsStorage {
     }
 
     private fun resetStatistics(){
-        requestCountStorage.forEach { it.value.reset() }
+        requestCountStorage = mutableMapOf()
         notificationCount = mutableMapOf()
         lastReset = UnixTimestamp.now()
     }

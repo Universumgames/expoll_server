@@ -11,7 +11,10 @@ import net.mt32.expoll.entities.NotificationPreferences
 import net.mt32.expoll.entities.NotificationPreferencesSerial
 import net.mt32.expoll.entities.notifications.APNDevice
 import net.mt32.expoll.entities.notifications.WebNotificationDevice
-import net.mt32.expoll.helper.*
+import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.helper.defaultJSON
+import net.mt32.expoll.helper.toUnixTimestampFromClient
 
 fun Route.notificationRoutes() {
     route("notifications") {
@@ -42,6 +45,11 @@ fun Route.notificationRoutes() {
     }
 }
 
+@Serializable
+data class AppleRegistrationData(
+    val deviceID: String
+)
+
 private suspend fun registerAppleDevice(call:ApplicationCall){
     val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
@@ -49,12 +57,8 @@ private suspend fun registerAppleDevice(call:ApplicationCall){
         return
     }
 
-    val deviceID = call.getDataFromAny("deviceID")
-    if(deviceID == null){
-        call.respond(ReturnCode.MISSING_PARAMS)
-        return
-    }
-    val existingDevice = APNDevice.fromDeviceID(deviceID)
+    val deviceData: AppleRegistrationData = call.receive()
+    val existingDevice = APNDevice.fromDeviceID(deviceData.deviceID)
     if(existingDevice != null){
         existingDevice.userID = principal.userID
         existingDevice.sessionNonce = principal.session.nonce
@@ -62,7 +66,7 @@ private suspend fun registerAppleDevice(call:ApplicationCall){
         call.respond(ReturnCode.OK)
         return
     }
-    val newDevice = APNDevice(deviceID, principal.userID, UnixTimestamp.now(), principal.session.nonce)
+    val newDevice = APNDevice(deviceData.deviceID, principal.userID, UnixTimestamp.now(), principal.session.nonce)
     newDevice.save()
 
     call.respond(ReturnCode.OK)

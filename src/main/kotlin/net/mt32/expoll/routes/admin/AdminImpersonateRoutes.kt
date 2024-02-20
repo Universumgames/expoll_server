@@ -54,7 +54,7 @@ private suspend fun impersonate(call: ApplicationCall) {
         return
     }
 
-    val newSession = impersonateUser.createSessionFromScratch()
+    val newSession = impersonateUser.createAdminSessionFromScratch()
     val newJwt = newSession.getJWT()
     call.sessions.set(ExpollJWTCookie(newJwt, session?.jwt))
     call.respond(newJwt)
