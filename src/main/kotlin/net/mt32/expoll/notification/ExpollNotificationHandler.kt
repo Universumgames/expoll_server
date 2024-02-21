@@ -30,7 +30,8 @@ object ExpollNotificationHandler {
         NewLogin("notification.newSession", "notification.newSession"),
         VoteChange(
             "notification.vote.change %@ %@",
-            bodyArgIndicesRange = listOf(RequiredArg.USER, RequiredArg.POLL)
+            bodyArgIndicesRange = listOf(RequiredArg.USER, RequiredArg.POLL),
+            titleArgIndicesRange = listOf(RequiredArg.POLL)
         ), // username, poll name
         VoteChangeDetailed(
             "notification.vote.change.detailed %1$@ %2$@ %3$@ %4$@",
@@ -39,19 +40,34 @@ object ExpollNotificationHandler {
                 RequiredArg.POLL,
                 RequiredArg.OPTION,
                 RequiredArg.VOTE_CHANGE
-            )
+            ),
+            titleArgIndicesRange = listOf(RequiredArg.POLL)
         ), // username, poll name, option name, vote change
         UserAdded(
             "notification.user.added %@ %@",
-            bodyArgIndicesRange = listOf(RequiredArg.USER, RequiredArg.POLL)
+            bodyArgIndicesRange = listOf(RequiredArg.USER, RequiredArg.POLL),
+            titleArgIndicesRange = listOf(RequiredArg.POLL)
         ), // username, poll name
         UserRemoved(
             "notification.user.removed %@ %@",
-            bodyArgIndicesRange = listOf(RequiredArg.USER, RequiredArg.POLL)
+            bodyArgIndicesRange = listOf(RequiredArg.USER, RequiredArg.POLL),
+            titleArgIndicesRange = listOf(RequiredArg.POLL)
         ), // username, poll name
-        PollDeleted("notification.poll.delete %@", bodyArgIndicesRange = listOf(RequiredArg.POLL)), // poll name
-        PollEdited("notification.poll.edited %@", bodyArgIndicesRange = listOf(RequiredArg.POLL)), // poll name
-        PollArchived("notification.poll.archived %@", bodyArgIndicesRange = listOf(RequiredArg.POLL)); // poll name
+        PollDeleted(
+            "notification.poll.delete %@",
+            bodyArgIndicesRange = listOf(RequiredArg.POLL),
+            titleArgIndicesRange = listOf(RequiredArg.POLL)
+        ), // poll name
+        PollEdited(
+            "notification.poll.edited %@",
+            bodyArgIndicesRange = listOf(RequiredArg.POLL),
+            titleArgIndicesRange = listOf(RequiredArg.POLL)
+        ), // poll name
+        PollArchived(
+            "notification.poll.archived %@",
+            bodyArgIndicesRange = listOf(RequiredArg.POLL),
+            titleArgIndicesRange = listOf(RequiredArg.POLL)
+        ); // poll name
 
         enum class RequiredArg {
             EMPTY, SERVER_VERSION, USER, POLL, VOTE_CHANGE, OPTION
