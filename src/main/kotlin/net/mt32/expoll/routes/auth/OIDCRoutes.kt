@@ -43,7 +43,7 @@ fun Route.oidcRoutes() {
             get("/connections") {
                 getConnections(call)
             }
-            // Deprecated routes for compatibility, remove after iOS version 3.2.0 is released
+
             route("/addConnection") {
                 for (idp in OIDC.data.values) {
                     get(idp.name) {
@@ -51,7 +51,7 @@ fun Route.oidcRoutes() {
                     }
                 }
             }
-            // Deprecated routes for compatibility, remove after iOS version 3.2.0 is released
+
             route("/removeConnection") {
                 for (idp in OIDC.data.values) {
                     delete(idp.name) {
@@ -61,44 +61,41 @@ fun Route.oidcRoutes() {
             }
 
             for (idp in OIDC.data.values) {
-                get(idp.name) {
-                    oidcLoginInit(call, idp)
-                }
-            }
-            for (idp in OIDC.data.values) {
                 delete(idp.name) {
                     removeOIDCConnection(call, idp)
                 }
             }
         }
 
-        for (idp in OIDC.data.values) {
-            route(idp.name) {
-                get {
-                    if (call.parameters.isEmpty() || call.parameters["app"]?.isNotEmpty() == true) {
-                        oidcLoginInit(call, idp)
-                    } else {
-                        oidcLogin(call, idp)
-                    }
-                }
-                post {
-                    try {
-                        if (call.parameters.isEmpty() && call.receiveParameters().isEmpty()) {
+        // not working
+        // authenticate(normalAuth, strategy = AuthenticationStrategy.Optional) {
+            for (idp in OIDC.data.values) {
+                route(idp.name) {
+                    get {
+                        if (call.parameters.isEmpty() || call.parameters["app"]?.isNotEmpty() == true) {
                             oidcLoginInit(call, idp)
                         } else {
                             oidcLogin(call, idp)
                         }
-                    } catch (e: ContentTransformationException) {
-                        e.printStackTrace()
-                        oidcLogin(call, idp)
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        call.respond(ReturnCode.BAD_REQUEST)
+                    }
+                    post {
+                        try {
+                            if (call.parameters.isEmpty() && call.receiveParameters().isEmpty()) {
+                                oidcLoginInit(call, idp)
+                            } else {
+                                oidcLogin(call, idp)
+                            }
+                        } catch (e: ContentTransformationException) {
+                            e.printStackTrace()
+                            oidcLogin(call, idp)
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            call.respond(ReturnCode.BAD_REQUEST)
+                        }
                     }
                 }
             }
-
-        }
+        //}
     }
 }
 
