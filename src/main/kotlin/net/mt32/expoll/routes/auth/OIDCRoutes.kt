@@ -10,6 +10,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -39,6 +40,7 @@ fun Route.oidcRoutes() {
         get("/providers") {
             listIDPs(call)
         }
+        staticResources("/images", "static/oidc")
         authenticate(normalAuth) {
             get("/connections") {
                 getConnections(call)
@@ -103,8 +105,10 @@ fun Route.oidcRoutes() {
 data class OIDCInfo(
     val key: String,
     val imageURI: String,
-    val imageSmallURI: String,
-    val altName: String
+    val iconFileName: String,
+    val iconBackgroundColorHex: String,
+    val textColorHex: String,
+    val title: String
 )
 
 private suspend fun listIDPs(call: ApplicationCall) {
@@ -112,8 +116,10 @@ private suspend fun listIDPs(call: ApplicationCall) {
         OIDCInfo(
             it.value.name,
             it.value.config.imageURI,
-            it.value.config.imageSmallURI,
-            it.value.config.altName
+            it.value.config.iconConfig.iconFileName,
+            it.value.config.iconConfig.backgroundColorHex,
+            it.value.config.iconConfig.textColorHex,
+            it.value.config.title, // TODO add name to config
         )
     })
 }

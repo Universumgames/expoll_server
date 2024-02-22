@@ -83,9 +83,17 @@ data class OIDCIDPConfig(
     val audience: String? = null,
     val redirectURL: String,
     val discoveryURL: String,
-    val altName: String = "alt name",
+    val title: String = "",
     val imageURI: String = "",
-    val imageSmallURI: String = ""
+    val imageSmallURI: String = "",
+    val iconConfig: OIDCIDPIconConfig = OIDCIDPIconConfig()
+)
+
+@Serializable
+data class OIDCIDPIconConfig(
+    val iconFileName: String = "",
+    val backgroundColorHex: String = "",
+    val textColorHex: String = ""
 )
 
 @Serializable
