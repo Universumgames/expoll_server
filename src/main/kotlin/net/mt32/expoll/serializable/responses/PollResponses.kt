@@ -55,8 +55,6 @@ data class UserNote(
 @Serializable
 data class ComplexOption(
     val id: Int? = null,
-    // TODO remove after backwards compatibility (used by iOS Version 3.1.0)
-    var isMostRelevant: Boolean? = null,
     val value: String? = null,
     val dateStart: tClientDate? = null,
     val dateEnd: tClientDate? = null,
@@ -100,7 +98,9 @@ data class PollSummary(
     val userCount: Int,
     val lastUpdated: tClientDateTime,
     val type: Int,
+    // TODO deprecated after iOS 3.2.0
     val editable: Boolean,
+    val allowsEditing: Boolean,
     val hidden: Boolean
 )
 

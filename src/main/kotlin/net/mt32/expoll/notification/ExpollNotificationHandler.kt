@@ -282,7 +282,7 @@ object ExpollNotificationHandler {
         admins.forEach {
             sendNotificationInternal(
                 it, UniversalNotification(
-                    "An Internal Server Error occured",
+                    "An Internal Server Error occurred",
                     body = error
                 )
             )

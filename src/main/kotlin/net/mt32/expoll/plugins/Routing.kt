@@ -41,3 +41,4 @@ fun Application.configureRouting() {
 fun Route.query(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod("QUERY")) { handle(body) }
 }
+

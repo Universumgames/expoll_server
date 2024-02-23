@@ -1,5 +1,6 @@
 package net.mt32.expoll.routes
 
+import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -11,6 +12,7 @@ import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.*
 import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.plugins.query
@@ -243,8 +245,10 @@ private suspend fun getPolls(call: ApplicationCall) {
         return
     }
     val pollRequest: PollRequest = call.receiveNullable() ?: PollRequest()
-    if (pollRequest.pollID != null) {
-        getDetailedPoll(call, pollRequest.pollID)
+    val oldPollID = call.getDataFromAny("pollID") // TODO browser does not work with query method
+    if (pollRequest.pollID != null || oldPollID != null) {
+        (pollRequest.pollID ?: oldPollID)?.let { getDetailedPoll(call, it) }
+        getDetailedPoll(call, pollRequest.pollID ?: oldPollID!!)
     } else
         getPollList(call, pollRequest)
 }

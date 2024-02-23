@@ -359,10 +359,7 @@ class Poll : DatabaseEntity, IPoll {
             createdTimestamp.toClient(),
             type.id,
             options.map {
-                val opt = it.toComplexOption()
-                // TODO remove after backwards compatibility (used by iOS Version 3.1.0)
-                opt.isMostRelevant = it.id == relevantOptionID
-                opt
+                it.toComplexOption()
             },
             relevantOptionID,
             usersThatVoted.map { user ->
@@ -403,6 +400,7 @@ class Poll : DatabaseEntity, IPoll {
             userCount,
             updatedTimestamp.toClient(),
             type.id,
+            allowsEditing,
             allowsEditing,
             user?.let { UserPolls.getHidden(id, user.id) } ?: false)
     }
