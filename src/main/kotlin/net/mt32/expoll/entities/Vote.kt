@@ -105,6 +105,16 @@ class Vote : DatabaseEntity {
             }
         }
 
+        fun fromPollOption(pollID: tPollID, optionID: tOptionID): List<Vote> {
+            return transaction {
+                val result = Vote.selectAll().where {
+                    (Vote.pollID eq pollID) and
+                            (Vote.optionID eq optionID)
+                }
+                return@transaction result.map { Vote(it) }
+            }
+        }
+
         fun fromUserPollOption(userID: tUserID, pollID: tPollID, optionID: tOptionID): Vote? {
             return transaction {
                 val result =

@@ -10,6 +10,9 @@ data class CreateUserRequest (
     val username: String,
     val captcha: String? = null,
     val appAttest: String? = null,
+    val useURL: Boolean = false,
+    val forApp: Boolean = false,
+    val redirect: Boolean = false
 )
 
 @Serializable

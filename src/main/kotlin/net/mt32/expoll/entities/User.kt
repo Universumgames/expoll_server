@@ -3,10 +3,10 @@ package net.mt32.expoll.entities
 import com.yubico.webauthn.data.ByteArray
 import io.ktor.server.application.*
 import io.ktor.util.*
-import kotlinx.serialization.Serializable
 import net.mt32.expoll.*
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.entities.interconnect.UserPolls
 import net.mt32.expoll.entities.notifications.APNDevice
 import net.mt32.expoll.entities.notifications.WebNotificationDevice
 import net.mt32.expoll.helper.URLBuilder
@@ -16,13 +16,13 @@ import net.mt32.expoll.helper.upsertCustom
 import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.serializable.admin.responses.UserInfo
 import net.mt32.expoll.serializable.request.SortingOrder
+import net.mt32.expoll.serializable.request.search.UserSearchParameters
 import net.mt32.expoll.serializable.responses.SimpleUser
 import net.mt32.expoll.serializable.responses.UserDataResponse
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
-import kotlin.reflect.full.memberProperties
 
 interface ISimpleUser {
     val firstName: String
@@ -566,49 +566,5 @@ class User : IUser, DatabaseEntity {
             ExpollMail.UserDeletionInformationMail(mail, fullName, UserDeletionConfirmation(this.id))
         Mail.sendMailAsync(mailData)
     }
-
-}
-
-@Serializable
-data class UserSearchParameters(
-    val sortingOrder: SortingOrder = SortingOrder.DESCENDING,
-    val sortingStrategy: SortingStrategy = SortingStrategy.CREATED,
-    val specialFilter: SpecialFilter = SpecialFilter.ALL,
-    val searchQuery: Query = Query()
-) {
-    enum class SortingStrategy {
-        CREATED,
-        USERNAME,
-        FIRST_NAME,
-        LAST_NAME,
-        MAIL,
-        DELETED
-    }
-
-    enum class SpecialFilter {
-        ALL,
-        DELETED,
-        OIDC,
-        ADMIN,
-        DEACTIVATED
-    }
-
-    @Serializable
-    data class Query(
-        val username: String? = null,
-        val firstName: String? = null,
-        val lastName: String? = null,
-        val memberInPoll: tPollID? = null,
-        val mail: String? = null,
-        val any: String? = null
-    )
-
-    @Serializable
-    data class Descriptor(
-        val sortingOrder: List<SortingOrder> = SortingOrder.values().toList(),
-        val sortingStrategy: List<SortingStrategy> = SortingStrategy.values().toList(),
-        val specialFilter: List<SpecialFilter> = SpecialFilter.values().toList(),
-        val searchQuery: List<String> = Query::class.memberProperties.map { it.name }
-    )
 }
 

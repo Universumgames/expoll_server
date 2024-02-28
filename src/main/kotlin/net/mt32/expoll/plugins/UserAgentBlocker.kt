@@ -26,11 +26,11 @@ val UserAgentBlocker = createApplicationPlugin("user-agent-blocker", createConfi
     on(BeforeCall) { call ->
         val userAgent = call.request.headers["User-Agent"]?.lowercase()
         if (userAgent == null && pluginConfig.blockEmptyUserAgent) {
-            call.respond(HttpStatusCode.Conflict)
+            call.respond(HttpStatusCode.TooManyRequests)
             println("Blocked empty user agent from ${call.request.origin.remoteHost}")
         }
         if(pluginConfig.blockList.any { userAgent?.contains(it) == true }) {
-            call.respond(HttpStatusCode.Conflict)
+            call.respond(HttpStatusCode.TooManyRequests)
             println("Blocked user agent from ${call.request.origin.remoteHost} with user agent $userAgent")
 
         }

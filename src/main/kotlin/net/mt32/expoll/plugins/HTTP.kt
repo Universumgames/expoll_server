@@ -49,6 +49,9 @@ fun Application.configureHTTP() {
         allowMethod(HttpMethod.Put)
         allowMethod(HttpMethod.Delete)
         allowMethod(HttpMethod.Patch)
-        allowMethod(HttpMethod("QUERY"))
+        allowMethod(HttpMethod.Query)
     }
 }
+
+val HttpMethod.Companion.Query: HttpMethod
+    get() = HttpMethod("QUERY")

@@ -92,6 +92,10 @@ class UnixTimestamp private constructor() {
         return UnixTimestamp.fromDate(cal.time)
     }
 
+    override fun toString(): String {
+        return toDate().toString()
+    }
+
     companion object {
         fun now(): UnixTimestamp {
             return Date().toUnixTimestamp()

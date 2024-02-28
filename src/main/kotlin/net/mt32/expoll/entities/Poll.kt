@@ -1,11 +1,14 @@
 package net.mt32.expoll.entities
 
-import kotlinx.serialization.Serializable
 import net.mt32.expoll.PollType
+import net.mt32.expoll.VoteValue
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.entities.interconnect.PollJoinTimestamp
+import net.mt32.expoll.entities.interconnect.UserPolls
 import net.mt32.expoll.helper.*
 import net.mt32.expoll.serializable.request.SortingOrder
+import net.mt32.expoll.serializable.request.search.PollSearchParameters
 import net.mt32.expoll.serializable.responses.*
 import net.mt32.expoll.tPollID
 import net.mt32.expoll.tUserID
@@ -13,7 +16,6 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
-import kotlin.reflect.full.memberProperties
 
 interface IPoll {
     val admin: User
@@ -80,6 +82,8 @@ class Poll : DatabaseEntity, IPoll {
             }
         }
 
+    var defaultVote: VoteValue?
+
     constructor(
         adminID: tUserID,
         id: String,
@@ -91,7 +95,8 @@ class Poll : DatabaseEntity, IPoll {
         maxPerUserVoteCount: Int,
         allowsMaybe: Boolean,
         allowsEditing: Boolean,
-        privateVoting: Boolean
+        privateVoting: Boolean,
+        defaultVoteValue: VoteValue?
     ) : super() {
         this.adminID = adminID
         this.id = id
@@ -104,6 +109,7 @@ class Poll : DatabaseEntity, IPoll {
         this.allowsMaybe = allowsMaybe
         this.allowsEditing = allowsEditing
         this.privateVoting = privateVoting
+        this.defaultVote = defaultVoteValue
     }
 
 
@@ -119,6 +125,7 @@ class Poll : DatabaseEntity, IPoll {
         this.allowsMaybe = pollRow[Poll.allowsMaybe]
         this.allowsEditing = pollRow[Poll.allowsEditing]
         this.privateVoting = pollRow[Poll.privateVoting]
+        this.defaultVote = pollRow[Poll.defaultVote]?.let { VoteValue.valueOf(it) }
     }
 
     override fun save(): Boolean {
@@ -146,6 +153,7 @@ class Poll : DatabaseEntity, IPoll {
                     it[Poll.allowsMaybe] = this@Poll.allowsMaybe
                     it[Poll.allowsEditing] = this@Poll.allowsEditing
                     it[Poll.privateVoting] = this@Poll.privateVoting
+                    it[Poll.defaultVote] = this@Poll.defaultVote?.id
                 }
             }
         }
@@ -180,6 +188,7 @@ class Poll : DatabaseEntity, IPoll {
         val allowsMaybe = bool("allowsMaybe")
         val allowsEditing = bool("allowsEditing")
         val privateVoting = bool("privateVoting")
+        val defaultVote = integer("defaultVote").nullable()
 
         override val primaryKey = PrimaryKey(id)
 
@@ -232,7 +241,8 @@ class Poll : DatabaseEntity, IPoll {
             maxPerUserVoteCount: Int,
             allowsMaybe: Boolean,
             allowsEditing: Boolean,
-            privateVoting: Boolean
+            privateVoting: Boolean,
+            defaultVoteValue: VoteValue?
         ): Poll {
             return Poll(
                 adminID,
@@ -245,7 +255,8 @@ class Poll : DatabaseEntity, IPoll {
                 maxPerUserVoteCount,
                 allowsMaybe,
                 allowsEditing,
-                privateVoting
+                privateVoting,
+                defaultVoteValue
             )
         }
 
@@ -457,116 +468,3 @@ class Poll : DatabaseEntity, IPoll {
 
 }
 
-@Serializable
-data class PollSearchParameters(
-    var sortingOrder: SortingOrder = SortingOrder.DESCENDING,
-    var sortingStrategy: SortingStrategy = SortingStrategy.UPDATED,
-    var specialFilter: SpecialFilter = SpecialFilter.ALL,
-    var searchQuery: Query = Query()
-) {
-    enum class SortingStrategy {
-        UPDATED, CREATED, NAME, USER_COUNT
-    }
-
-    enum class SpecialFilter {
-        ALL, JOINED, NOT_JOINED
-    }
-
-    @Serializable
-    data class Query(
-        val adminID: String? = null,
-        val description: String? = null,
-        val name: String? = null,
-        val memberID: String? = null,
-        val any: String? = null
-    )
-
-    @Serializable
-    data class Descriptor(
-        val sortingOrder: List<SortingOrder> = SortingOrder.values().toList(),
-        val sortingStrategy: List<SortingStrategy> = SortingStrategy.values().toList(),
-        val specialFilter: List<SpecialFilter> = SpecialFilter.values().toList(),
-        val searchQuery: List<String> = Query::class.memberProperties.map { it.name }
-    )
-}
-
-data class PollJoinTimestamp(val userID: tUserID, val joinTimestamp: UnixTimestamp) {
-
-}
-
-object UserPolls : Table("user_polls_poll") {
-    val userID = varchar("userId", UUIDLength)
-    val pollID = varchar("pollId", UUIDLength)
-    val joinedTimestamp = long("joinedTimestamp")
-    val listHidden = bool("listHidden")
-
-    override val primaryKey = PrimaryKey(userID, pollID)
-
-    fun connectionExists(userID: tUserID, pollID: tPollID): Boolean {
-        return transaction {
-            return@transaction !UserPolls.selectAll().where {
-                (UserPolls.userID eq userID) and (UserPolls.pollID eq pollID)
-            }.empty()
-        }
-    }
-
-    fun addConnection(
-        userID: tUserID, pollID: tPollID, joinTimestamp: UnixTimestamp = UnixTimestamp.now(), hide: Boolean = false
-    ) {
-        if (connectionExists(userID, pollID)) return
-        transaction {
-            UserPolls.insert {
-                it[UserPolls.pollID] = pollID
-                it[UserPolls.userID] = userID
-                it[UserPolls.joinedTimestamp] = joinTimestamp.toDB()
-                it[UserPolls.listHidden] = hide
-            }
-        }
-    }
-
-    fun removeConnection(userID: tUserID, pollID: tPollID) {
-        transaction {
-            UserPolls.deleteWhere {
-                (UserPolls.userID eq userID) and (UserPolls.pollID eq pollID)
-            }
-        }
-    }
-
-    fun userIDs(pollID: tPollID): List<tUserID> {
-        return transaction {
-            return@transaction UserPolls.selectAll().where {
-                UserPolls.pollID eq pollID
-            }.toList().map { it[UserPolls.userID] }
-        }
-    }
-
-    fun userCount(pollID: tPollID): Int {
-        return userIDs(pollID).size
-    }
-
-    fun joinedTimestamps(pollID: tPollID): List<PollJoinTimestamp> {
-        return transaction {
-            return@transaction UserPolls.selectAll().where {
-                UserPolls.pollID eq pollID
-            }.toList()
-                .map { PollJoinTimestamp(it[UserPolls.userID], it[UserPolls.joinedTimestamp].toUnixTimestampFromDB()) }
-        }
-    }
-
-    fun hideFromListForUser(pollID: tPollID, userID: tUserID, hidden: Boolean = true) {
-        val joinTimestamp = transaction {
-            UserPolls.selectAll().where { (UserPolls.pollID eq pollID) and (UserPolls.userID eq userID) }.firstOrNull()
-                ?.get(UserPolls.joinedTimestamp)
-        }?.toUnixTimestampAsSecondsSince1970() ?: UnixTimestamp.now()
-        removeConnection(userID, pollID)
-        addConnection(userID, pollID, joinTimestamp, hidden)
-    }
-
-    fun getHidden(pollID: tPollID, userID: tUserID): Boolean {
-        return transaction {
-            val rs = UserPolls.selectAll().where { (UserPolls.pollID eq pollID) and (UserPolls.userID eq userID) }.firstOrNull()
-            val hidden = rs?.getOrNull(UserPolls.listHidden)
-            return@transaction hidden ?: false
-        }
-    }
-}

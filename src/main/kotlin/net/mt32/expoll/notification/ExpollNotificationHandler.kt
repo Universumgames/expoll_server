@@ -38,8 +38,8 @@ object ExpollNotificationHandler {
             bodyArgIndicesRange = listOf(
                 RequiredArg.USER,
                 RequiredArg.POLL,
+                RequiredArg.VOTE_CHANGE,
                 RequiredArg.OPTION,
-                RequiredArg.VOTE_CHANGE
             ),
             titleArgIndicesRange = listOf(RequiredArg.POLL)
         ), // username, poll name, option name, vote change

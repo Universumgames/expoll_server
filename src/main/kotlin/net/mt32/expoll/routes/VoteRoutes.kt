@@ -41,7 +41,7 @@ suspend fun voteRoute(call: ApplicationCall) {
     call.startNewTiming("poll.load", "Load basic poll data")
 
     val poll = Poll.fromID(voteChange.pollID)
-    val votedForEnum = VoteValue.values().find { it.id == voteChange.votedFor }
+    val votedForEnum = VoteValue.entries.find { it.id == voteChange.votedFor }
     if (poll == null ||
         votedForEnum == null ||
         !poll.options.map { it.id }.contains(voteChange.optionID) ||

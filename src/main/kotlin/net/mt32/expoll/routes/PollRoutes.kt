@@ -1,6 +1,5 @@
 package net.mt32.expoll.routes
 
-import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -10,15 +9,19 @@ import kotlinx.serialization.Serializable
 import net.mt32.expoll.PollType
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
-import net.mt32.expoll.entities.*
+import net.mt32.expoll.entities.Poll
+import net.mt32.expoll.entities.PollUserNote
+import net.mt32.expoll.entities.User
+import net.mt32.expoll.entities.Vote
+import net.mt32.expoll.entities.interconnect.UserPolls
 import net.mt32.expoll.helper.ReturnCode
-import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.plugins.query
 import net.mt32.expoll.serializable.request.CreatePollRequest
 import net.mt32.expoll.serializable.request.EditPollRequest
 import net.mt32.expoll.serializable.request.PollRequest
+import net.mt32.expoll.serializable.request.search.PollSearchParameters
 import net.mt32.expoll.serializable.responses.PollCreatedResponse
 import net.mt32.expoll.serializable.responses.asPollListResponse
 import net.mt32.expoll.tPollID
@@ -88,7 +91,6 @@ private suspend fun editPoll(call: ApplicationCall) {
 
     if (editPollRequest.allowsEditing == false) {
         ExpollNotificationHandler.sendPollEdit(poll)
-        //sendNotification(ExpollNotification(ExpollNotificationType.PollArchived, editPollRequest.pollID, null))
     }
 
     // remove users
@@ -96,7 +98,6 @@ private suspend fun editPoll(call: ApplicationCall) {
         poll.removeUser(it)
         val user = User.loadFromID(it)
         if (user != null) ExpollNotificationHandler.sendPollLeave(poll, user)
-        //sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, editPollRequest.pollID, it))
     }
 
     // add users
@@ -107,7 +108,6 @@ private suspend fun editPoll(call: ApplicationCall) {
         if (user == null) return@forEach
         poll.addUser(user.id)
         ExpollNotificationHandler.sendPollJoin(poll, user)
-        //sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, editPollRequest.pollID, user.id))
     }
 
     // add/remove options
@@ -116,7 +116,9 @@ private suspend fun editPoll(call: ApplicationCall) {
             poll.addOption(cOption)
         } else {
             val option = poll.options.find { it.id == cOption.id }
-            option?.delete()
+            if (option == null) return@forEach
+            option.delete()
+            Vote.fromPollOption(poll.id, option.id).forEach { it.delete() }
         }
     }
 
@@ -132,12 +134,10 @@ private suspend fun editPoll(call: ApplicationCall) {
 
     poll.save()
     ExpollNotificationHandler.sendPollEdit(poll)
-    //sendNotification(ExpollNotification(ExpollNotificationType.PollEdited, editPollRequest.pollID, null))
 
     if (editPollRequest.delete == true) {
         poll.delete()
         ExpollNotificationHandler.sendPollDelete(poll)
-        //sendNotification(ExpollNotification(ExpollNotificationType.PollDeleted, editPollRequest.pollID, null))
     }
     call.respond(ReturnCode.OK)
 }
@@ -164,7 +164,6 @@ private suspend fun leavePoll(call: ApplicationCall) {
     val poll = Poll.fromID(pollID)
     if (poll != null)
         ExpollNotificationHandler.sendPollLeave(poll, principal.user)
-    //sendNotification(ExpollNotification(ExpollNotificationType.UserRemoved, pollID, principal.userID))
     call.respond(ReturnCode.OK)
 }
 
@@ -188,11 +187,18 @@ private suspend fun joinPoll(call: ApplicationCall) {
         call.respond(ReturnCode.OK)
         return
     }
-    principal.user.addPoll(pollID)
     val poll = Poll.fromID(pollID)
+    if (poll == null) {
+        call.respond(ReturnCode.INVALID_PARAMS)
+        return
+    }
+    principal.user.addPoll(pollID)
+    if (poll.defaultVote != null)
+        poll.options.forEach { option ->
+            Vote.setVote(principal.userID, pollID, option.id, poll.defaultVote!!)
+        }
 
-    if (poll != null) ExpollNotificationHandler.sendPollJoin(poll, principal.user)
-    //sendNotification(ExpollNotification(ExpollNotificationType.UserAdded, pollID, principal.userID))
+    ExpollNotificationHandler.sendPollJoin(poll, principal.user)
     call.respond(ReturnCode.OK)
 }
 
@@ -224,7 +230,8 @@ private suspend fun createPoll(call: ApplicationCall) {
         createPollRequest.maxPerUserVoteCount,
         createPollRequest.allowsMaybe,
         createPollRequest.allowsEditing,
-        createPollRequest.privateVoting
+        createPollRequest.privateVoting,
+        createPollRequest.defaultVoteValue
     )
 
 
@@ -245,7 +252,7 @@ private suspend fun getPolls(call: ApplicationCall) {
         return
     }
     val pollRequest: PollRequest = call.receiveNullable() ?: PollRequest()
-    val oldPollID = call.getDataFromAny("pollID") // TODO browser does not work with query method
+    val oldPollID = call.request.queryParameters["pollID"] // TODO browser does not work with query method
     if (pollRequest.pollID != null || oldPollID != null) {
         (pollRequest.pollID ?: oldPollID)?.let { getDetailedPoll(call, it) }
         getDetailedPoll(call, pollRequest.pollID ?: oldPollID!!)

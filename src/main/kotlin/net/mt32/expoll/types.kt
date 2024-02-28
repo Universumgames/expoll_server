@@ -31,4 +31,10 @@ enum class VoteValue(val id: Int){
             YES -> "vote.yes"
             MAYBE -> "vote.maybe"
         }
+
+    companion object{
+        fun valueOf(value: Int): VoteValue{
+            return entries.find { it.id == value } ?: NO
+        }
+    }
 }

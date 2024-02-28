@@ -2,7 +2,7 @@ package net.mt32.expoll.database.transform
 
 import net.mt32.expoll.database.DatabaseFactory
 import net.mt32.expoll.database.Transformer
-import net.mt32.expoll.entities.UserPolls
+import net.mt32.expoll.entities.interconnect.UserPolls
 
 fun Transformer.addHiddenInListProperty(){
     if(!tableExists(UserPolls.tableName)) return

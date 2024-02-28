@@ -1,8 +1,8 @@
 package net.mt32.expoll.serializable.admin.request
 
 import kotlinx.serialization.Serializable
-import net.mt32.expoll.entities.PollSearchParameters
-import net.mt32.expoll.entities.UserSearchParameters
+import net.mt32.expoll.serializable.request.search.PollSearchParameters
+import net.mt32.expoll.serializable.request.search.UserSearchParameters
 
 
 @Serializable

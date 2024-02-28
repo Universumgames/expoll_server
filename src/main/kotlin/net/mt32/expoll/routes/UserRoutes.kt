@@ -13,11 +13,11 @@ import net.mt32.expoll.config
 import net.mt32.expoll.entities.MailRule
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.UserDeletionConfirmation
-import net.mt32.expoll.entities.UserSearchParameters
 import net.mt32.expoll.helper.*
 import net.mt32.expoll.serializable.request.CreateUserRequest
 import net.mt32.expoll.serializable.request.EditUserRequest
 import net.mt32.expoll.serializable.request.VoteChange
+import net.mt32.expoll.serializable.request.search.UserSearchParameters
 import net.mt32.expoll.serializable.responses.CreateUserResponse
 import net.mt32.expoll.serializable.responses.StrippedPollData
 import net.mt32.expoll.serializable.responses.UserPersonalizeResponse
@@ -43,19 +43,19 @@ fun Route.userRoutes() {
             get("/personalizeddata") {
                 getPersonalizedData(call)
             }
-            get("/sessions"){
+            get("/sessions") {
                 getSessions(call)
             }
-            put{
+            put {
                 editUser(call)
             }
             delete {
                 deleteUser(call)
             }
-            delete("deleteConfirm"){
+            delete("deleteConfirm") {
                 deleteUserConfirm(call)
             }
-            post("deleteCancel"){
+            post("deleteCancel") {
                 deleteCancel(call)
             }
             get("/availableSearch") {
@@ -124,6 +124,15 @@ private suspend fun createUser(call: ApplicationCall) {
 
     user.sendUserCreationMail(call.request.local.scheme)
 
+    if (createUserRequest.useURL) {
+        val otp = user.createOTP(createUserRequest.forApp)
+        val loginURL = URLBuilder.buildLoginLink(call, user, otp, false)
+        if (createUserRequest.redirect)
+            call.respondRedirect(loginURL)
+        else
+            call.respond(loginURL)
+        return
+    }
     val jwt = session.getJWT()
     call.sessions.set(ExpollJWTCookie(jwt))
     call.respond(CreateUserResponse(jwt))
@@ -182,7 +191,7 @@ private suspend fun getPersonalizedData(call: ApplicationCall) {
     call.respond(personalizedData)
 }
 
-private suspend fun getSessions(call: ApplicationCall){
+private suspend fun getSessions(call: ApplicationCall) {
     val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
@@ -196,12 +205,13 @@ private suspend fun getSessions(call: ApplicationCall){
 
 @Serializable
 data class CreateChallengeRequest(val username: String? = null, val mail: String? = null)
+
 private suspend fun createChallenge(call: ApplicationCall) {
     val (userName, mail) = call.receive<CreateChallengeRequest>()
     call.respondText { "challenge${userName}${mail}" }
 }
 
-private suspend fun editUser(call: ApplicationCall){
+private suspend fun editUser(call: ApplicationCall) {
     val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
@@ -210,9 +220,9 @@ private suspend fun editUser(call: ApplicationCall){
     val editRequest = call.receive<EditUserRequest>()
     val user = principal.user
     val username = editRequest.username
-    if(username != null){
+    if (username != null) {
         val foundUser = User.byUsername(username)
-        if(foundUser != null && foundUser.id != user.id){
+        if (foundUser != null && foundUser.id != user.id) {
             call.respond(ReturnCode.INVALID_PARAMS)
             return
         }
@@ -224,7 +234,7 @@ private suspend fun editUser(call: ApplicationCall){
     call.respond(ReturnCode.OK)
 }
 
-private suspend fun deleteUser(call: ApplicationCall){
+private suspend fun deleteUser(call: ApplicationCall) {
     val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
@@ -238,12 +248,12 @@ private suspend fun deleteUser(call: ApplicationCall){
         "You have requested to delete your account on expoll. If you did not request this, please ignore this mail. \n" +
                 "If you did request this, please click the following link to confirm your deletion: \n" +
                 net.mt32.expoll.helper.URLBuilder.deleteConfirmationURL(call, confirmation) + "\n" +
-               "This link will expire in ${config.deleteConfirmationTimeoutSeconds} seconds."
+                "This link will expire in ${config.deleteConfirmationTimeoutSeconds} seconds."
     )
     call.respond(ReturnCode.NOT_IMPLEMENTED)
 }
 
-private suspend fun deleteUserConfirm(call: ApplicationCall){
+private suspend fun deleteUserConfirm(call: ApplicationCall) {
     val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
@@ -251,16 +261,16 @@ private suspend fun deleteUserConfirm(call: ApplicationCall){
     }
     val user = principal.user
     val confirmation = call.getDataFromAny("deleteConfirmationKey")
-    if(confirmation == null){
+    if (confirmation == null) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
     val confirmationObj = UserDeletionConfirmation.getPendingConfirmationForKey(confirmation)
-    if(confirmationObj == null || confirmationObj.userID != user.id){
+    if (confirmationObj == null || confirmationObj.userID != user.id) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
-    if(confirmationObj.initTimestamp.addSeconds(config.deleteConfirmationTimeoutSeconds) < UnixTimestamp.now()){
+    if (confirmationObj.initTimestamp.addSeconds(config.deleteConfirmationTimeoutSeconds) < UnixTimestamp.now()) {
         call.respond(ReturnCode.UNPROCESSABLE_ENTITY)
         return
     }
@@ -268,7 +278,7 @@ private suspend fun deleteUserConfirm(call: ApplicationCall){
     call.respond(ReturnCode.OK)
 }
 
-private suspend fun deleteCancel(call: ApplicationCall){
+private suspend fun deleteCancel(call: ApplicationCall) {
     val principal = call.principal<JWTSessionPrincipal>()
     if (principal == null) {
         call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
@@ -276,7 +286,7 @@ private suspend fun deleteCancel(call: ApplicationCall){
     }
     val user = principal.user
     val confirmation = UserDeletionConfirmation.getPendingConfirmationForUser(user.id)
-    if(confirmation == null){
+    if (confirmation == null) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
