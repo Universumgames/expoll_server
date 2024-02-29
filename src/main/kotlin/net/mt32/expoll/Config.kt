@@ -138,7 +138,8 @@ data class ConfigData(
     val deleteURLPrefix: String = "",
     val deleteConfirmationTimeoutSeconds: Long = 0,
     val initialUserConfig: InitialUserConfig = InitialUserConfig(),
-    val dataRetention: DataRetentionConfig = DataRetentionConfig()
+    val dataRetention: DataRetentionConfig = DataRetentionConfig(),
+    val otpBaseLength: Int = 0,
 )
 
 var config: ConfigData = ConfigData()

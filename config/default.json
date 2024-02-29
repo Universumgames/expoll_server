@@ -112,5 +112,6 @@
     "userDeleteAfterAdditionalDays": 180,
     "userDeletionFinalAfterDays": 100,
     "userNotifyBeforeDeletionDays": 90
-  }
+  },
+  "otpBaseLength": 6
 }
