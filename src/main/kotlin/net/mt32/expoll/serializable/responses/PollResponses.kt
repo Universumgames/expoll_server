@@ -37,7 +37,8 @@ data class DetailedPollResponse(
     val allowsEditing: Boolean,
     val privateVoting: Boolean,
     val shareURL: String,
-    val hidden: Boolean
+    val hidden: Boolean,
+    val defaultVote: Int?,
 )
 
 @Serializable
@@ -65,7 +66,7 @@ data class ComplexOption(
 @Serializable
 data class SimpleVote(
     val optionID: Int,
-    val votedFor: Int?,
+    val votedFor: Int?, // TODO non nullable after iOS 3.3.0
 )
 
 fun List<Poll>.asSummaryList(user: User?): List<PollSummary> {

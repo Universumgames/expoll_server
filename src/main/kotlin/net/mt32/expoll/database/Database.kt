@@ -118,6 +118,7 @@ object Transformer {
         addVoteChangeDetailedNotificationSetting()
         addPrivateVotingOption()
         addUserLastLogin()
+        nonNullDefaultVotes()
 
         removeGhostVotes() // always last
     }

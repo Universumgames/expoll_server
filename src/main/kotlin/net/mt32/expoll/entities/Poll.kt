@@ -82,7 +82,7 @@ class Poll : DatabaseEntity, IPoll {
             }
         }
 
-    var defaultVote: VoteValue?
+    var defaultVote: VoteValue
 
     constructor(
         adminID: tUserID,
@@ -96,7 +96,7 @@ class Poll : DatabaseEntity, IPoll {
         allowsMaybe: Boolean,
         allowsEditing: Boolean,
         privateVoting: Boolean,
-        defaultVoteValue: VoteValue?
+        defaultVoteValue: VoteValue
     ) : super() {
         this.adminID = adminID
         this.id = id
@@ -125,7 +125,7 @@ class Poll : DatabaseEntity, IPoll {
         this.allowsMaybe = pollRow[Poll.allowsMaybe]
         this.allowsEditing = pollRow[Poll.allowsEditing]
         this.privateVoting = pollRow[Poll.privateVoting]
-        this.defaultVote = pollRow[Poll.defaultVote]?.let { VoteValue.valueOf(it) }
+        this.defaultVote = VoteValue.valueOf(pollRow[Poll.defaultVote]) ?: VoteValue.UNKNOWN
     }
 
     override fun save(): Boolean {
@@ -153,7 +153,7 @@ class Poll : DatabaseEntity, IPoll {
                     it[Poll.allowsMaybe] = this@Poll.allowsMaybe
                     it[Poll.allowsEditing] = this@Poll.allowsEditing
                     it[Poll.privateVoting] = this@Poll.privateVoting
-                    it[Poll.defaultVote] = this@Poll.defaultVote?.id
+                    it[Poll.defaultVote] = this@Poll.defaultVote.id
                 }
             }
         }
@@ -188,7 +188,7 @@ class Poll : DatabaseEntity, IPoll {
         val allowsMaybe = bool("allowsMaybe")
         val allowsEditing = bool("allowsEditing")
         val privateVoting = bool("privateVoting")
-        val defaultVote = integer("defaultVote").nullable()
+        val defaultVote = integer("defaultVote")
 
         override val primaryKey = PrimaryKey(id)
 
@@ -242,7 +242,7 @@ class Poll : DatabaseEntity, IPoll {
             allowsMaybe: Boolean,
             allowsEditing: Boolean,
             privateVoting: Boolean,
-            defaultVoteValue: VoteValue?
+            defaultVoteValue: VoteValue
         ): Poll {
             return Poll(
                 adminID,
@@ -293,7 +293,8 @@ class Poll : DatabaseEntity, IPoll {
                     val description =
                         (if (searchParameters.searchQuery.description != null) (Poll.description like "%${searchParameters.searchQuery.description}%") else Op.TRUE)
                     val userPolls =
-                        UserPolls.select(UserPolls.pollID).where { UserPolls.userID like "%${searchParameters.searchQuery.memberID}%" }
+                        UserPolls.select(UserPolls.pollID)
+                            .where { UserPolls.userID like "%${searchParameters.searchQuery.memberID}%" }
                     val memberID =
                         (if (searchParameters.searchQuery.memberID != null) (Poll.id inSubQuery userPolls) else Op.TRUE)
                     val any = (if (searchParameters.searchQuery.any != null) (
@@ -331,13 +332,13 @@ class Poll : DatabaseEntity, IPoll {
 
         fun ownedByUser(userID: tUserID): List<Poll> {
             return transaction {
-                return@transaction Poll.selectAll().where {(Poll.adminID eq userID) }.map { Poll(it) }
+                return@transaction Poll.selectAll().where { (Poll.adminID eq userID) }.map { Poll(it) }
             }
         }
 
         fun ownedByUserCount(userID: tUserID): Long {
             return transaction {
-                return@transaction Poll.selectAll().where {(Poll.adminID eq userID) }.count()
+                return@transaction Poll.selectAll().where { (Poll.adminID eq userID) }.count()
             }
         }
     }
@@ -352,15 +353,22 @@ class Poll : DatabaseEntity, IPoll {
         val relevantOptionID = if (type == PollType.STRING) null else {
             val optionIndex = options.indexOfFirst { option ->
                 when (type) {
-                    PollType.DATE -> (option as PollOptionDate).dateStartTimestamp.asMidnight().addDays(1) > UnixTimestamp.now() && option.dateStartTimestamp < UnixTimestamp.now().asMidnight().addDays(1)
-                    PollType.DATETIME -> (option as PollOptionDateTime).dateTimeStartTimestamp.addDays(1) > UnixTimestamp.now().addDays(1)
+                    PollType.DATE -> (option as PollOptionDate).dateStartTimestamp.asMidnight()
+                        .addDays(1) > UnixTimestamp.now() && option.dateStartTimestamp < UnixTimestamp.now()
+                        .asMidnight().addDays(1)
+
+                    PollType.DATETIME -> (option as PollOptionDateTime).dateTimeStartTimestamp.addDays(1) > UnixTimestamp.now()
+                        .addDays(1)
+
                     else -> false
                 }
             }
             if (optionIndex == -1) null else options[optionIndex].id
         }
-        val usersThatVoted = if(!privateVoting || forUser.superAdminOrAdmin || forUser.id == adminID) users else listOf(forUser)
-        return DetailedPollResponse(id,
+        val usersThatVoted =
+            if (!privateVoting || forUser.superAdminOrAdmin || forUser.id == adminID) users else listOf(forUser)
+        return DetailedPollResponse(
+            id,
             name,
             admin.asSimpleUser(),
             description,
@@ -383,11 +391,17 @@ class Poll : DatabaseEntity, IPoll {
                     user.username,
                     user.id,
                     joinTimestamps.find { it.userID == user.id }!!.joinTimestamp.toClient()
-                ), votes.map { note -> SimpleVote(note.optionID, note.votedFor.id) } +
+                ), votes.map { note ->
+                    // TODO: remove after 3.3.0 release
+                    if (note.votedFor == VoteValue.UNKNOWN)
+                        SimpleVote(note.optionID, null)
+                    else
+                        SimpleVote(note.optionID, note.votedFor.id)
+                } + // keep this for backwards compatibility with old polls
                         // add null votes for non existing votes on options
                         missingVotes.map {
                             SimpleVote(
-                                it, null
+                                it, null // TODO after 3.3.0 release: VoteValue.UNKNOWN.id
                             )
                         })
             },
@@ -400,6 +414,7 @@ class Poll : DatabaseEntity, IPoll {
             privateVoting,
             shareURL,
             UserPolls.getHidden(id, adminID),
+            defaultVote.id
         )
     }
 
@@ -421,11 +436,10 @@ class Poll : DatabaseEntity, IPoll {
      * @return true when types match, false otherwise
      */
     fun addOption(option: ComplexOption): Boolean {
-        when (type) {
+        val createdOption = when (type) {
             PollType.STRING -> {
                 if (option.value == null) return false
-                PollOptionString(option.value, id, PollOptionString.newID(id)).save()
-                return true
+                PollOptionString(option.value, id, PollOptionString.newID(id))
             }
 
             PollType.DATE -> {
@@ -435,8 +449,7 @@ class Poll : DatabaseEntity, IPoll {
                     option.dateEnd?.toUnixTimestampFromClient(),
                     id,
                     PollOptionDate.newID(id)
-                ).save()
-                return true
+                )
             }
 
             PollType.DATETIME -> {
@@ -446,15 +459,23 @@ class Poll : DatabaseEntity, IPoll {
                     option.dateTimeEnd?.toUnixTimestampFromClient(),
                     id,
                     PollOptionDateTime.newID(id)
-                ).save()
-                return true
+                )
             }
         }
+        createdOption.save()
+        for (user in users) {
+            Vote.setVote(user.id, id, createdOption.id, defaultVote)
+        }
+        return true
     }
 
     fun addUser(userID: tUserID) {
         UserPolls.addConnection(userID, id)
         updatedTimestamp = UnixTimestamp.now()
+        if (defaultVote != null)
+            options.forEach { option ->
+                Vote.setVote(userID, id, option.id, defaultVote!!)
+            }
     }
 
     fun removeUser(userID: tUserID) {

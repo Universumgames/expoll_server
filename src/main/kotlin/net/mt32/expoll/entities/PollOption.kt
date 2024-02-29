@@ -25,7 +25,7 @@ interface PollOption : IDatabaseEntity {
 class PollOptionString : PollOption, DatabaseEntity {
     val value: String
     override val pollID: tPollID
-    override val id: tOptionID
+    override var id: tOptionID
 
     constructor(value: String, pollID: tPollID, id: tOptionID) {
         this.value = value
@@ -40,13 +40,13 @@ class PollOptionString : PollOption, DatabaseEntity {
     }
 
     override fun save(): Boolean {
-        transaction {
-            PollOptionString.upsertCustom(PollOptionString.id) {
+        id = transaction {
+            return@transaction PollOptionString.upsertCustom(PollOptionString.id) {
                 it[id] = this@PollOptionString.id
                 it[pollID] = this@PollOptionString.pollID
                 it[value] = this@PollOptionString.value
-            }
-        }
+            }.resultedValues?.firstOrNull()?.get(PollOptionString.id)
+        } ?: id
         return true
     }
 
@@ -113,7 +113,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
     val dateStartTimestamp: UnixTimestamp
     val dateEndTimestamp: UnixTimestamp?
     override val pollID: tPollID
-    override val id: tOptionID
+    override var id: tOptionID
 
     constructor(dateStartTimestamp: UnixTimestamp, dateEndTimestamp: UnixTimestamp?, pollID: tPollID, id: tOptionID) {
         this.dateStartTimestamp = dateStartTimestamp
@@ -130,14 +130,14 @@ class PollOptionDate : PollOption, DatabaseEntity {
     }
 
     override fun save(): Boolean {
-        transaction {
-            PollOptionDate.upsertCustom(PollOptionDate.id) {
+        id = transaction {
+            return@transaction PollOptionDate.upsertCustom(PollOptionDate.id) {
                 it[id] = this@PollOptionDate.id
                 it[pollID] = this@PollOptionDate.pollID
                 it[dateStartTimestamp] = this@PollOptionDate.dateStartTimestamp.toDB()
                 it[dateEndTimestamp] = this@PollOptionDate.dateEndTimestamp?.toDB()
-            }
-        }
+            }.resultedValues?.firstOrNull()?.get(PollOptionDate.id)
+        } ?: id
         return true
     }
 
@@ -205,7 +205,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
     val dateTimeStartTimestamp: UnixTimestamp
     val dateTimeEndTimestamp: UnixTimestamp?
     override val pollID: tPollID
-    override val id: tOptionID
+    override var id: tOptionID
 
     constructor(
         dateTimeStartTimestamp: UnixTimestamp,
@@ -227,14 +227,14 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
     }
 
     override fun save(): Boolean {
-        transaction {
-            upsertCustom(PollOptionDateTime.id) {
+        id = transaction {
+            return@transaction upsertCustom(PollOptionDateTime.id) {
                 it[id] = this@PollOptionDateTime.id
                 it[pollID] = this@PollOptionDateTime.pollID
                 it[PollOptionDateTime.dateTimeStartTimestamp] = this@PollOptionDateTime.dateTimeStartTimestamp.toDB()
                 it[PollOptionDateTime.dateTimeEndTimestamp] = this@PollOptionDateTime.dateTimeEndTimestamp?.toDB()
-            }
-        }
+            }.resultedValues?.firstOrNull()?.get(PollOptionDateTime.id)
+        } ?: id
         return true
     }
 

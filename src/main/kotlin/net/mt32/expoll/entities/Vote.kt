@@ -31,7 +31,7 @@ class Vote : DatabaseEntity {
         this.userID = voteRow[Vote.userID]
         this.pollID = voteRow[Vote.pollID]
         this.optionID = voteRow[Vote.optionID]
-        this.votedFor = VoteValue.values()[voteRow[Vote.votedFor]]
+        this.votedFor = VoteValue.valueOf(voteRow[Vote.votedFor]) ?: VoteValue.UNKNOWN
     }
 
     override fun save(): Boolean {

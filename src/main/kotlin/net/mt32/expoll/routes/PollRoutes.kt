@@ -7,6 +7,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.PollType
+import net.mt32.expoll.VoteValue
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Poll
@@ -160,10 +161,14 @@ private suspend fun leavePoll(call: ApplicationCall) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
-    principal.user.removePoll(pollID)
+
     val poll = Poll.fromID(pollID)
-    if (poll != null)
-        ExpollNotificationHandler.sendPollLeave(poll, principal.user)
+    if (poll == null) {
+        call.respond(ReturnCode.INVALID_PARAMS)
+        return
+    }
+    poll.removeUser(principal.userID)
+    ExpollNotificationHandler.sendPollLeave(poll, principal.user)
     call.respond(ReturnCode.OK)
 }
 
@@ -192,11 +197,7 @@ private suspend fun joinPoll(call: ApplicationCall) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
-    principal.user.addPoll(pollID)
-    if (poll.defaultVote != null)
-        poll.options.forEach { option ->
-            Vote.setVote(principal.userID, pollID, option.id, poll.defaultVote!!)
-        }
+    poll.addUser(principal.userID)
 
     ExpollNotificationHandler.sendPollJoin(poll, principal.user)
     call.respond(ReturnCode.OK)
@@ -231,7 +232,7 @@ private suspend fun createPoll(call: ApplicationCall) {
         createPollRequest.allowsMaybe,
         createPollRequest.allowsEditing,
         createPollRequest.privateVoting,
-        createPollRequest.defaultVoteValue
+        VoteValue.valueOf(createPollRequest.defaultVote) ?: VoteValue.UNKNOWN
     )
 
 
