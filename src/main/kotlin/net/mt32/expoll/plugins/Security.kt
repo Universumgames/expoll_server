@@ -94,7 +94,9 @@ fun Application.configureSecurity() {
         }
     }
 
-    install(UserAgentBlocker)
+    install(UserAgentBlocker){
+        blockEmptyUserAgent = false
+    }
 }
 
 
