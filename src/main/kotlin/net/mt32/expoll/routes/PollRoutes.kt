@@ -71,7 +71,7 @@ private suspend fun editPoll(call: ApplicationCall) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
     }
-    if (principal.user != poll.admin && !principal.user.mail.equals(config.superAdminMail, ignoreCase = true)) {
+    if (principal.user != poll.admin && !principal.user.admin && !principal.user.mail.equals(config.superAdminMail, ignoreCase = true)) {
         call.respond(ReturnCode.UNAUTHORIZED)
         return
     }
