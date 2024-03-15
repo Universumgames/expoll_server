@@ -16,8 +16,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.contentOrNull
+import kotlinx.serialization.json.jsonPrimitive
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.auth.OIDC
 import net.mt32.expoll.auth.normalAuth
@@ -119,7 +120,7 @@ private suspend fun listIDPs(call: ApplicationCall) {
             it.value.config.iconConfig.iconFileName,
             it.value.config.iconConfig.backgroundColorHex,
             it.value.config.iconConfig.textColorHex,
-            it.value.config.title, // TODO add name to config
+            it.value.config.title,
         )
     })
 }
@@ -233,7 +234,7 @@ private suspend fun oidcLogin(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
     val decodedJWT = jwt.payload.decodeBase64String()
     val baseTokenData = defaultJSON.decodeFromString<OIDC.IDToken>(decodedJWT)
     val jwtHeader = defaultJSON.decodeFromString<OIDC.JWTHeader>(jwt.header.decodeBase64String())
-    val tokenDataMap: Map<String, JsonPrimitive> = defaultJSON.decodeFromString(decodedJWT)
+    val tokenDataMap: Map<String, JsonElement> = defaultJSON.decodeFromString(decodedJWT)
     println(tokenDataMap)
 
     if (!OIDC.verifyIDToken(jwt, jwtHeader, baseTokenData, idp)) {
@@ -262,14 +263,14 @@ private suspend fun oidcLogin(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
 private suspend fun addOIDCConnection(
     call: ApplicationCall,
     userParam: String?,
-    tokenDataMap: Map<String, JsonPrimitive>,
+    tokenDataMap: Map<String, JsonElement>,
     baseTokenData: OIDC.IDToken,
     idp: OIDC.OIDCIDPData,
     principal: JWTSessionPrincipal?,
     state: LoggedInState
 ) {
     val parsedUser = userParam?.let { defaultJSON.decodeFromString<OIDCUserParam>(it) }
-    val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.contentOrNull ?: tokenDataMap["email"]?.contentOrNull
+    val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull
     val userID = principal?.userID ?: state.userID
     if (OIDCUserData.bySubjectAndIDP(baseTokenData.subject, idp.name) != null) {
         if (state.isApp)
@@ -287,14 +288,14 @@ private suspend fun addOIDCConnection(
 private suspend fun loginUser(
     call: ApplicationCall,
     userParam: String?,
-    tokenDataMap: Map<String, JsonPrimitive>,
+    tokenDataMap: Map<String, JsonElement>,
     baseTokenData: OIDC.IDToken,
     idp: OIDC.OIDCIDPData,
     state: FreshState
 ) {
     val parsedUser = userParam?.let { defaultJSON.decodeFromString<OIDCUserParam>(it) }
 
-    val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.contentOrNull ?: tokenDataMap["email"]?.contentOrNull
+    val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull
 
     println(baseTokenData)
     // fetch user from db or create new
@@ -321,10 +322,10 @@ private suspend fun loginUser(
 
     // create user
     val firstNameUse =
-        parsedUser?.name?.firstName ?: tokenDataMap["given_name"]?.contentOrNull ?: tokenDataMap["name"]?.contentOrNull
-        ?: tokenDataMap["name"]?.contentOrNull
-    val lastNameUse = parsedUser?.name?.lastName ?: tokenDataMap["family_name"]?.contentOrNull
-    var userNameUse = tokenDataMap["preferred_username"]?.contentOrNull ?: tokenDataMap["nickname"]?.contentOrNull
+        parsedUser?.name?.firstName ?: tokenDataMap["given_name"]?.jsonPrimitive?.contentOrNull ?: tokenDataMap["name"]?.jsonPrimitive?.contentOrNull
+        ?: tokenDataMap["name"]?.jsonPrimitive?.contentOrNull
+    val lastNameUse = parsedUser?.name?.lastName ?: tokenDataMap["family_name"]?.jsonPrimitive?.contentOrNull
+    var userNameUse = tokenDataMap["preferred_username"]?.jsonPrimitive?.contentOrNull ?: tokenDataMap["nickname"]?.jsonPrimitive?.contentOrNull
     if (mailUse == null || firstNameUse == null) {
         call.respond(ReturnCode.BAD_REQUEST)
         return

@@ -280,7 +280,7 @@ class User : IUser, DatabaseEntity {
 
     fun sendOTPMail(call: ApplicationCall, forApp: Boolean = false) {
         val otp = createOTP(forApp)
-        val mailData = ExpollMail.OTPMail(mail, fullName, otp.otp, URLBuilder.buildLoginLink(call, this, otp, forApp))
+        val mailData = ExpollMail.OTPMail(mail, fullName, otp.otp, URLBuilder.buildLoginLink(call, this, otp, false))
         Mail.sendMailAsync(mailData)
     }
 
@@ -533,8 +533,10 @@ class User : IUser, DatabaseEntity {
         return super.equals(other)
     }
 
+    @Deprecated("Use Poll.addUser instead", ReplaceWith("poll.addUser(userID)"))
     fun addPoll(pollID: tPollID) {
-        UserPolls.addConnection(id, pollID)
+        val poll = Poll.fromID(pollID) ?: return
+        poll.addUser(this.id)
     }
 
     fun removePoll(pollID: tPollID) {
@@ -550,7 +552,7 @@ class User : IUser, DatabaseEntity {
     }
 
     fun reactivateUser() {
-        if(deleted != null) return
+        if (deleted != null) return
         active = true
         UserDeletionQueue.removeUserFromDeletionQueue(id)
         save()

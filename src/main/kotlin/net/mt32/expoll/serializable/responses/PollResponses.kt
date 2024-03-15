@@ -18,35 +18,51 @@ data class PollSimpleUser(
     val joinedTimestamp: tClientDateTime
 ): ISimpleUser
 
+interface PollResponse {
+    val pollID: String
+    val name: String
+    val admin: SimpleUser
+    val description: String
+    val userCount: Int
+    val lastUpdated: tClientDateTime
+    val type: Int
+    val allowsEditing: Boolean
+    val hidden: Boolean
+}
+
 @Serializable
 data class DetailedPollResponse(
-    val pollID: String,
-    val name: String,
-    val admin: SimpleUser,
-    val description: String,
+    override val pollID: String,
+    override val name: String,
+    override val admin: SimpleUser,
+    override val description: String,
     val maxPerUserVoteCount: Int,
-    val userCount: Int,
-    val lastUpdated: tClientDateTime,
+    override val userCount: Int,
+    override val lastUpdated: tClientDateTime,
     val created: tClientDateTime,
-    val type: Int,
+    override val type: Int,
     val options: List<ComplexOption>,
     val mostRelevantOptionID: tOptionID?,
     val userVotes: List<UserVote>,
+    // TODO deprecated after iOS 3.2.0
     val userNotes: List<UserNote>,
     val allowsMaybe: Boolean,
-    val allowsEditing: Boolean,
+    override val allowsEditing: Boolean,
     val privateVoting: Boolean,
     val shareURL: String,
-    val hidden: Boolean,
+    override val hidden: Boolean,
     val defaultVote: Int?,
-)
+): PollResponse
 
 @Serializable
 data class UserVote(
     val user: PollSimpleUser,
+    val note: String?,
     val votes: List<SimpleVote>
 )
 
+// TODO Remove after 3.2.0 release
+@Deprecated("Use UserVote instead")
 @Serializable
 data class UserNote(
     val userID: tUserID,
@@ -92,18 +108,18 @@ data class PollListResponse(
 
 @Serializable
 data class PollSummary(
-    val pollID: String,
-    val name: String,
-    val admin: SimpleUser,
-    val description: String,
-    val userCount: Int,
-    val lastUpdated: tClientDateTime,
-    val type: Int,
+    override val pollID: String,
+    override val name: String,
+    override val admin: SimpleUser,
+    override val description: String,
+    override val userCount: Int,
+    override val lastUpdated: tClientDateTime,
+    override val type: Int,
     // TODO deprecated after iOS 3.2.0
     val editable: Boolean,
-    val allowsEditing: Boolean,
-    val hidden: Boolean
-)
+    override val allowsEditing: Boolean,
+    override val hidden: Boolean
+): PollResponse
 
 @Serializable
 data class PollCreatedResponse(

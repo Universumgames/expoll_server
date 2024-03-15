@@ -76,9 +76,6 @@ private fun cleanupCoroutine() {
     }
     // notify users of inactivity
     transaction {
-        // TODO deactivate all users after x months of inactivity and notify them
-        // TODO delete all inactive users after x+y months of inactivity
-        // TODO final delete all deleted users after z months and their polls
         val longLastLoginUsers = User.oldLoginUsers()
         longLastLoginUsers.forEach { it.deactivateUser() }
 

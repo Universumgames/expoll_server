@@ -391,12 +391,12 @@ class Poll : DatabaseEntity, IPoll {
                     user.username,
                     user.id,
                     joinTimestamps.find { it.userID == user.id }!!.joinTimestamp.toClient()
-                ), votes.map { note ->
+                ), notes.find { note -> note.userID == user.id }?.note, votes.map { vote ->
                     // TODO: remove after 3.3.0 release
-                    if (note.votedFor == VoteValue.UNKNOWN)
-                        SimpleVote(note.optionID, null)
+                    if (vote.votedFor == VoteValue.UNKNOWN)
+                        SimpleVote(vote.optionID, null)
                     else
-                        SimpleVote(note.optionID, note.votedFor.id)
+                        SimpleVote(vote.optionID, vote.votedFor.id)
                 } + // keep this for backwards compatibility with old polls
                         // add null votes for non existing votes on options
                         missingVotes.map {

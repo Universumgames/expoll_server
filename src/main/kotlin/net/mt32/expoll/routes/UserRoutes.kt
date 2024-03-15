@@ -11,6 +11,7 @@ import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.*
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.MailRule
+import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.UserDeletionConfirmation
 import net.mt32.expoll.helper.*
@@ -114,8 +115,10 @@ private suspend fun createUser(call: ApplicationCall) {
 
     call.startNewTiming("user.create", "Create User and save to database")
     val user = User(username, firstName, lastName, mail, admin = false)
-    user.addPoll(config.initialUserConfig.pollID)
     user.save()
+    async {
+        Poll.fromID(config.initialUserConfig.pollID)?.addUser(user.id)
+    }
 
     call.startNewTiming("session.create", "Create new Session")
     val session = user.createSessionFromScratch()

@@ -8,12 +8,10 @@ import io.ktor.server.routing.*
 import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
+import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.UserDeletionQueue
-import net.mt32.expoll.helper.ReturnCode
-import net.mt32.expoll.helper.URLBuilder
-import net.mt32.expoll.helper.getDataFromAny
-import net.mt32.expoll.helper.startNewTiming
+import net.mt32.expoll.helper.*
 import net.mt32.expoll.plugins.query
 import net.mt32.expoll.serializable.admin.request.AdminCreateUserRequest
 import net.mt32.expoll.serializable.admin.request.AdminEditUserRequest
@@ -74,20 +72,23 @@ private suspend fun createUser(call: ApplicationCall) {
         active = true,
         admin = false
     )
-    user.addPoll(config.initialUserConfig.pollID)
-
     user.save()
-    val otp = user.createOTP(forApp = false)
-    otp.expirationTimestamp.addDays(5)
-    otp.save()
-    Mail.sendMailAsync(
-        user.mail, user.fullName, "Expoll account creation",
-        """An admin has created an account on your behalf.
+
+    async {
+        Poll.fromID(config.initialUserConfig.pollID)?.addUser(user.id)
+
+        val otp = user.createOTP(forApp = false)
+        otp.expirationTimestamp.addDays(5)
+        otp.save()
+        Mail.sendMailAsync(
+            user.mail, user.fullName, "Expoll account creation",
+            """An admin has created an account on your behalf.
            Here is your OTP for logging in on the expoll website, it is valid for the next 5 days:
            ${otp.otp}
            alternatively you can click this link
            ${URLBuilder.buildLoginLink(call, user, otp, false)}""".trimIndent()
-    )
+        )
+    }
 
     call.respond(ReturnCode.OK)
 }

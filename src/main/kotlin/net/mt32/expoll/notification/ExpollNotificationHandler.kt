@@ -6,6 +6,7 @@ import net.mt32.expoll.config
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.helper.async
 import net.mt32.expoll.tOptionID
 
 
@@ -177,30 +178,32 @@ object ExpollNotificationHandler {
     }
 
     fun sendNotification(dataHandler: DataHandler) {
-        lastNotification = dataHandler
-        lastNotificationTime = UnixTimestamp.now()
-        AnalyticsStorage.notificationCount[dataHandler.notification] =
-            (AnalyticsStorage.notificationCount[dataHandler.notification] ?: 0) + 1
-        var altNotification: DataHandler? = null
-        val affectedUsers =
-            if (dataHandler.poll?.privateVoting == true) listOf(dataHandler.poll.admin) else dataHandler.poll?.users
-        affectedUsers?.forEach {
-            if (dataHandler.notification == ExpollNotification.VoteChange) {
-                if (altNotification == null)
-                    altNotification = DataHandler(
-                        ExpollNotification.VoteChangeDetailed,
-                        dataHandler.poll,
-                        dataHandler.user,
-                        dataHandler.optionID,
-                        dataHandler.oldVote,
-                        dataHandler.newVote
-                    )
-                if (ExpollNotification.VoteChangeDetailed.isWantedByUser(it)) {
-                    sendNotification(it, altNotification!!)
-                    return@forEach
+        async {
+            lastNotification = dataHandler
+            lastNotificationTime = UnixTimestamp.now()
+            AnalyticsStorage.notificationCount[dataHandler.notification] =
+                (AnalyticsStorage.notificationCount[dataHandler.notification] ?: 0) + 1
+            var altNotification: DataHandler? = null
+            val affectedUsers =
+                if (dataHandler.poll?.privateVoting == true) listOf(dataHandler.poll.admin) else dataHandler.poll?.users
+            affectedUsers?.forEach {
+                if (dataHandler.notification == ExpollNotification.VoteChange) {
+                    if (altNotification == null)
+                        altNotification = DataHandler(
+                            ExpollNotification.VoteChangeDetailed,
+                            dataHandler.poll,
+                            dataHandler.user,
+                            dataHandler.optionID,
+                            dataHandler.oldVote,
+                            dataHandler.newVote
+                        )
+                    if (ExpollNotification.VoteChangeDetailed.isWantedByUser(it)) {
+                        sendNotification(it, altNotification!!)
+                        return@forEach
+                    }
                 }
+                sendNotification(it, lastNotification!!)
             }
-            sendNotification(it, lastNotification!!)
         }
     }
 

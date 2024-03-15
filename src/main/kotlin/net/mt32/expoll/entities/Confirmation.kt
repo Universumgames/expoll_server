@@ -3,8 +3,11 @@ package net.mt32.expoll.entities
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.helper.upsertCustom
 import net.mt32.expoll.tUserID
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
 
 class DeleteConfirmation : DatabaseEntity {
@@ -20,13 +23,20 @@ class DeleteConfirmation : DatabaseEntity {
 
     override fun save(): Boolean {
         transaction {
-            TODO("Implement user deletion confirmation save")
+            DeleteConfirmation.upsertCustom(DeleteConfirmation.id) {
+                it[DeleteConfirmation.id] = this@DeleteConfirmation.id
+                it[DeleteConfirmation.userID] = this@DeleteConfirmation.userID
+                it[DeleteConfirmation.expirationTimestamp] = this@DeleteConfirmation.expirationTimestamp.toDB()
+            }
         }
         return true
     }
 
     override fun delete(): Boolean {
-        TODO("Implement user deletion confirmation removal")
+        transaction {
+            DeleteConfirmation.deleteWhere { DeleteConfirmation.id eq this@DeleteConfirmation.id }
+        }
+        return true
     }
 
     companion object : Table("delete_confirmation") {

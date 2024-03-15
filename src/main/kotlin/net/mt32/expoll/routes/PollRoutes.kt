@@ -241,7 +241,7 @@ private suspend fun createPoll(call: ApplicationCall) {
     createPollRequest.options.forEach { option ->
         poll.addOption(option)
     }
-    principal.user.addPoll(poll.id)
+    poll.addUser(principal.userID)
 
     call.respond(PollCreatedResponse(poll.id))
 }
