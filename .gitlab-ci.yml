@@ -18,7 +18,7 @@ stages: # List of stages for jobs, and their order of execution
     - deploy
 
 compiling: # This job runs in the build stage, which runs first.
-    image: gradle:8-jdk11
+    image: gradle:8-jdk21
     stage: build
     script:
         - gradle buildFatJar --no-daemon
