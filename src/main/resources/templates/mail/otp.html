@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{./scaffold.html}"
+      lang="en">
+<head>
+
+</head>
+<body>
+<div layout:fragment="content">
+    <p>
+        Here is your OTP for logging in in Expoll:
+    </p>
+    <h2 th:text="${otp}">otp</h2>
+    <p>
+        alternatively you can click this link to login <a th:href="${loginLink}" th:text="${loginLink}"></a>
+    </p>
+</div>
+</body>

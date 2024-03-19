@@ -161,8 +161,10 @@ class UserDeletionQueue : DatabaseEntity {
             }
         }
 
-        fun deactivateUser(userID: tUserID) {
-            UserDeletionQueue(userID, getNextDeletionDateForNextStage(DeletionStage.DEACTIVATION), DeletionStage.DEACTIVATION).save()
+        fun deactivateUser(userID: tUserID): UnixTimestamp {
+            val date = getNextDeletionDateForNextStage(DeletionStage.DEACTIVATION)
+            UserDeletionQueue(userID, date, DeletionStage.DEACTIVATION).save()
+            return date
         }
 
         fun addUserToDeletionQueueOrPropagate(

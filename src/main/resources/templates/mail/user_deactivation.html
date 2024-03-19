@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{./scaffold.html}"
+      lang="en">
+<head>
+
+</head>
+<body>
+<div layout:fragment="content">
+    <p>
+        Hello <span th:text="${user.firstName}">Max</span> <span th:text="${user.lastName}">Mustermann</span>,
+    </p>
+    <p style="color: red">
+        Your account has been <b>deactivated</b> because you haven't used the service in a long time.<br>
+        To avoid account deletion, <b>please log in</b>.<br>
+        If you don't login within the next <b><span th:text="${userDeleteAfterAdditionalDays}">90</span></b> days (by
+        <b><span th:text="${userDeleteAfterDate}">01.01.2022</span></b>), your account will be <b>deleted</b>.
+    </p>
+    <p>
+        Regards,<br>
+        the <span th:text="${applicationName} + ' Team'">Expoll Team</span>
+    </p>
+</div>
+</body>

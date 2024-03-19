@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{./scaffold.html}"
+      lang="en">
+<head>
+
+</head>
+<body>
+<div layout:fragment="content">
+    <p>
+        Hello <span th:text="${user.firstName}">Max</span> <span th:text="${user.lastName}">Mustermann</span>,
+    </p>
+    <p style="color: red">
+        Your account has been <b>deleted</b>.
+        All your personal information has been anonymized and is no longer associated with you.
+        If you didn't have any polls, your account has been deleted immediately.
+        If you had polls, your account has been deleted completely.
+    </p>
+    <p>
+        Regards,<br>
+        the <span th:text="${applicationName} + ' Team'">Expoll Team</span>
+    </p>
+</div>
+</body>

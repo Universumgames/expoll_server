@@ -3,56 +3,87 @@ package net.mt32.expoll
 import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
-import net.mt32.expoll.entities.UserDeletionConfirmation
+import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.UnixTimestamp
+import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect
+import org.thymeleaf.TemplateEngine
+import org.thymeleaf.templatemode.TemplateMode
+import org.thymeleaf.templateresolver.ClassLoaderTemplateResolver
+import org.thymeleaf.templateresolver.ITemplateResolver
 import java.util.*
 
 object ExpollMail {
-    fun OTPMail(mail: String, fullName: String, otp: String, loginLink: String): Mail.MailData {
+    fun OTPMail(user: User, otp: String, loginLink: String): Mail.MailData {
         return Mail.MailData(
-            mail, fullName, "Login to expoll", "Here is your OTP for logging in on the expoll website: \n\t" +
-                    otp +
-                    "\n alternatively you can click this link \n" + loginLink
+            user.mail, user.fullName, "Login to expoll",
+            Mail.fromTemplate(
+                Mail.Template.OTP,
+                mapOf("otp" to otp, "loginLink" to loginLink, "title" to "Login")
+            ),
+            true
         )
     }
 
-    fun UserCreationMail(mail: String, fullName: String, scheme: String): Mail.MailData {
+    fun UserCreationMail(user: User, scheme: String): Mail.MailData {
         val port = config.frontEndPort
+        val data = mapOf(
+            "scheme" to scheme,
+            "port" to port,
+            "user" to user,
+            "title" to "Welcome"
+        )
+        val body =
+            Mail.fromTemplate(Mail.Template.USER_CREATION, data)
         return Mail.MailData(
-            mail, fullName, "Thank you for registering in expoll",
-            "Thank you for creating an account at over at expoll (" +
-                    scheme +
-                    "://" +
-                    config.loginLinkURL +
-                    (if (port == 80 || port == 443) "" else ":$port") +
-                    ")"
+            user.mail, user.fullName,
+            "Thank you for registering in expoll", body,
+            true
         )
     }
 
-    fun UserDeactivationNotificationMail(mail: String, fullName: String): Mail.MailData {
+    fun UserDeactivationNotificationMail(user: User, deletionDate: UnixTimestamp): Mail.MailData {
+        val data = mapOf(
+            "user" to user,
+            "title" to "Account Deactivation",
+            "userDeleteAfterAdditionalDays" to config.dataRetention.userDeleteAfterAdditionalDays,
+            "userDeleteAfterDate" to deletionDate.toDate().toString()
+        )
         return Mail.MailData(
-            mail, fullName, "Your account has been deactivated",
-            "Your account has been deactivated because you haven't used the service in a long time. To avoid account deletion, please log in.\n" +
-                    "If you don't login within the next " + config.dataRetention.userDeleteAfterAdditionalDays + " days (by ${UnixTimestamp.now().addDays(
-                config.dataRetention.userDeleteAfterAdditionalDays).toDate().toString()}), your account will be deleted.")
+            user.mail, user.fullName,
+            "Your account has been deactivated",
+            Mail.fromTemplate(Mail.Template.USER_DEACTIVATION, data),
+            true
+        )
     }
 
-    fun UserDeletionInformationMail(mail: String, fullName: String, confirmation: UserDeletionConfirmation): Mail.MailData {
+    fun UserDeletionInformationMail(
+        user: User
+    ): Mail.MailData {
         return Mail.MailData(
-            mail, fullName, "Your account has been deleted",
-            "Your account has been deleted. All your personal information has been anonymized and is no longer associated with you. If you didn't have any polls, your account has been deleted immediately. If you had polls, your account has been deleted completely"
+            user.mail, user.fullName, "Your account has been deleted",
+            Mail.fromTemplate(
+                Mail.Template.USER_DELETION,
+                mapOf("user" to user, "title" to "Account Deletion")
+            ),
+            true
         )
     }
 }
 
 object Mail {
 
-    data class MailData(val toMail: String, val toName: String, val subject: String, val body: String)
+    data class MailData(
+        val toMail: String,
+        val toName: String,
+        val subject: String,
+        val body: String,
+        val isHTML: Boolean = false
+    )
 
-    fun sendMailAsync(toMail: String, toName: String, subject: String, body: String) {
+    fun sendMailAsync(toMail: String, toName: String, subject: String, body: String, isHTML: Boolean = false) {
         //mailQueue.add(MailData(to, subject, body))
         Thread {
-            sendMail(MailData(toMail, toName, subject, body))
+            sendMail(MailData(toMail, toName, subject, body, isHTML))
         }.start()
     }
 
@@ -88,7 +119,10 @@ object Mail {
             message.setFrom(InternetAddress(config.mailUser, "Expoll"))
             message.setRecipients(Message.RecipientType.TO, arrayOf(InternetAddress(data.toMail, data.toName)))
             message.subject = data.subject
-            message.setContent(data.body, "text/plain")
+            if (data.isHTML)
+                message.setContent(data.body, "text/html")
+            else
+                message.setContent(data.body, "text/plain")
 
 
             //Transport.send(message)
@@ -100,5 +134,44 @@ object Mail {
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    private fun resolver(): ITemplateResolver {
+        return ClassLoaderTemplateResolver().apply {
+            prefix = "templates/mail/"
+            suffix = ".html"
+            templateMode = TemplateMode.HTML
+            characterEncoding = "UTF-8"
+            isCacheable = false
+        }
+    }
+
+    private fun engine(): TemplateEngine {
+        val engine = TemplateEngine()
+        engine.addTemplateResolver(resolver())
+        engine.addDialect(LayoutDialect())
+        return engine
+    }
+
+    enum class Template(val path: String) {
+        OTP("otp"),
+        USER_CREATION("user_creation"),
+        USER_DEACTIVATION("user_deactivation"),
+        USER_DELETION("user_deletion")
+    }
+
+    private val defaultTemplateData: Map<String, Any> = mapOf(
+        "applicationName" to "Expoll",
+        "hostname" to config.loginLinkURL,
+        "backendVersion" to config.serverVersion
+    )
+
+    fun fromTemplate(template: Template, data: Map<String, Any>): String {
+        val context = org.thymeleaf.context.Context()
+        val map = mutableMapOf<String, Any>()
+        map.putAll(data)
+        map.putAll(defaultTemplateData)
+        context.setVariables(map)
+        return engine().process(template.path, context)
     }
 }

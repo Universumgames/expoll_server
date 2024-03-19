@@ -280,12 +280,12 @@ class User : IUser, DatabaseEntity {
 
     fun sendOTPMail(call: ApplicationCall, forApp: Boolean = false) {
         val otp = createOTP(forApp)
-        val mailData = ExpollMail.OTPMail(mail, fullName, otp.otp, URLBuilder.buildLoginLink(call, this, otp, false))
+        val mailData = ExpollMail.OTPMail(this, otp.otp, URLBuilder.buildLoginLink(call, this, otp, false))
         Mail.sendMailAsync(mailData)
     }
 
     fun sendUserCreationMail(scheme: String) {
-        val mailData = ExpollMail.UserCreationMail(mail, fullName, scheme)
+        val mailData = ExpollMail.UserCreationMail(this, scheme)
         Mail.sendMailAsync(mailData)
     }
 
@@ -546,9 +546,9 @@ class User : IUser, DatabaseEntity {
     fun deactivateUser() {
         active = false
         sessions.forEach { it.delete() }
-        UserDeletionQueue.deactivateUser(id)
+        val deletionDate = UserDeletionQueue.deactivateUser(id)
         save()
-        notifyInactivity()
+        notifyInactivity(deletionDate)
     }
 
     fun reactivateUser() {
@@ -558,14 +558,14 @@ class User : IUser, DatabaseEntity {
         save()
     }
 
-    fun notifyInactivity() {
-        val mailData = ExpollMail.UserDeactivationNotificationMail(mail, fullName)
+    fun notifyInactivity(deletionDate: UnixTimestamp) {
+        val mailData = ExpollMail.UserDeactivationNotificationMail(this, deletionDate)
         Mail.sendMailAsync(mailData)
     }
 
     fun notifyDeletion() {
         val mailData =
-            ExpollMail.UserDeletionInformationMail(mail, fullName, UserDeletionConfirmation(this.id))
+            ExpollMail.UserDeletionInformationMail(this)
         Mail.sendMailAsync(mailData)
     }
 }

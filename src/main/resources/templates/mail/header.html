@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      lang="en">
+<head>
+    <link rel="stylesheet" href="./vars.css"/>
+    <link rel="stylesheet" href="./style.css"/>
+</head>
+<body>
+    <header th:fragment="content">
+        <a th:href="'http://' + ${hostname}" style="">
+            <img src="https://expoll.mt32.net/app_icons/mac128.png" alt="Expoll Logo">
+        </a>
+        <h1 style="" th:text="'Expoll - ' + ${title}">Expoll</h1>
+        <span></span>
+    </header>
+</body>
+</html>

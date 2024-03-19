@@ -95,6 +95,11 @@ dependencies {
     implementation("io.ktor:ktor-server-cors:$ktor_version")
     implementation("nl.martijndwars:web-push:5.1.1")
     implementation("org.bouncycastle:bcprov-jdk18on:1.77")
+    // https://mvnrepository.com/artifact/org.thymeleaf/thymeleaf
+    implementation("org.thymeleaf:thymeleaf:3.1.2.RELEASE")
+    // https://mvnrepository.com/artifact/nz.net.ultraq.thymeleaf/thymeleaf-layout-dialect
+    implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.3.0")
+
 
 
     //testImplementation(kotlin("test"))
