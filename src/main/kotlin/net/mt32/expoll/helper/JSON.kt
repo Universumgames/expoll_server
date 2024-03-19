@@ -13,7 +13,7 @@ val defaultJSON = Json {
     prettyPrint = true
     encodeDefaults = true
     serializersModule = SerializersModule {
-        polymorphic(IAPNsPayload::class){
+        polymorphic(IAPNsPayload::class) {
             subclass(APNsNotificationHandler.ExpollAPNsPayload::class)
             subclass(APNsPayload::class)
         }
@@ -28,11 +28,17 @@ fun mergeJsonObjects(obj1: JsonObject, obj2: JsonObject?): JsonObject {
     val merged = obj1.toMutableMap();
     merged.forEach { entry ->
         if (obj2.containsKey(entry.key)) {
-            val isObj = merged[entry.key].toString().contains("{") || merged[entry.key].toString().contains("[")
-            merged[entry.key] = if (isObj) mergeJsonObjects(
+            println(merged[entry.key].toString())
+            val isObj = merged[entry.key].toString().startsWith("{")
+            val isArr = merged[entry.key].toString().startsWith("[")
+
+            if (isObj) merged[entry.key] = mergeJsonObjects(
                 entry.value.jsonObject,
                 obj2[entry.key]?.jsonObject
-            ) else obj2[entry.key]?.jsonPrimitive ?: entry.value
+            )
+            else if (isArr)
+                merged[entry.key] = obj2[entry.key]?.jsonArray ?: entry.value
+            else merged[entry.key] = obj2[entry.key]?.jsonPrimitive ?: entry.value
         }
     }
     obj2.forEach { entry ->
@@ -43,15 +49,14 @@ fun mergeJsonObjects(obj1: JsonObject, obj2: JsonObject?): JsonObject {
 }
 
 fun JsonObject.toMap(): Map<String, *> = keys.asSequence().associateWith {
-    when (val value = this[it])
-    {
-        is JsonArray ->
-        {
+    when (val value = this[it]) {
+        is JsonArray -> {
             val map = (0 until value.size).associate { Pair(it.toString(), value[it]) }
             JsonObject(map).toMap().values.toList()
         }
+
         is JsonObject -> value.toMap()
         JsonNull -> null
-        else            -> value
+        else -> value
     }
 }
