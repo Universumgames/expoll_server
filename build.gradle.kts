@@ -1,3 +1,5 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+
 val ktor_version: String by project
 val kotlin_version: String by project
 val logback_version: String by project
@@ -10,9 +12,12 @@ val angus_mail_version: String by project
 val kotlinx_coroutines_version: String by project
 
 plugins {
-    kotlin("jvm") version "1.9.22"
-    id("io.ktor.plugin") version "2.3.8"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.22"
+    application
+    java
+    kotlin("jvm") version "1.9.23"
+    id("io.ktor.plugin") version "2.3.9"
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.23"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 kotlin {
@@ -21,6 +26,7 @@ kotlin {
 
 group = "net.mt32.expoll"
 version = "3.8.0"
+
 application {
     mainClass.set("net.mt32.expoll.ApplicationKt")
 
@@ -29,7 +35,7 @@ application {
 }
 
 tasks.withType<Test> {
-    useJUnitPlatform{
+    useJUnitPlatform {
         ignoreFailures = true
     }
     testLogging {
@@ -37,14 +43,19 @@ tasks.withType<Test> {
     }
 }
 
-ktor{
-    fatJar{
+ktor {
+    fatJar {
         archiveFileName.set("expoll.jar")
     }
 }
 
+tasks.withType<ShadowJar>{
+    mergeGroovyExtensionModules()
+}
+
 repositories {
     mavenCentral()
+    gradlePluginPortal()
 }
 
 dependencies {
@@ -99,7 +110,6 @@ dependencies {
     implementation("org.thymeleaf:thymeleaf:3.1.2.RELEASE")
     // https://mvnrepository.com/artifact/nz.net.ultraq.thymeleaf/thymeleaf-layout-dialect
     implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.3.0")
-
 
 
     //testImplementation(kotlin("test"))

@@ -148,8 +148,8 @@ object Mail {
 
     private fun engine(): TemplateEngine {
         val engine = TemplateEngine()
-        engine.addTemplateResolver(resolver())
         engine.addDialect(LayoutDialect())
+        engine.addTemplateResolver(resolver())
         return engine
     }
 
