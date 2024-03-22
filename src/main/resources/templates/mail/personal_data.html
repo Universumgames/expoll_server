@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{scaffold.html}"
+      lang="en">
+<head>
+
+</head>
+<body>
+<div layout:fragment="content">
+    <p>
+        Hello <span th:text="${user.firstName}">Max</span> <span th:text="${user.lastName}">Mustermann</span>,
+    </p>
+    <p>
+        As you requested, here is the personal data we have about you:
+    </p>
+    <pre>
+        <code th:text="${personalizeResponseJSON}">
+
+        </code>
+    </pre>
+    <p>
+        Regards,<br>
+        the <span th:text="${applicationName} + ' Team'">Expoll Team</span>
+    </p>
+</div>
+</body>

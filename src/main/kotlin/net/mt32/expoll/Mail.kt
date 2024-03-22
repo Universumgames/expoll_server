@@ -3,8 +3,11 @@ package net.mt32.expoll
 import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
+import kotlinx.serialization.encodeToString
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.helper.defaultJSON
+import net.mt32.expoll.serializable.responses.UserPersonalizeResponse
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.templatemode.TemplateMode
@@ -65,6 +68,21 @@ object ExpollMail {
                 Mail.Template.USER_DELETION,
                 mapOf("user" to user, "title" to "Account Deletion")
             ),
+            true
+        )
+    }
+
+    fun PersonalDataMail(user: User, personalizeResponse: UserPersonalizeResponse): Mail.MailData {
+        val data = mapOf(
+            "user" to user,
+            "personalizeResponse" to personalizeResponse,
+            "personalizeResponseJSON" to defaultJSON.encodeToString(personalizeResponse),
+            "title" to "Personal Data"
+        )
+        return Mail.MailData(
+            user.mail, user.fullName,
+            "Your personal data",
+            Mail.fromTemplate(Mail.Template.PERSONAL_DATA, data),
             true
         )
     }
@@ -157,7 +175,8 @@ object Mail {
         OTP("otp"),
         USER_CREATION("user_creation"),
         USER_DEACTIVATION("user_deactivation"),
-        USER_DELETION("user_deletion")
+        USER_DELETION("user_deletion"),
+        PERSONAL_DATA("personal_data")
     }
 
     private val defaultTemplateData: Map<String, Any> = mapOf(

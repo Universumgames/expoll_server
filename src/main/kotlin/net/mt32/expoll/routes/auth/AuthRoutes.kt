@@ -28,6 +28,9 @@ fun Route.authRoutes(){
             delete("logoutAll") {
                 logoutAll(call)
             }
+            get("loggedIn"){
+                call.respond(ReturnCode.OK)
+            }
         }
     }
 }

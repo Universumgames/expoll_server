@@ -7,6 +7,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import kotlinx.serialization.Serializable
+import net.mt32.expoll.ExpollMail
 import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.*
 import net.mt32.expoll.config
@@ -43,6 +44,9 @@ fun Route.userRoutes() {
             }
             get("/personalizeddata") {
                 getPersonalizedData(call)
+            }
+            get("requestPersonalData"){
+                requestPersonalData(call)
             }
             get("/sessions") {
                 getSessions(call)
@@ -153,6 +157,7 @@ private suspend fun getUserData(call: ApplicationCall) {
     call.respond(simpleUserResponse)
 }
 
+@Deprecated("Use requestPersonalData instead")
 private suspend fun getPersonalizedData(call: ApplicationCall) {
     call.startNewTiming("user.basic", "Gather user and session data")
     val principal = call.principal<JWTSessionPrincipal>()
@@ -192,6 +197,42 @@ private suspend fun getPersonalizedData(call: ApplicationCall) {
         user.maxPollsOwned
     )
     call.respond(personalizedData)
+}
+
+private suspend fun requestPersonalData(call: ApplicationCall) {
+    val principal = call.principal<JWTSessionPrincipal>()
+    if (principal == null) {
+        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+        return
+    }
+    val user = principal.user
+
+    val polls = user.polls.map { it.asSimplePoll(user) }
+    val votes = user.votes.map { VoteChange(it.pollID, it.optionID, it.votedFor.id) }
+    val sessions = user.sessions.map { it.asSafeSession(principal.session) }
+    val auths = user.authenticators.map { it.asSimpleAuthenticator() }
+
+    val personalizeResponse = UserPersonalizeResponse(
+        user.id,
+        user.username,
+        user.firstName,
+        user.lastName,
+        user.mail,
+        polls.map { StrippedPollData(it.pollID) },
+        votes,
+        sessions,
+        user.notes,
+        user.active,
+        user.admin,
+        user.superAdmin,
+        auths,
+        user.created.toClient(),
+        user.pollsOwned,
+        user.maxPollsOwned
+    )
+    val mailData = ExpollMail.PersonalDataMail(user, personalizeResponse)
+    Mail.sendMailAsync(mailData)
+    call.respond(ReturnCode.OK)
 }
 
 private suspend fun getSessions(call: ApplicationCall) {
