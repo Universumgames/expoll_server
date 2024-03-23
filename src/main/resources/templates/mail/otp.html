@@ -4,7 +4,8 @@
       layout:decorate="~{scaffold.html}"
       lang="en">
 <head>
-
+    <link rel="stylesheet" href="./vars.css"/>
+    <link rel="stylesheet" href="./style.css"/>
 </head>
 <body>
 <div layout:fragment="content">
@@ -12,7 +13,11 @@
         Here is your OTP for logging in in Expoll:
     </p>
     <h2 th:text="${otp}">otp</h2>
-    <p>
+    <p th:if="${forApp}">
+        alternative you can login here <br><br><br>
+        <a th:href="${loginLink}" type="button">Login in App</a>
+    </p>
+    <p th:unless="${forApp}">
         alternatively you can click this link to login <a th:href="${loginLink}" th:text="${loginLink}"></a>
     </p>
 </div>

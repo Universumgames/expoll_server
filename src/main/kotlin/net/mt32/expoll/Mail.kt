@@ -4,6 +4,7 @@ import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
 import kotlinx.serialization.encodeToString
+import net.mt32.expoll.entities.OTP
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.defaultJSON
@@ -16,12 +17,17 @@ import org.thymeleaf.templateresolver.ITemplateResolver
 import java.util.*
 
 object ExpollMail {
-    fun OTPMail(user: User, otp: String, loginLink: String): Mail.MailData {
+    fun OTPMail(user: User, otp: OTP, loginLink: String): Mail.MailData {
         return Mail.MailData(
             user.mail, user.fullName, "Login to expoll",
             Mail.fromTemplate(
                 Mail.Template.OTP,
-                mapOf("otp" to otp, "loginLink" to loginLink, "title" to "Login")
+                mapOf(
+                    "otp" to otp.otp,
+                    "loginLink" to loginLink,
+                    "title" to "Login",
+                    "forApp" to otp.forApp
+                )
             ),
             true
         )

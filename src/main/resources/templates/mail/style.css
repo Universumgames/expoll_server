@@ -48,3 +48,11 @@ small {
     background-color: var(--secondary-color);
     border-radius: 1rem;
 }
+
+a[type="button"] {
+    background-color: var(--primary-color);
+    color: var(--text-color-on-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+}

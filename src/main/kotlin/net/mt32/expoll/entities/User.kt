@@ -280,7 +280,7 @@ class User : IUser, DatabaseEntity {
 
     fun sendOTPMail(call: ApplicationCall, forApp: Boolean = false) {
         val otp = createOTP(forApp)
-        val mailData = ExpollMail.OTPMail(this, otp.otp, URLBuilder.buildLoginLink(call, this, otp, false))
+        val mailData = ExpollMail.OTPMail(this, otp, URLBuilder.buildLoginLink(call, this, otp, false))
         Mail.sendMailAsync(mailData)
     }
 
