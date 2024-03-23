@@ -185,8 +185,9 @@ object ExpollNotificationHandler {
                 (AnalyticsStorage.notificationCount[dataHandler.notification] ?: 0) + 1
             var altNotification: DataHandler? = null
             val affectedUsers =
-                if (dataHandler.poll?.privateVoting == true) listOf(dataHandler.poll.admin) else dataHandler.poll?.users
+                if (dataHandler.poll?.privateVoting == true) listOf(dataHandler.poll.admin, dataHandler.user) else dataHandler.poll?.users
             affectedUsers?.forEach {
+                val user = it ?: return@forEach
                 if (dataHandler.notification == ExpollNotification.VoteChange) {
                     if (altNotification == null)
                         altNotification = DataHandler(
@@ -197,12 +198,12 @@ object ExpollNotificationHandler {
                             dataHandler.oldVote,
                             dataHandler.newVote
                         )
-                    if (ExpollNotification.VoteChangeDetailed.isWantedByUser(it)) {
-                        sendNotification(it, altNotification!!)
+                    if (ExpollNotification.VoteChangeDetailed.isWantedByUser(user)) {
+                        sendNotification(user, altNotification!!)
                         return@forEach
                     }
                 }
-                sendNotification(it, lastNotification!!)
+                sendNotification(user, lastNotification!!)
             }
         }
     }

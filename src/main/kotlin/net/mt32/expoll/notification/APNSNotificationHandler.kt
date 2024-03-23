@@ -218,7 +218,7 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
 
     @Serializable
     @SerialName("expollPayload")
-    @Deprecated("use normal APNsPayload instead after iOS App Version 3.2.0")
+    @Deprecated("use normal APNsPayload instead after iOS App Version 3.3.0")
     class ExpollAPNsPayload(
         override val aps: APS,
         override val additionalData: Map<String, String>,
@@ -236,6 +236,7 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
             bodyLocalisationKey = notification.body,
             bodyLocalisationArgs = notification.bodyArgs,
         )
+        // TODO remove this after iOS App Version 3.3.0 is released
         val pollID = notification.additionalData["pollID"]
         val payload = ExpollAPNsPayload(APS(apnsNotification), notification.additionalData, pollID)
         apnQueue.add(

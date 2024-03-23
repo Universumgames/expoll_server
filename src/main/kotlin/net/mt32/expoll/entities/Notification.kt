@@ -21,7 +21,8 @@ data class NotificationPreferencesSerial(
     val userRemoved: Boolean? = null,
     val pollDeleted: Boolean? = null,
     val pollEdited: Boolean? = null,
-    val pollArchived: Boolean? = null
+    val pollArchived: Boolean? = null,
+    val newLogin: Boolean? = null
 )
 
 class NotificationPreferences : DatabaseEntity {
@@ -34,6 +35,7 @@ class NotificationPreferences : DatabaseEntity {
     var pollDeleted: Boolean
     var pollEdited: Boolean
     var pollArchived: Boolean
+    var newLogin: Boolean
 
     constructor(
         id: String,
@@ -44,7 +46,8 @@ class NotificationPreferences : DatabaseEntity {
         userRemoved: Boolean,
         pollDeleted: Boolean,
         pollEdited: Boolean,
-        pollArchived: Boolean
+        pollArchived: Boolean,
+        newLogin: Boolean
     ) {
         this.id = id
         this.userID = userID
@@ -55,6 +58,7 @@ class NotificationPreferences : DatabaseEntity {
         this.pollDeleted = pollDeleted
         this.pollEdited = pollEdited
         this.pollArchived = pollArchived
+        this.newLogin = newLogin
     }
 
     constructor(userID: tUserID) {
@@ -71,6 +75,7 @@ class NotificationPreferences : DatabaseEntity {
         this.pollDeleted = true
         this.pollEdited = true
         this.pollArchived = true
+        this.newLogin = true
     }
 
     private constructor(notificationRow: ResultRow) {
@@ -83,6 +88,7 @@ class NotificationPreferences : DatabaseEntity {
         this.pollDeleted = notificationRow[NotificationPreferences.pollDeleted]
         this.pollEdited = notificationRow[NotificationPreferences.pollEdited]
         this.pollArchived = notificationRow[NotificationPreferences.pollArchived]
+        this.newLogin = notificationRow[NotificationPreferences.newLogin]
     }
 
     override fun save(): Boolean {
@@ -97,6 +103,7 @@ class NotificationPreferences : DatabaseEntity {
                 it[pollDeleted] = this@NotificationPreferences.pollDeleted
                 it[pollEdited] = this@NotificationPreferences.pollEdited
                 it[pollArchived] = this@NotificationPreferences.pollArchived
+                it[newLogin] = this@NotificationPreferences.newLogin
             }
         }
         return true
@@ -119,7 +126,8 @@ class NotificationPreferences : DatabaseEntity {
             userRemoved = userRemoved,
             pollDeleted = pollDeleted,
             pollEdited = pollEdited,
-            pollArchived = pollArchived
+            pollArchived = pollArchived,
+            newLogin = newLogin
         )
     }
 
@@ -133,6 +141,7 @@ class NotificationPreferences : DatabaseEntity {
         val pollDeleted = bool("pollDeleted")
         val pollEdited = bool("pollEdited")
         val pollArchived = bool("pollArchived")
+        val newLogin = bool("newLogin")
 
         override val primaryKey = PrimaryKey(id)
 

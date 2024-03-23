@@ -92,6 +92,7 @@ private suspend fun setNotification(call: ApplicationCall){
     originalPreferences.userRemoved = sentPreferences.userRemoved == true
     originalPreferences.voteChange = sentPreferences.voteChange == true
     originalPreferences.voteChangeDetailed = sentPreferences.voteChangeDetailed == true
+    originalPreferences.newLogin = sentPreferences.newLogin == true
     originalPreferences.save()
 
     call.respond(ReturnCode.OK)
