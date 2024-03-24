@@ -4,7 +4,7 @@ import net.mt32.expoll.config
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.toBase64
+import net.mt32.expoll.helper.toBase62
 import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsertCustom
 import net.mt32.expoll.notification.ExpollNotificationHandler
@@ -65,9 +65,9 @@ class OTP : DatabaseEntity {
         private fun randomOTP(): String {
             var otp: String
             do {
-                val bytes = ByteArray(config.otpBaseLength)
+                val bytes = ByteArray(config.otpBaseLength * 2)
                 ThreadLocalRandom.current().nextBytes(bytes)
-                otp = bytes.toBase64()
+                otp = bytes.toBase62().substring(0, config.otpBaseLength)
             } while (fromOTP(otp) != null)
             return otp
         }

@@ -18,7 +18,7 @@
   },
   "maxPollCountPerUser": 10,
   "recaptchaAPIKey": "your google recaptcha api key goes here",
-  "serverVersion": "4.1.9.2",
+  "serverVersion": "4.1.9.3",
   "compatibleVersions": [
     {
       "platform": "web",
@@ -113,5 +113,5 @@
     "userDeletionFinalAfterDays": 100,
     "userNotifyBeforeDeletionDays": 90
   },
-  "otpBaseLength": 6
+  "otpBaseLength": 8
 }
