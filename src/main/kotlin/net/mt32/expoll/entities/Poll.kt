@@ -392,23 +392,15 @@ class Poll : DatabaseEntity, IPoll {
                     user.id,
                     joinTimestamps.find { it.userID == user.id }!!.joinTimestamp.toClient()
                 ), notes.find { note -> note.userID == user.id }?.note, votes.map { vote ->
-                    // TODO: remove after 3.3.0 release
-                    if (vote.votedFor == VoteValue.UNKNOWN)
-                        SimpleVote(vote.optionID, null)
-                    else
                         SimpleVote(vote.optionID, vote.votedFor.id)
                 } + // keep this for backwards compatibility with old polls
                         // add null votes for non existing votes on options
                         missingVotes.map {
                             SimpleVote(
-                                it, null // TODO after 3.3.0 release: VoteValue.UNKNOWN.id
+                                it, VoteValue.UNKNOWN.id
                             )
                         })
             },
-            userIDs.map { userID ->
-                val note = notes.find { note -> note.userID == userID }
-                UserNote(userID, note?.note)
-            }.filterNot { it.note == null },
             allowsMaybe,
             allowsEditing,
             privateVoting,
@@ -426,7 +418,6 @@ class Poll : DatabaseEntity, IPoll {
             userCount,
             updatedTimestamp.toClient(),
             type.id,
-            allowsEditing,
             allowsEditing,
             user?.let { UserPolls.getHidden(id, user.id) } ?: false)
     }

@@ -112,13 +112,16 @@ object Mail {
     }
 
     fun sendMailAsync(mail: MailData) {
-        //mailQueue.add(MailData(to, subject, body))
         Thread {
             sendMail(mail)
         }.start()
     }
 
     private fun sendMail(data: MailData) {
+        if (config.developmentMode && data.toMail != config.superAdminMail) {
+            println("Mail to ${data.toMail} suppressed in development mode")
+            return
+        }
         val config = config.mail
 
         try {

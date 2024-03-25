@@ -151,7 +151,7 @@ object ExpollNotificationHandler {
                 PollEdited -> notificationPreferences.pollEdited
                 PollArchived -> notificationPreferences.pollArchived
                 VoteChangeDetailed -> notificationPreferences.voteChangeDetailed
-                NewLogin -> true // TODO implement
+                NewLogin -> notificationPreferences.newLogin
             }
         }
 
@@ -185,9 +185,16 @@ object ExpollNotificationHandler {
                 (AnalyticsStorage.notificationCount[dataHandler.notification] ?: 0) + 1
             var altNotification: DataHandler? = null
             val affectedUsers =
-                if (dataHandler.poll?.privateVoting == true) listOf(dataHandler.poll.admin, dataHandler.user) else dataHandler.poll?.users
+                if (dataHandler.poll?.privateVoting == true) listOf(
+                    dataHandler.poll.admin,
+                    dataHandler.user
+                ) else dataHandler.poll?.users
             affectedUsers?.forEach {
                 val user = it ?: return@forEach
+                if (config.developmentMode && !user.superAdminOrAdmin) {
+                    println("Notification suppressed in development mode for ${user.username}")
+                    return@forEach
+                }
                 if (dataHandler.notification == ExpollNotification.VoteChange) {
                     if (altNotification == null)
                         altNotification = DataHandler(

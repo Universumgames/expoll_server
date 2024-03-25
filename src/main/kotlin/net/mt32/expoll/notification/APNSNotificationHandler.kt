@@ -236,9 +236,7 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
             bodyLocalisationKey = notification.body,
             bodyLocalisationArgs = notification.bodyArgs,
         )
-        // TODO remove this after iOS App Version 3.3.0 is released
-        val pollID = notification.additionalData["pollID"]
-        val payload = ExpollAPNsPayload(APS(apnsNotification), notification.additionalData, pollID)
+        val payload = APNsPayload(APS(apnsNotification), notification.additionalData)
         apnQueue.add(
             APNData(
                 device.deviceID,
