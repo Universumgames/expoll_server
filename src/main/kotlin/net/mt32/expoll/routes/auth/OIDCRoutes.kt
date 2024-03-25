@@ -116,11 +116,11 @@ private suspend fun listIDPs(call: ApplicationCall) {
     call.respond(OIDC.data.map {
         OIDCInfo(
             it.value.name,
-            it.value.config.imageURI,
-            it.value.config.iconConfig.iconFileName,
-            it.value.config.iconConfig.backgroundColorHex,
-            it.value.config.iconConfig.textColorHex,
-            it.value.config.title,
+            it.value.oidcidpConfig.imageURI,
+            it.value.oidcidpConfig.iconConfig.iconFileName,
+            it.value.oidcidpConfig.iconConfig.backgroundColorHex,
+            it.value.oidcidpConfig.iconConfig.textColorHex,
+            it.value.oidcidpConfig.title,
         )
     })
 }
@@ -165,10 +165,10 @@ private suspend fun oidcLoginInit(call: ApplicationCall, idp: OIDC.OIDCIDPData) 
     val isApp = call.request.queryParameters["app"] == "1"
     val noRedirect = call.request.queryParameters["redirect"] == "0"
     url.set {
-        parameters.append("client_id", idp.config.clientID)
+        parameters.append("client_id", idp.clientID)
         parameters.append("scope", scope)
         parameters.append("response_type", "code")
-        parameters.append("redirect_uri", idp.config.redirectURL)
+        parameters.append("redirect_uri", idp.redirectUrl)
         parameters.append("nonce", UUID.randomUUID().toString())
         parameters.append("response_mode", "form_post")
         val principal = call.principal<JWTSessionPrincipal>()
@@ -208,9 +208,9 @@ private suspend fun oidcLogin(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
             formParameters = Parameters.build {
                 append("code", code!!)
                 append("grant_type", "authorization_code")
-                append("client_id", idp.config.clientID)
+                append("client_id", idp.oidcidpConfig.clientID)
                 append("client_secret", clientSecret)
-                append("redirect_uri", idp.config.redirectURL)
+                append("redirect_uri", idp.redirectUrl)
             })/*client.post(OIDC.data[idp.name]!!.metadata.tokenEndpoint) {
         parameter("code", code)
         parameter("grant_type", "authorization_code")

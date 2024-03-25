@@ -52,11 +52,11 @@ object OIDC {
     data class OIDCIDPData(
         val name: String,
         val metadata: OIDCProviderMetadata,
-        val config: OIDCIDPConfig,
+        val oidcidpConfig: OIDCIDPConfig,
         val keys: List<Key>
     ) {
         val clientID: String
-            get() = config.clientID
+            get() = oidcidpConfig.clientID
 
         fun getVerifier(key: Key): JWTVerifier {
             val rsaPublicKeySpec = RSAPublicKeySpec(key.modulusInt, key.exponentInt)
@@ -68,16 +68,16 @@ object OIDC {
 
         val clientSecret: String
             get() {
-                return config.clientSecret
+                return oidcidpConfig.clientSecret
                     ?: (runBlocking {
-                        val key = loadECKeyFile(config.privateKeyPath!!)!!
-                        val keyID = config.privateKeyID!!.toJWTKeyID()
+                        val key = loadECKeyFile(oidcidpConfig.privateKeyPath!!)!!
+                        val keyID = oidcidpConfig.privateKeyID!!.toJWTKeyID()
                         val jwt = io.github.nefilim.kjwt.JWT.es256(keyID) {
                             issuer(net.mt32.expoll.config.notifications.teamID)
                             issuedAt(Instant.now())
                             expiresAt(UnixTimestamp.now().addMinutes(90).toDate().toInstant())
-                            audience(config.audience!!)
-                            subject(config.clientID)
+                            audience(oidcidpConfig.audience!!)
+                            subject(oidcidpConfig.clientID)
                         }.sign(key.toECPrivateKey()!!)
                         return@runBlocking jwt.fold(
                             ifLeft = { null },
@@ -89,6 +89,10 @@ object OIDC {
         fun getKey(kid: String): Key? {
             return keys.find { it.keyID == kid }
         }
+
+        val redirectUrl: String
+            get() = config.oidc.baseURL + "/auth/oidc/$name"
+
     }
 
     var data: MutableMap<String, OIDCIDPData> = mutableMapOf()
@@ -133,7 +137,7 @@ object OIDC {
             !data.metadata.scopesSupported.contains("name") && !data.metadata.scopesSupported.contains("profile") -> false
             !data.metadata.scopesSupported.contains("email") -> false
             !data.metadata.responseTypesSupported.contains("code") -> false
-            data.config.clientID.isEmpty() -> false
+            data.oidcidpConfig.clientID.isEmpty() -> false
             else -> true
         }
     }
@@ -143,7 +147,7 @@ object OIDC {
         val verifier = key?.let { idp.getVerifier(it) }
 
         return when {
-            !token.audience.equals(idp.config.clientID, ignoreCase = true) -> false
+            !token.audience.equals(idp.oidcidpConfig.clientID, ignoreCase = true) -> false
             token.issuer != idp.metadata.issuer -> false
             verifier == null -> false
             key.algorithm != null && key.algorithm != header.algorithm -> false

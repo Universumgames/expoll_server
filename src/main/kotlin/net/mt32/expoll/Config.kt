@@ -81,7 +81,6 @@ data class OIDCIDPConfig(
     val privateKeyPath: String? = null,
     val privateKeyID: String? = null,
     val audience: String? = null,
-    val redirectURL: String,
     val discoveryURL: String,
     val title: String = "",
     val imageURI: String = "",
@@ -98,6 +97,7 @@ data class OIDCIDPIconConfig(
 
 @Serializable
 data class OIDCConfig(
+    val baseURL: String = "",
     val idps: Map<String, OIDCIDPConfig> = mapOf()
 )
 

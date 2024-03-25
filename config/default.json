@@ -63,11 +63,12 @@
     "realm": "summary of tokens purpose"
   },
   "oidc": {
+    "baseURL": "<url of api endpoint>",
+    "noteAboutRedirectURLsForOIDC": "The redirect url is <baseURL>/auth/oidc/<idp key>",
     "idps": {
       "google": {
         "clientID": "your id",
         "clientSecret": "your secret",
-        "redirectURL": "https://expoll.mt32.net/....",
         "discoveryURL": "https://accounts.google.com/.well-known/openid-configuration",
         "title": "Sign-in with Google",
         "iconConfig": {
@@ -79,7 +80,6 @@
       "microsoft": {
         "clientID": "",
         "clientSecret": "",
-        "redirectURL": "http://localhost:8080/api/auth/oidc/microsoft",
         "discoveryURL": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
         "title": "Sign-in with Microsoft",
         "imageURI": "/oidc/microsoft_signin.png",
@@ -89,7 +89,6 @@
         "clientID": "",
         "privateKeyPath": "./config/abcde.p8",
         "privateKeyID": "abcde",
-        "redirectURL": "https://expoll.mt32.net/api/auth/oidc/apple",
         "discoveryURL": "https://appleid.apple.com/.well-known/openid-configuration",
         "title": "Sign-in with Apple",
         "iconConfig": {
