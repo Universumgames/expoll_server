@@ -349,6 +349,7 @@ class User : IUser, DatabaseEntity {
 
                         UserSearchParameters.SpecialFilter.ADMIN -> User.admin
                         UserSearchParameters.SpecialFilter.DEACTIVATED -> User.active eq false
+                        UserSearchParameters.SpecialFilter.WITHOUT_SESSION -> User.id notInSubQuery Session.select(Session.userID).where { Session.userID eq User.id}
                     }
 
                     val username =

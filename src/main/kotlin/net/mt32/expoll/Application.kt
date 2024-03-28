@@ -68,7 +68,10 @@ private fun cleanupCoroutine() {
     }
     // clean session
     transaction {
-        Session.all().forEach { if (!it.isValid) it.delete() }
+        Session.all().forEach {
+            if (!it.isValid)
+                it.delete()
+        }
     }
     // clean apn devices
     transaction {

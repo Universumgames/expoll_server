@@ -26,7 +26,8 @@ data class UserSearchParameters(
         DELETED,
         OIDC,
         ADMIN,
-        DEACTIVATED
+        DEACTIVATED,
+        WITHOUT_SESSION,
     }
 
     @Serializable
