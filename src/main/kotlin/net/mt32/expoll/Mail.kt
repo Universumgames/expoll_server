@@ -26,7 +26,8 @@ object ExpollMail {
                     "otp" to otp.otp,
                     "loginLink" to loginLink,
                     "title" to "Login",
-                    "forApp" to otp.forApp
+                    "forApp" to otp.forApp,
+                    "validUntil" to otp.expirationTimestamp.toDate().toString(),
                 )
             ),
             true

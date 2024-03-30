@@ -20,5 +20,6 @@
     <p th:unless="${forApp}">
         alternatively you can click this link to login <a th:href="${loginLink}" th:text="${loginLink}"></a>
     </p>
+    <small>This one-time-password is valid until <p th:text="${validUntil}"></p><small/>
 </div>
 </body>
