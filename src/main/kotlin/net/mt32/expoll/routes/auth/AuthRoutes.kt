@@ -49,7 +49,7 @@ private suspend fun logoutAll(call: ApplicationCall){
 
 @Serializable
 data class LogoutRequest(
-    val nonce: Long
+    val nonce: Long? = null
 )
 
 private suspend fun logout(call: ApplicationCall){
@@ -69,5 +69,6 @@ private suspend fun logout(call: ApplicationCall){
             Session.deleteWhere { Session.nonce eq principal.session.nonce }
         }
         call.sessions.clear<ExpollJWTCookie>()
+        call.respond(ReturnCode.OK)
     }
 }

@@ -2,7 +2,6 @@ package net.mt32.expoll.plugins
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
@@ -18,6 +17,7 @@ import net.mt32.expoll.auth.cookieName
 import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Session
+import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDataFromAny
 import kotlin.collections.set
@@ -47,7 +47,7 @@ fun Application.configureSecurity() {
                 }catch (e: Exception){
                     error("Cookie ${cookieName} not registered")
                 }
-                call.respond(HttpStatusCode.Unauthorized)
+                call.respond(ReturnCode.UNAUTHORIZED)
             }
         }
         jwt(adminAuth) {
