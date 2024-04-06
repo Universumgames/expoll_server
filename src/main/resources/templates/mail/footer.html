@@ -9,7 +9,8 @@
 <footer th:fragment="content">
     <div class="belowFooter">
         <div class="versionInfo">
-            <small>Backend-Version <span th:text="${backendVersion}">3.0.0</span></small>
+            <small>Backend-Version <!--/*@thymesVar id="backendVersion" type="java.lang.String"*/-->
+            <span th:text="${backendVersion}">3.0.0</span></small>
         </div>
         <div>
             <small>Created by universumgames</small>

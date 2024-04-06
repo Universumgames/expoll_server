@@ -9,19 +9,22 @@
 <body>
 <div layout:fragment="content">
     <p>
-        Hello <span th:text="${user.firstName}">Max</span> <span th:text="${user.lastName}">Mustermann</span>,
+        Hello <!--/*@thymesVar id="user" type="net.mt32.expoll.entities.User"*/-->
+        <span th:text="${user.firstName}">Max</span> <span th:text="${user.lastName}">Mustermann</span>,
     </p>
     <p>
         As you requested, here is the personal data we have about you:
     </p>
     <pre>
+        <!--/*@thymesVar id="personalizeResponseJSON" type="java.lang.String"*/-->
         <code th:text="${personalizeResponseJSON}">
 
         </code>
     </pre>
     <p>
         Regards,<br>
-        the <span th:text="${applicationName} + ' Team'">Expoll Team</span>
+        the <!--/*@thymesVar id="applicationName" type="java.lang.String"*/-->
+        <span th:text="${applicationName} + ' Team'">Expoll Team</span>
     </p>
 </div>
 </body>

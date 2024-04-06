@@ -12,14 +12,20 @@
     <p>
         Here is your OTP for logging in in Expoll:
     </p>
+    <!--/*@thymesVar id="otp" type="java.lang.String"*/-->
     <h2 th:text="${otp}">otp</h2>
+    <!--/*@thymesVar id="forApp" type="java.lang.Boolean"*/-->
     <p th:if="${forApp}">
         alternative you can login here <br><br><br>
+        <!--/*@thymesVar id="loginLink" type="java.lang.String"*/-->
         <a th:href="${loginLink}" type="button">Login in App</a>
     </p>
     <p th:unless="${forApp}">
-        alternatively you can click this link to login <a th:href="${loginLink}" th:text="${loginLink}"></a>
+        alternatively you can click this link to login <!--/*@thymesVar id="loginLink" type="java.lang.String"*/-->
+        <a th:href="${loginLink}" th:text="${loginLink}">test link</a>
     </p>
-    <small>This one-time-password is valid until <p th:text="${validUntil}"></p><small/>
+    <small>This one-time-password is valid until <!--/*@thymesVar id="validUntil" type="java.lang.String"*/-->
+        <p th:text="${validUntil}">testdate</p>
+        <small>
 </div>
 </body>
