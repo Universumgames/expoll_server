@@ -77,8 +77,8 @@ class Poll : DatabaseEntity, IPoll {
         get() {
             return when (type) {
                 PollType.STRING -> PollOptionString.fromPollID(id)
-                PollType.DATE -> PollOptionDate.fromPollID(id)
-                PollType.DATETIME -> PollOptionDateTime.fromPollID(id)
+                PollType.DATE -> PollOptionDate.fromPollID(id).sortedBy { it.dateStartTimestamp.millisSince1970 }
+                PollType.DATETIME -> PollOptionDateTime.fromPollID(id).sortedBy { it.dateTimeStartTimestamp.millisSince1970 }
             }
         }
 
@@ -353,10 +353,12 @@ class Poll : DatabaseEntity, IPoll {
         val relevantOptionID = if (type == PollType.STRING) null else {
             val optionIndex = options.indexOfFirst { option ->
                 when (type) {
-                    PollType.DATE -> (option as PollOptionDate).dateStartTimestamp.asMidnight()
-                        .addDays(1) > UnixTimestamp.now() && option.dateStartTimestamp < UnixTimestamp.now()
-                        .asMidnight().addDays(1)
-
+                    PollType.DATE -> {
+                        val dayAfterEvent = (option as PollOptionDate).dateStartTimestamp.asMidnight().addDays(1)
+                        val tomorrow = UnixTimestamp.now().asMidnight().addDays(1)
+                        val inRange = dayAfterEvent > UnixTimestamp.now() && tomorrow < dayAfterEvent
+                        return@indexOfFirst inRange
+                        }
                     PollType.DATETIME -> (option as PollOptionDateTime).dateTimeStartTimestamp.addDays(1) > UnixTimestamp.now()
                         .addDays(1)
 

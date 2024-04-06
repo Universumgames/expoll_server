@@ -3,6 +3,7 @@ package net.mt32.expoll.helper
 import net.mt32.expoll.tClientDateTime
 import java.text.DateFormat
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.*
 
 
@@ -60,7 +61,7 @@ class UnixTimestamp private constructor() {
     }
 
     fun toDate(): Date {
-        return Date(millisSince1970)
+        return Date.from(Instant.ofEpochMilli(millisSince1970))
     }
 
     fun asSecondsSince1970(): Long {
@@ -94,6 +95,18 @@ class UnixTimestamp private constructor() {
 
     override fun toString(): String {
         return toDate().toString()
+    }
+
+    fun toDateString(): String {
+        val tz = TimeZone.getTimeZone("UTC")
+        val df: DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        return df.format(toDate())
+    }
+
+    fun toDateTimeString(includeSeconds: Boolean = false): String {
+        val tz = TimeZone.getTimeZone("UTC")
+        val df: DateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm" + if (includeSeconds) ":ss" else "")
+        return df.format(toDate())
     }
 
     companion object {

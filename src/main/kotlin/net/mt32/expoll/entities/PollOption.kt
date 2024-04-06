@@ -161,7 +161,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
     }
 
     override fun toString(): String {
-        return dateStartTimestamp.toString()
+        return dateStartTimestamp.toDateString()
     }
 
     companion object : Table("poll_option_date") {
@@ -258,7 +258,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
     }
 
     override fun toString(): String {
-        return dateTimeStartTimestamp.toString()
+        return dateTimeStartTimestamp.toDateTimeString()
     }
 
     companion object : Table("poll_option_date_time") {
