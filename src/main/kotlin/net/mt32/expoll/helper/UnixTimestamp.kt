@@ -99,13 +99,19 @@ class UnixTimestamp private constructor() {
 
     fun toDateString(): String {
         val tz = TimeZone.getTimeZone("UTC")
-        val df: DateFormat = SimpleDateFormat("yyyy-MM-dd")
+        val df: DateFormat = with(SimpleDateFormat("yyyy-MM-dd")) {
+            timeZone = tz
+            this
+        }
         return df.format(toDate())
     }
 
     fun toDateTimeString(includeSeconds: Boolean = false): String {
         val tz = TimeZone.getTimeZone("UTC")
-        val df: DateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm" + if (includeSeconds) ":ss" else "")
+        val df: DateFormat = with(SimpleDateFormat("yyyy-MM-dd HH:mm" + if (includeSeconds) ":ss" else "")) {
+            timeZone = tz
+            this
+        }
         return df.format(toDate())
     }
 
