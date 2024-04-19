@@ -15,6 +15,7 @@ import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.helper.toUnixTimestampFromClient
+import net.mt32.expoll.notification.ExpollNotificationHandler
 
 fun Route.notificationRoutes() {
     route("notifications") {
@@ -84,6 +85,27 @@ private suspend fun setNotification(call: ApplicationCall){
     }
     val sentPreferences: NotificationPreferencesSerial = defaultJSON.decodeFromString(call.receiveText())
     val originalPreferences = NotificationPreferences.fromUser(principal.userID)
+
+    // Send example notifications for each changed preference
+
+    principal.user.notificationDevices.forEach {
+        if (sentPreferences.pollArchived == true && originalPreferences.pollArchived != sentPreferences.pollArchived)
+            ExpollNotificationHandler.Example.sendExamplePollArchived(it)
+        if (sentPreferences.pollDeleted == true && originalPreferences.pollDeleted != sentPreferences.pollDeleted)
+            ExpollNotificationHandler.Example.sendExamplePollDeleted(it)
+        if (sentPreferences.pollEdited == true && originalPreferences.pollEdited != sentPreferences.pollEdited)
+            ExpollNotificationHandler.Example.sendExamplePollEdited(it)
+        if (sentPreferences.userAdded == true && originalPreferences.userAdded != sentPreferences.userAdded)
+            ExpollNotificationHandler.Example.sendExampleUserAdded(it)
+        if (sentPreferences.userRemoved == true && originalPreferences.userRemoved != sentPreferences.userRemoved)
+            ExpollNotificationHandler.Example.sendExampleUserRemoved(it)
+        if (sentPreferences.voteChange == true && originalPreferences.voteChange != sentPreferences.voteChange)
+            ExpollNotificationHandler.Example.sendExampleVoteChange(it)
+        if (sentPreferences.voteChangeDetailed == true && originalPreferences.voteChangeDetailed != sentPreferences.voteChangeDetailed)
+            ExpollNotificationHandler.Example.sendExampleVoteChangeDetailed(it)
+        if (sentPreferences.newLogin == true && originalPreferences.newLogin != sentPreferences.newLogin)
+            ExpollNotificationHandler.Example.sendExampleNewLogin(it)
+    }
 
     originalPreferences.pollArchived = sentPreferences.pollArchived == true
     originalPreferences.pollDeleted = sentPreferences.pollDeleted == true

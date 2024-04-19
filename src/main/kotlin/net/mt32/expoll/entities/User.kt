@@ -8,6 +8,7 @@ import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.entities.interconnect.UserPolls
 import net.mt32.expoll.entities.notifications.APNDevice
+import net.mt32.expoll.entities.notifications.NotificationDevice
 import net.mt32.expoll.entities.notifications.WebNotificationDevice
 import net.mt32.expoll.helper.URLBuilder
 import net.mt32.expoll.helper.UnixTimestamp
@@ -105,6 +106,9 @@ class User : IUser, DatabaseEntity {
 
     val webNotificationDevices: List<WebNotificationDevice>
         get() = WebNotificationDevice.fromUser(id)
+
+    val notificationDevices: List<NotificationDevice>
+        get() = apnDevices + webNotificationDevices
 
     val created: UnixTimestamp
     var deleted: UnixTimestamp?

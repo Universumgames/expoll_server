@@ -5,6 +5,7 @@ import net.mt32.expoll.analytics.AnalyticsStorage
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
+import net.mt32.expoll.entities.notifications.NotificationDevice
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.async
 import net.mt32.expoll.tOptionID
@@ -274,16 +275,10 @@ object ExpollNotificationHandler {
     }
 
     private fun sendNotificationInternal(user: User, universalNotification: UniversalNotification) {
-        val apnDevices = user.apnDevices
-        val webDevices = user.webNotificationDevices
-
-        apnDevices.forEach {
-            if (it.session == null) return@forEach
-            APNsNotificationHandler.sendNotification(universalNotification, it)
-        }
-        webDevices.forEach {
-            if (it.session == null) return@forEach
-            WebNotificationHandler.sendNotification(universalNotification, it)
+        val notificationDevices = user.notificationDevices
+        notificationDevices.forEach {
+            if (it.isValid)
+                it.sendNotification(universalNotification)
         }
     }
 
@@ -297,6 +292,109 @@ object ExpollNotificationHandler {
                     body = error
                 )
             )
+        }
+    }
+
+    object Example {
+        /**
+         * Notifications:  Type (body args) (title args)
+         *                 VoteChange (User, Poll) (Poll)
+         *                 UserAdded (User, Poll) (Poll)
+         *                 UserRemoved  (User, Poll) (Poll)
+         *                 PollDeleted (Poll) (Poll)
+         *                 PollEdited (Poll) (Poll)
+         *                 PollArchived (Poll) (Poll)
+         *                 VoteChangeDetailed (User, Poll, VoteChange, Option) (Poll)
+         *                 NewLogin () ()
+         */
+
+        private val voteChange = UniversalNotification(
+            ExpollNotification.VoteChange.title,
+            ExpollNotification.VoteChange.body,
+            titleArgs = listOf("Example Poll"),
+            bodyArgs = listOf("Example User", "Example Poll"),
+        )
+
+        private val userAdded = UniversalNotification(
+            ExpollNotification.UserAdded.title,
+            ExpollNotification.UserAdded.body,
+            titleArgs = listOf("Example Poll"),
+            bodyArgs = listOf("Example User", "Example Poll"),
+        )
+
+        private val userRemoved = UniversalNotification(
+            ExpollNotification.UserRemoved.title,
+            ExpollNotification.UserRemoved.body,
+            titleArgs = listOf("Example Poll"),
+            bodyArgs = listOf("Example User", "Example Poll"),
+        )
+
+        private val pollDeleted = UniversalNotification(
+            ExpollNotification.PollDeleted.title,
+            ExpollNotification.PollDeleted.body,
+            titleArgs = listOf("Example Poll"),
+            bodyArgs = listOf("Example Poll"),
+        )
+
+        private val pollEdited = UniversalNotification(
+            ExpollNotification.PollEdited.title,
+            ExpollNotification.PollEdited.body,
+            titleArgs = listOf("Example Poll"),
+            bodyArgs = listOf("Example Poll"),
+        )
+
+        private val pollArchived = UniversalNotification(
+            ExpollNotification.PollArchived.title,
+            ExpollNotification.PollArchived.body,
+            titleArgs = listOf("Example Poll"),
+            bodyArgs = listOf("Example Poll"),
+        )
+
+        private val voteChangeDetailed = UniversalNotification(
+            ExpollNotification.VoteChangeDetailed.title,
+            ExpollNotification.VoteChangeDetailed.body,
+            titleArgs = listOf("Example Poll"),
+            bodyArgs = listOf("Example User", "Example Poll", "Example VoteChange", "Example Option"),
+        )
+
+        private val newLogin = UniversalNotification(
+            ExpollNotification.NewLogin.title,
+            ExpollNotification.NewLogin.body,
+            titleArgs = listOf(),
+            bodyArgs = listOf(),
+        )
+
+
+        fun sendExampleVoteChange(notificationDevice: NotificationDevice) {
+            notificationDevice.sendNotification(voteChange)
+        }
+
+        fun sendExampleUserAdded(notificationDevice: NotificationDevice) {
+            notificationDevice.sendNotification(userAdded)
+        }
+
+        fun sendExampleUserRemoved(notificationDevice: NotificationDevice) {
+            notificationDevice.sendNotification(userRemoved)
+        }
+
+        fun sendExamplePollDeleted(notificationDevice: NotificationDevice) {
+            notificationDevice.sendNotification(pollDeleted)
+        }
+
+        fun sendExamplePollEdited(notificationDevice: NotificationDevice) {
+            notificationDevice.sendNotification(pollEdited)
+        }
+
+        fun sendExamplePollArchived(notificationDevice: NotificationDevice) {
+            notificationDevice.sendNotification(pollArchived)
+        }
+
+        fun sendExampleVoteChangeDetailed(notificationDevice: NotificationDevice) {
+            notificationDevice.sendNotification(voteChangeDetailed)
+        }
+
+        fun sendExampleNewLogin(notificationDevice: NotificationDevice) {
+            notificationDevice.sendNotification(newLogin)
         }
     }
 }

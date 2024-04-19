@@ -6,6 +6,8 @@ import net.mt32.expoll.entities.Session
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsertCustom
+import net.mt32.expoll.notification.UniversalNotification
+import net.mt32.expoll.notification.WebNotificationHandler
 import net.mt32.expoll.tUserID
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -14,21 +16,18 @@ import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class WebNotificationDevice : DatabaseEntity {
+class WebNotificationDevice : DatabaseEntity, NotificationDevice {
 
     val endpoint: String
     var auth: String
     var p256dh: String
     val userID: tUserID
     val expirationTimestamp: UnixTimestamp?
-    val creationTimestamp: UnixTimestamp
-    val sessionNonce: Long
+    override val creationTimestamp: UnixTimestamp
+    override val sessionNonce: Long
 
-    val session: Session?
+    override val session: Session?
         get() = Session.fromNonce(sessionNonce)
-
-    val isValid: Boolean
-        get() = session != null
 
     constructor(
         endpoint: String,
@@ -114,5 +113,9 @@ class WebNotificationDevice : DatabaseEntity {
                 return@transaction result.map { WebNotificationDevice(it) }
             }
         }
+    }
+
+    override fun sendNotification(universalNotification: UniversalNotification) {
+        WebNotificationHandler.sendNotification(universalNotification, this)
     }
 }

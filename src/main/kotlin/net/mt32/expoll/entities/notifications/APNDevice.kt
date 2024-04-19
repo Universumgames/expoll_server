@@ -6,23 +6,25 @@ import net.mt32.expoll.entities.Session
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsertCustom
+import net.mt32.expoll.notification.APNsNotificationHandler
+import net.mt32.expoll.notification.UniversalNotification
 import net.mt32.expoll.tUserID
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
-class APNDevice : DatabaseEntity {
+class APNDevice : DatabaseEntity, NotificationDevice {
     val deviceID: String
     var userID: tUserID
-    val creationTimestamp: UnixTimestamp
-    val session: Session?
+    override val creationTimestamp: UnixTimestamp
+    override val session: Session?
         get() = Session.fromNonce(sessionNonce)
 
-    var sessionNonce: Long
-
-    val isValid: Boolean
-        get() = session != null
+    override var sessionNonce: Long
 
     constructor(
         deviceID: String,
@@ -92,6 +94,10 @@ class APNDevice : DatabaseEntity {
                 return@transaction result.map { APNDevice(it) }
             }
         }
+    }
+
+    override fun sendNotification(universalNotification: UniversalNotification) {
+        APNsNotificationHandler.sendNotification(universalNotification, this)
     }
 }
 
