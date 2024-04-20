@@ -9,6 +9,7 @@ object AnalyticsStorage {
     private val timer: Timer = Timer()
 
     var requestCountStorage: MutableMap<String, RequestCountStorageElement> = mutableMapOf()
+    var requestResponseDurations: MutableMap<RequestDurationKey, MutableList<Long>> = mutableMapOf()
     var notificationCount: MutableMap<ExpollNotificationHandler.ExpollNotification, Long>
     var lastReset: UnixTimestamp
 
@@ -26,6 +27,7 @@ object AnalyticsStorage {
 
     private fun resetStatistics(){
         requestCountStorage = mutableMapOf()
+        requestResponseDurations = mutableMapOf()
         notificationCount = mutableMapOf()
         lastReset = UnixTimestamp.now()
     }
