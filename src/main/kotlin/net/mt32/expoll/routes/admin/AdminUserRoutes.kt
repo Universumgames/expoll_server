@@ -8,9 +8,9 @@ import io.ktor.server.routing.*
 import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
-import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.UserDeletionQueue
+import net.mt32.expoll.entities.interconnect.UserPolls
 import net.mt32.expoll.helper.*
 import net.mt32.expoll.plugins.query
 import net.mt32.expoll.serializable.admin.request.AdminCreateUserRequest
@@ -75,7 +75,7 @@ private suspend fun createUser(call: ApplicationCall) {
     user.save()
 
     async {
-        Poll.fromID(config.initialUserConfig.pollID)?.addUser(user.id)
+        UserPolls.addConnection(user.id, config.initialUserConfig.pollID)
 
         val otp = user.createOTP(forApp = false)
         otp.expirationTimestamp.addDays(5)

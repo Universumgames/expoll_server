@@ -12,9 +12,9 @@ import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.*
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.MailRule
-import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.UserDeletionConfirmation
+import net.mt32.expoll.entities.interconnect.UserPolls
 import net.mt32.expoll.helper.*
 import net.mt32.expoll.serializable.request.CreateUserRequest
 import net.mt32.expoll.serializable.request.EditUserRequest
@@ -121,7 +121,7 @@ private suspend fun createUser(call: ApplicationCall) {
     val user = User(username, firstName, lastName, mail, admin = false)
     user.save()
     async {
-        Poll.fromID(config.initialUserConfig.pollID)?.addUser(user.id)
+        UserPolls.addConnection(user.id, config.initialUserConfig.pollID)
     }
 
     call.startNewTiming("session.create", "Create new Session")
