@@ -17,6 +17,7 @@ import net.mt32.expoll.config
 import net.mt32.expoll.entities.notifications.APNDevice
 import net.mt32.expoll.helper.Hash
 import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.helper.async
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.security.loadECKeyFile
 import net.mt32.expoll.tPollID
@@ -144,14 +145,13 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
         apnsKey = getAPNsKey()
         ecAPNsKey = apnsKey.toECPrivateKey()
         apnQueue = mutableListOf()
-        sendingThread = Thread {
+        sendingThread = async {
             while (true) {
                 val apn = apnQueue.removeFirstOrNull()
                 if (apn != null) runBlocking { sendAPN(apn) }
                 else Thread.sleep(500)
             }
         }
-        sendingThread.start()
     }
 
 
@@ -201,7 +201,8 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
                 return APNStatus.UNKNOWN_ERROR
             }
             val error = APNStatus.fromString(errorData.reason)
-            println(errorData)
+            print(errorData)
+            println("Device: ${data.deviceToken}")
             return error ?: APNStatus.UNKNOWN_ERROR
         }
         return APNStatus.OK
