@@ -1,13 +1,15 @@
 package net.mt32.expoll.helper
 
 import net.mt32.expoll.tClientDateTime
+import org.joda.time.DateTime
+import org.joda.time.DateTimeZone
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
 
 
-class UnixTimestamp private constructor() {
+class UnixTimestamp private constructor() : Comparable<UnixTimestamp> {
 
     val secondsSince1970: Long
         get() = millisSince1970 / 1000
@@ -39,8 +41,8 @@ class UnixTimestamp private constructor() {
         return millisSince1970 == timestamp.millisSince1970
     }
 
-    operator fun compareTo(timestamp: UnixTimestamp): Int {
-        return (millisSince1970 - timestamp.millisSince1970).toInt()
+    override operator fun compareTo(other: UnixTimestamp): Int {
+        return (millisSince1970 - other.millisSince1970).toInt()
     }
 
     fun addSeconds(seconds: Long): UnixTimestamp {
@@ -84,10 +86,18 @@ class UnixTimestamp private constructor() {
         return secondsSince1970
     }
 
-    fun asMidnight(): UnixTimestamp {
+    fun nextMidnight(): UnixTimestamp {
         val cal = Calendar.getInstance()
         cal.time = toDate()
         cal.add(Calendar.DAY_OF_MONTH, 1)
+        cal.set(Calendar.HOUR_OF_DAY, 0)
+        cal.set(Calendar.MINUTE, 0)
+        return UnixTimestamp.fromDate(cal.time)
+    }
+
+    fun todaysMidnight(): UnixTimestamp {
+        val cal = Calendar.getInstance()
+        cal.time = toDate()
         cal.set(Calendar.HOUR_OF_DAY, 0)
         cal.set(Calendar.MINUTE, 0)
         return UnixTimestamp.fromDate(cal.time)
@@ -117,7 +127,7 @@ class UnixTimestamp private constructor() {
 
     companion object {
         fun now(): UnixTimestamp {
-            return Date().toUnixTimestamp()
+            return DateTime.now(DateTimeZone.UTC).toDate().toUnixTimestamp()
         }
 
         fun fromSecondsSince1970(seconds: Long): UnixTimestamp {
