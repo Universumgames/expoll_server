@@ -1,0 +1,4 @@
+#!/bin/bash
+
+scriptDir=$(dirname "$0")
+$scriptDir/../privateScripts/createManualBackup.sh

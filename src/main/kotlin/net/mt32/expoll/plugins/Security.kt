@@ -78,10 +78,10 @@ fun Application.configureSecurity() {
 
     install(RateLimit){
         global{
-            rateLimiter(limit = 100, refillPeriod = 5.seconds)
+            rateLimiter(limit = 100, refillPeriod = 3.seconds)
             requestKey { applicationCall ->
                 if(applicationCall.request.headers.contains("Authorization"))
-                    applicationCall.request.headers["Authorization"]!!
+                    applicationCall.request.headers["Authorization"]!! + applicationCall.request.uri.split("/").first()
                 else
                     applicationCall.request.host() + applicationCall.request.uri
             }
