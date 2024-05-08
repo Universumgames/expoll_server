@@ -1,0 +1,8 @@
+#!/bin/bash
+
+scriptDir=$(dirname $0)
+
+$scriptDir/../privateScripts/generateVersionDescriptors.sh
+
+# add the version descriptors to the git index
+git add $scriptDir/../config/versionDescriptors
