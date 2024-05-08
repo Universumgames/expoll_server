@@ -10,7 +10,8 @@
       "version": "3.4.0",
       "build": "181",
       "url": "https://testflight.apple.com/join/OpUycQnW",
-      "uploadedTimestamp": 1714948730
-    }
+      "releasedTimestamp": 1714948730
+    },
+    "platformKeys": [ "ios", "macos" ]
   }
 
