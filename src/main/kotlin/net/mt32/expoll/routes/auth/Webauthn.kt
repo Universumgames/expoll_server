@@ -25,6 +25,7 @@ import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.serializable.responses.SimpleAuthenticator
 import net.mt32.expoll.serializable.responses.SimpleAuthenticatorList
 import net.mt32.expoll.tUserID
+import kotlin.collections.set
 
 fun Route.webauthnRoutes() {
     route("webauthn") {
@@ -63,7 +64,7 @@ val rpIdentity: RelyingPartyIdentity
 
 val rp: RelyingParty
     get() = RelyingParty.builder().identity(rpIdentity).credentialRepository(WebauthnRegistrationStorage)
-        .origins(setOf(config.webauthn.origin)).build()
+        .origins(setOf(config.webauthn.origin, config.webauthn.origin.replace("http", "https"))).build()
 
 val registrationStorage: MutableMap<tUserID, PublicKeyCredentialCreationOptions> = mutableMapOf()
 
@@ -127,11 +128,12 @@ private suspend fun registerResponse(call: ApplicationCall) {
     }
 }
 
-val authStorage: MutableMap<tUserID, AssertionRequest> = mutableMapOf()
+//val authStorage: MutableMap<tUserID, AssertionRequest> = mutableMapOf()
+val challengeStorage: MutableMap<ByteArray, AssertionRequest> = mutableMapOf()
 private suspend fun authInit(call: ApplicationCall) {
     val username = call.getDataFromAny("username")
     val mail = call.getDataFromAny("mail")
-    if (username == null && mail == null) {
+    /*if (username == null && mail == null) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
@@ -139,21 +141,22 @@ private suspend fun authInit(call: ApplicationCall) {
     if (user == null || !user.loginAble) {
         call.respond(ReturnCode.BAD_REQUEST)
         return
-    }
+    }*/
 
     val request = rp.startAssertion(
         StartAssertionOptions.builder()
-            .username(user.username)
+            .username(username)
             .build()
     )
-    authStorage[user.id] = request
+    //authStorage[user.id] = request
+    challengeStorage[request.publicKeyCredentialRequestOptions.challenge] = request
     call.respond(request.toCredentialsGetJson())
 }
 
 private suspend fun authRes(call: ApplicationCall) {
     val username = call.getDataFromAny("username")
     val mail = call.getDataFromAny("mail")
-    if (username == null && mail == null) {
+    /*if (username == null && mail == null) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
@@ -161,15 +164,16 @@ private suspend fun authRes(call: ApplicationCall) {
     if (user == null) {
         call.respond(ReturnCode.BAD_REQUEST)
         return
-    }
-    val request = authStorage[user.id]
+    }*/
+    val publicKeyCredentialJson = call.receiveText()
+    val pkc = PublicKeyCredential.parseAssertionResponseJson(publicKeyCredentialJson)
+
+    //val request = authStorage[user.id]
+    val request = challengeStorage[pkc.response.clientData.challenge]
     if (request == null) {
         call.respond(ReturnCode.BAD_REQUEST)
         return
     }
-
-    val publicKeyCredentialJson = call.receiveText()
-    val pkc = PublicKeyCredential.parseAssertionResponseJson(publicKeyCredentialJson)
 
     try {
         val result = rp.finishAssertion(
@@ -179,6 +183,7 @@ private suspend fun authRes(call: ApplicationCall) {
                 .build()
         )
         if (result.isSuccess) {
+            val user = result.credential.userHandle.let { User.fromUserHandle(it) } ?: return
             // TODO change from immediate session creation to nonce based
             val session = user.createSessionFromScratch()
             call.sessions.set(ExpollJWTCookie(session.getJWT()))
