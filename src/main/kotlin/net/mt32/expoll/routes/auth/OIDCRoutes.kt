@@ -25,7 +25,6 @@ import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.OIDCUserData
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.*
-import net.mt32.expoll.helper.URLBuilder
 import net.mt32.expoll.tUserID
 import java.util.*
 
@@ -345,9 +344,7 @@ private suspend fun createAndRespondWithSession(
     state: State,
     isNewUser: Boolean = false
 ) {
-    val otp = user.createOTP(forApp = state.isApp)
-    val url = URLBuilder.buildLoginLink(call, user, otp, isNewUser = isNewUser)
-    call.respondRedirect(url)
+    call.respondWithOTPRedirect(user, forApp = state.isApp, isNewUser = isNewUser)
 }
 
 private suspend fun removeOIDCConnection(call: ApplicationCall, idp: OIDC.OIDCIDPData) {

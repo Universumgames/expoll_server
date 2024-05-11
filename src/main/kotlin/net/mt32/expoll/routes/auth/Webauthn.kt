@@ -11,8 +11,6 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.sessions.*
-import net.mt32.expoll.auth.ExpollJWTCookie
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.auth.WebauthnRegistrationStorage
 import net.mt32.expoll.auth.normalAuth
@@ -22,6 +20,7 @@ import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.helper.respondWithOTPJSON
 import net.mt32.expoll.serializable.responses.SimpleAuthenticator
 import net.mt32.expoll.serializable.responses.SimpleAuthenticatorList
 import net.mt32.expoll.tUserID
@@ -156,15 +155,6 @@ private suspend fun authInit(call: ApplicationCall) {
 private suspend fun authRes(call: ApplicationCall) {
     val username = call.getDataFromAny("username")
     val mail = call.getDataFromAny("mail")
-    /*if (username == null && mail == null) {
-        call.respond(ReturnCode.MISSING_PARAMS)
-        return
-    }
-    val user = username?.let { User.byUsername(it) } ?: mail?.let { User.byMail(it) }
-    if (user == null) {
-        call.respond(ReturnCode.BAD_REQUEST)
-        return
-    }*/
     val publicKeyCredentialJson = call.receiveText()
     val pkc = PublicKeyCredential.parseAssertionResponseJson(publicKeyCredentialJson)
 
@@ -184,10 +174,7 @@ private suspend fun authRes(call: ApplicationCall) {
         )
         if (result.isSuccess) {
             val user = result.credential.userHandle.let { User.fromUserHandle(it) } ?: return
-            // TODO change from immediate session creation to nonce based
-            val session = user.createSessionFromScratch()
-            call.sessions.set(ExpollJWTCookie(session.getJWT()))
-            call.respondText("{\"verified\":true}", ContentType.Application.Json)
+            call.respondWithOTPJSON(user, isNewUser = false)
         }
     } catch (e: AssertionFailedException) {
         e.printStackTrace()
