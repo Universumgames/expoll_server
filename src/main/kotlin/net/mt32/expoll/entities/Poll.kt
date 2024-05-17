@@ -78,7 +78,8 @@ class Poll : DatabaseEntity, IPoll {
             return when (type) {
                 PollType.STRING -> PollOptionString.fromPollID(id)
                 PollType.DATE -> PollOptionDate.fromPollID(id).sortedBy { it.dateStartTimestamp.millisSince1970 }
-                PollType.DATETIME -> PollOptionDateTime.fromPollID(id).sortedBy { it.dateTimeStartTimestamp.millisSince1970 }
+                PollType.DATETIME -> PollOptionDateTime.fromPollID(id)
+                    .sortedBy { it.dateTimeStartTimestamp.millisSince1970 }
             }
         }
 
@@ -360,10 +361,10 @@ class Poll : DatabaseEntity, IPoll {
             }.indexOfFirst { option ->
                 when (type) {
                     PollType.DATE -> {
-                        return@indexOfFirst (option as PollOptionDate).dateStartTimestamp.todaysMidnight() >= UnixTimestamp.now().todaysMidnight()
-                        }
+                        return@indexOfFirst (option as PollOptionDate).dateStartTimestamp.nextMidnight() >= UnixTimestamp.now()
+                            .todaysMidnight()
+                    }
                     PollType.DATETIME -> (option as PollOptionDateTime).dateTimeStartTimestamp > UnixTimestamp.now()
-
                     else -> false
                 }
             }
@@ -396,7 +397,7 @@ class Poll : DatabaseEntity, IPoll {
                     user.id,
                     joinTimestamps.find { it.userID == user.id }!!.joinTimestamp.toClient()
                 ), notes.find { note -> note.userID == user.id }?.note, votes.map { vote ->
-                        SimpleVote(vote.optionID, vote.votedFor.id)
+                    SimpleVote(vote.optionID, vote.votedFor.id)
                 } + // keep this for backwards compatibility with old polls
                         // add null votes for non existing votes on options
                         missingVotes.map {

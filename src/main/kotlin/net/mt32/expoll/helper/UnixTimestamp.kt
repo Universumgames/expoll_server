@@ -42,7 +42,12 @@ class UnixTimestamp private constructor() : Comparable<UnixTimestamp> {
     }
 
     override operator fun compareTo(other: UnixTimestamp): Int {
-        return (millisSince1970 - other.millisSince1970).toInt()
+        val diff = millisSince1970 - other.millisSince1970
+        return when {
+            diff < 0 -> -1
+            diff > 0 -> 1
+            else -> 0
+        }
     }
 
     fun addSeconds(seconds: Long): UnixTimestamp {
