@@ -140,6 +140,7 @@ data class ConfigData(
     val initialUserConfig: InitialUserConfig = InitialUserConfig(),
     val dataRetention: DataRetentionConfig = DataRetentionConfig(),
     val otpBaseLength: Int = 0,
+    var otpLiveTimeSeconds: Long = 0, // this should be at least 30 seconds
 )
 
 var config: ConfigData = ConfigData()
@@ -154,6 +155,7 @@ object ConfigLoader {
 
         val merged = mergeJsonObjects(defaultConf, desiredConfig)
         config = defaultJSON.decodeFromJsonElement(merged)
+        config.otpLiveTimeSeconds = config.otpLiveTimeSeconds.coerceAtLeast(30)
 
         println("Loaded config with")
         println(defaultJSON.encodeToString(config))

@@ -27,7 +27,7 @@ class OTP : DatabaseEntity {
     val valid: Boolean
         get() = expirationTimestamp > UnixTimestamp.now()
 
-    constructor(otp: String, userID: tUserID, forApp: Boolean, expirationTimestamp: UnixTimestamp = UnixTimestamp.now().addHours(1)) {
+    constructor(otp: String, userID: tUserID, forApp: Boolean, expirationTimestamp: UnixTimestamp) {
         this.otp = otp
         this.userID = userID
         this.forApp = forApp
@@ -50,7 +50,7 @@ class OTP : DatabaseEntity {
         fun fromOTP(otp: String): OTP? {
             if (otp == config.testUser.otp) {
                 val testuser = User.byUsername(config.testUser.username) ?: return null
-                return OTP(otp, testuser.id, true)
+                return OTP(otp, testuser.id, true, UnixTimestamp.now().addSeconds(config.otpLiveTimeSeconds))
             }
             return transaction {
                 val otp = OTP.selectAll().where { OTP.otp eq otp }.firstOrNull()?.let { OTP(it) }
@@ -76,7 +76,7 @@ class OTP : DatabaseEntity {
          * Creates and saves a new OTP for a user
          */
         fun create(userID: tUserID, forApp: Boolean): OTP {
-            val otp = OTP(randomOTP(), userID, forApp)
+            val otp = OTP(randomOTP(), userID, forApp, UnixTimestamp.now().addSeconds(config.otpLiveTimeSeconds))
             otp.save()
             return otp
         }

@@ -112,5 +112,6 @@
     "userDeletionFinalAfterDays": 100,
     "userNotifyBeforeDeletionDays": 90
   },
-  "otpBaseLength": 8
+  "otpBaseLength": 8,
+  "otpLiveTimeSeconds": 900
 }
