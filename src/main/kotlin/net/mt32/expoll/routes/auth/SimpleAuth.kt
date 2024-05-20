@@ -56,11 +56,11 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
             .replace(" ", "")
             .replace("\t", "")
         val otp = OTP.fromOTP(cleanedOTP)
-        if (otp == null) {
-            call.respond(ReturnCode.UNAUTHORIZED)
+        if (otp.second != OTP.Companion.OTPResult.OK) {
+            call.respond(ReturnCode.UNAUTHORIZED, otp.second.toString())
             return
         }
-        val session = otp.createSessionAndDeleteSelf(
+        val session = otp.first!!.createSessionAndDeleteSelf(
             call.request.headers["User-Agent"] ?: "unknown",
             simpleLoginRequest.version,
             simpleLoginRequest.platform
@@ -68,7 +68,7 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
         val jwt = session.getJWT()
         call.sessions.clear(cookieName)
         call.sessions.set(ExpollJWTCookie(jwt))
-        call.response.headers.append("forApp", otp.forApp.toString())
+        call.response.headers.append("forApp", otp.first!!.forApp.toString())
         call.respondText(jwt)
         return
     }

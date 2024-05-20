@@ -47,18 +47,22 @@ class OTP : DatabaseEntity {
         val forApp = bool("forApp").default(false)
         val expirationTimestamp = long("expirationTimestamp")
 
-        fun fromOTP(otp: String): OTP? {
-            if (otp == config.testUser.otp) {
-                val testuser = User.byUsername(config.testUser.username) ?: return null
-                return OTP(otp, testuser.id, true, UnixTimestamp.now().addSeconds(config.otpLiveTimeSeconds))
+        enum class OTPResult {
+            OK, TEST, INVALID, NOT_FOUND
+        }
+
+        fun fromOTP(otpString: String): Pair<OTP?, OTPResult> {
+            if (otpString == config.testUser.otp) {
+                val testuser = User.byUsername(config.testUser.username) ?: return null to OTPResult.NOT_FOUND
+                return OTP(otpString, testuser.id, true, UnixTimestamp.now().addSeconds(config.otpLiveTimeSeconds)) to OTPResult.TEST
             }
             return transaction {
-                val otp = OTP.selectAll().where { OTP.otp eq otp }.firstOrNull()?.let { OTP(it) }
+                val otp = OTP.selectAll().where { OTP.otp eq otpString }.firstOrNull()?.let { OTP(it) }
                 if (otp != null && !otp.valid) {
                     otp.delete()
-                    return@transaction null
+                    return@transaction null to OTPResult.INVALID
                 }
-                return@transaction otp
+                return@transaction otp to if (otp != null) OTPResult.OK else OTPResult.NOT_FOUND
             }
         }
 
@@ -68,7 +72,7 @@ class OTP : DatabaseEntity {
                 val bytes = ByteArray(config.otpBaseLength * 2)
                 ThreadLocalRandom.current().nextBytes(bytes)
                 otp = bytes.toBase62().substring(0, config.otpBaseLength)
-            } while (fromOTP(otp) != null)
+            } while (fromOTP(otp).first != null)
             return otp
         }
 
