@@ -4,13 +4,13 @@
       "version": "3.3.1",
       "build": "181",
       "url": "https://apps.apple.com/app/expoll/id1639799209",
-      "releasedTimestamp": 1714919336
+      "releasedTimestamp": 1714919336000
     },
     "beta": {
       "version": "3.4.0",
       "build": "188",
       "url": "https://testflight.apple.com/join/OpUycQnW",
-      "releasedTimestamp": 1716169322
+      "releasedTimestamp": 1716169322000
     },
     "platformKeys": [ "ios", "macos" ]
   }
