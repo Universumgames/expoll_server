@@ -28,7 +28,7 @@ fun mergeJsonObjects(obj1: JsonObject, obj2: JsonObject?): JsonObject {
     val merged = obj1.toMutableMap();
     merged.forEach { entry ->
         if (obj2.containsKey(entry.key)) {
-            println(merged[entry.key].toString())
+            //println(merged[entry.key].toString())
             val isObj = merged[entry.key].toString().startsWith("{")
             val isArr = merged[entry.key].toString().startsWith("[")
 
