@@ -63,7 +63,7 @@ val rpIdentity: RelyingPartyIdentity
 
 val rp: RelyingParty
     get() = RelyingParty.builder().identity(rpIdentity).credentialRepository(WebauthnRegistrationStorage)
-        .origins(setOf(config.webauthn.origin, config.webauthn.origin.replace("http", "https"))).build()
+        .origins(setOf(config.webauthn.origin, config.webauthn.origin.replace("http:", "https:"))).build()
 
 val registrationStorage: MutableMap<tUserID, PublicKeyCredentialCreationOptions> = mutableMapOf()
 
