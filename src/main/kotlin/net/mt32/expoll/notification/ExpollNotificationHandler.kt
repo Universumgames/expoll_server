@@ -101,10 +101,10 @@ object ExpollNotificationHandler {
                 RequiredArg.SERVER_VERSION -> listOf(config.serverVersion)
                 RequiredArg.POLL -> listOf(poll?.name ?: "")
                 RequiredArg.USER -> listOf(user?.let {
-                    it.username.substring(
+                    it.fullName.substring(
                         0,
-                        minOf(it.username.length, 20)
-                    ) + if (it.username.length > 20) "..." else ""
+                        minOf(it.fullName.length, 20)
+                    ) + if (it.fullName.length > 20) "..." else ""
                 } ?: "")
 
                 RequiredArg.VOTE_CHANGE -> listOf(newVote!!.translationKey)
