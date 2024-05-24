@@ -171,8 +171,9 @@ object ExpollNotificationHandler {
                 bodyArgs = getBodyArgs(poll, user, optionString, oldVote, newVote),
                 additionalData = mapOf(
                     "pollID" to poll?.id,
-                    "userID" to poll?.id,
-                    "optionID" to optionID
+                    "userID" to user?.id,
+                    "optionID" to optionID,
+                    "key" to title
                 ).toMap().filterValues { it != null }.mapValues { it.value.toString() }
             )
         }
