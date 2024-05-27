@@ -144,7 +144,7 @@ object Mail {
             })
 
             val message = MimeMessage(session)
-            message.setFrom(InternetAddress(config.mailUser, "Expoll"))
+            message.setFrom(InternetAddress(config.mailSender, "Expoll"))
             message.setRecipients(Message.RecipientType.TO, arrayOf(InternetAddress(data.toMail, data.toName)))
             message.subject = data.subject
             if (data.isHTML)

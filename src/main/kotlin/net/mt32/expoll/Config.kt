@@ -14,7 +14,8 @@ data class MailConfig(
     val mailPort: Int = 0,
     val mailSecure: Boolean = false,
     val mailUser: String = "",
-    val mailPassword: String = ""
+    val mailPassword: String = "",
+    val mailSender: String = ""
 )
 
 @Serializable

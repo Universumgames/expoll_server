@@ -4,7 +4,8 @@
     "mailPort": 587,
     "mailSecure": false,
     "mailUser": "your mail",
-    "mailPassword": "password"
+    "mailPassword": "password",
+    "mailSender": "your mail"
   },
   "serverPort": 6060,
   "frontEndPort": 80,
@@ -18,7 +19,7 @@
   },
   "maxPollCountPerUser": 10,
   "recaptchaAPIKey": "your google recaptcha api key goes here",
-  "serverVersion": "4.2.3.6",
+  "serverVersion": "4.2.3.7",
   "compatibleVersions": [
     {
       "platform": "web",
