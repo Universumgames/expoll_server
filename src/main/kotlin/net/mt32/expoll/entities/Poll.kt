@@ -478,7 +478,7 @@ class Poll : DatabaseEntity, IPoll {
         UserPolls.removeConnection(userID, id)
         transaction {
             Vote.deleteWhere {
-                (Vote.pollID eq pollID) and (Vote.userID eq userID)
+                (Vote.pollID eq this@Poll.id) and (Vote.userID eq userID)
             }
         }
     }
