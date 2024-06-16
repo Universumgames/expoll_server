@@ -1,0 +1,10 @@
+type: "object"
+title: "VersionDescriptor"
+nullable: true
+properties:
+  version:
+    type: "string"
+    example: "4.2.2"
+  build:
+    type: "integer"
+    example: 135

@@ -80,7 +80,7 @@ private suspend fun createUser(call: ApplicationCall) {
     val captcha = createUserRequest.captcha
     val appAttest = createUserRequest.appAttest
 
-    call.startNewTiming("user.create.checks", "Check that dat complies with policies")
+    call.startNewTiming("user.create.checks", "Check that data complies with policies")
     // null check
     if (captcha == null && appAttest == null) {
         call.respond(ReturnCode.MISSING_PARAMS)

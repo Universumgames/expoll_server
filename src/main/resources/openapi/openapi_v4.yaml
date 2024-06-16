@@ -1,0 +1,58 @@
+openapi: 3.0.3
+info:
+  title: Expoll REST API
+  description: This is the backend api documentation for expoll
+  license:
+    name: MIT
+    url: https://github.com/Universumgames/expoll_server/blob/main/LICENSE
+  version: 4.2.2
+servers:
+  - url: https://expoll.mt32.net/api
+    description: the production server api
+  - url: http://localhost:6060/
+    description: local test server
+  - url: http://192.168.178.68:6060
+    description: local network testing
+
+paths:
+  /serverInfo:
+    $ref: "routes/serverInfo.yml"
+  /test:
+    get:
+      responses:
+        200:
+          description: "test response"
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Hello World!"
+  /ping:
+    get:
+      responses:
+        200:
+          description: "ping response"
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "pong"
+  /appInfo/{platform}:
+    $ref: "routes/appInfo.yaml"
+  /metaInfo:
+    get:
+      responses:
+        200:
+          description: "meta request info"
+  /simple/mailregex:
+    $ref: "routes/simple/mailregex.yaml"
+  /simple/poll/{pollid}/title:
+    $ref: "routes/simple/polltitle.yaml"
+
+components:
+  schemas:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

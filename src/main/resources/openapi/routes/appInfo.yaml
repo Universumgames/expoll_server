@@ -1,0 +1,21 @@
+parameters:
+  - name: platform
+    in: path
+    required: true
+    schema:
+      type: string
+      enum:
+        #- android
+        - ios
+        #- web
+get:
+  responses:
+    200:
+      description: "app info response"
+      content:
+        application/json:
+          schema:
+            $ref: "../types/platformInfo.yaml"
+        application/xml:
+          schema:
+            $ref: "../types/platformInfo.yaml"

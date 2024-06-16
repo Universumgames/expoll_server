@@ -1,0 +1,27 @@
+get:
+  description: Get Meta info of backend server
+  responses:
+    "200":
+      description: Meta json object
+      content:
+        application/json:
+          schema:
+            type: "object"
+            properties:
+              version:
+                type: "string"
+              compatibleVersions:
+                type: "array"
+                title: CompatibleVersionDescriptor
+                items:
+                  type: "object"
+                  properties:
+                    from:
+                      $ref: "../types/versionDescriptor.yaml"
+                    to:
+                      $ref: "../types/versionDescriptor.yaml"
+                    exact:
+                      $ref: "../types/versionDescriptor.yaml"
+                    platform:
+                      type: "string"
+                      example: "ios"

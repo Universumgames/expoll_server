@@ -71,32 +71,32 @@ fun Route.oidcRoutes() {
 
         // not working
         // authenticate(normalAuth, strategy = AuthenticationStrategy.Optional) {
-            for (idp in OIDC.data.values) {
-                route(idp.name) {
-                    get {
-                        if (call.parameters.isEmpty() || call.parameters["app"]?.isNotEmpty() == true) {
+        for (idp in OIDC.data.values) {
+            route(idp.name) {
+                get {
+                    if (call.parameters.isEmpty() || call.parameters["app"]?.isNotEmpty() == true) {
+                        oidcLoginInit(call, idp)
+                    } else {
+                        oidcLogin(call, idp)
+                    }
+                }
+                post {
+                    try {
+                        if (call.parameters.isEmpty() && call.receiveParameters().isEmpty()) {
                             oidcLoginInit(call, idp)
                         } else {
                             oidcLogin(call, idp)
                         }
-                    }
-                    post {
-                        try {
-                            if (call.parameters.isEmpty() && call.receiveParameters().isEmpty()) {
-                                oidcLoginInit(call, idp)
-                            } else {
-                                oidcLogin(call, idp)
-                            }
-                        } catch (e: ContentTransformationException) {
-                            e.printStackTrace()
-                            oidcLogin(call, idp)
-                        } catch (e: Exception) {
-                            e.printStackTrace()
-                            call.respond(ReturnCode.BAD_REQUEST)
-                        }
+                    } catch (e: ContentTransformationException) {
+                        e.printStackTrace()
+                        oidcLogin(call, idp)
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        call.respond(ReturnCode.BAD_REQUEST)
                     }
                 }
             }
+        }
         //}
     }
 }
@@ -269,7 +269,8 @@ private suspend fun addOIDCConnection(
     state: LoggedInState
 ) {
     val parsedUser = userParam?.let { defaultJSON.decodeFromString<OIDCUserParam>(it) }
-    val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull
+    val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull
+    ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull
     val userID = principal?.userID ?: state.userID
     if (OIDCUserData.bySubjectAndIDP(baseTokenData.subject, idp.name) != null) {
         if (state.isApp)
@@ -294,7 +295,8 @@ private suspend fun loginUser(
 ) {
     val parsedUser = userParam?.let { defaultJSON.decodeFromString<OIDCUserParam>(it) }
 
-    val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull
+    val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull
+    ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull
 
     println(baseTokenData)
     // fetch user from db or create new
@@ -321,10 +323,12 @@ private suspend fun loginUser(
 
     // create user
     val firstNameUse =
-        parsedUser?.name?.firstName ?: tokenDataMap["given_name"]?.jsonPrimitive?.contentOrNull ?: tokenDataMap["name"]?.jsonPrimitive?.contentOrNull
+        parsedUser?.name?.firstName ?: tokenDataMap["given_name"]?.jsonPrimitive?.contentOrNull
+        ?: tokenDataMap["name"]?.jsonPrimitive?.contentOrNull
         ?: tokenDataMap["name"]?.jsonPrimitive?.contentOrNull
     val lastNameUse = parsedUser?.name?.lastName ?: tokenDataMap["family_name"]?.jsonPrimitive?.contentOrNull
-    var userNameUse = tokenDataMap["preferred_username"]?.jsonPrimitive?.contentOrNull ?: tokenDataMap["nickname"]?.jsonPrimitive?.contentOrNull
+    var userNameUse = tokenDataMap["preferred_username"]?.jsonPrimitive?.contentOrNull
+        ?: tokenDataMap["nickname"]?.jsonPrimitive?.contentOrNull
     if (mailUse == null || firstNameUse == null) {
         call.respond(ReturnCode.BAD_REQUEST)
         return

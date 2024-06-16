@@ -10,13 +10,14 @@ val arrow_kt_version: String by project
 val jakarta_mail_version: String by project
 val angus_mail_version: String by project
 val kotlinx_coroutines_version: String by project
+val swagger_codegen_version: String by project
 
 plugins {
     application
     java
-    kotlin("jvm") version "1.9.23"
-    id("io.ktor.plugin") version "2.3.9"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.23"
+    kotlin("jvm") version "2.0.0"
+    id("io.ktor.plugin") version "2.3.11"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -25,7 +26,7 @@ kotlin {
 }
 
 group = "net.mt32.expoll"
-version = "3.8.0"
+version = "4.2.4"
 
 application {
     mainClass.set("net.mt32.expoll.ApplicationKt")
@@ -53,6 +54,22 @@ tasks.withType<ShadowJar>{
     mergeGroovyExtensionModules()
 }
 
+tasks.register("openapi", type = Exec::class){
+    workingDir = projectDir
+    executable = "bash"
+    commandLine("./scripts/openAPIBundle.sh", "src/main/resources/openapi/openapi_v4.yaml", "src/main/resources/openapi/openapi.yaml")
+    /*
+    commandLine(
+        "./scripts/openAPIBundle.sh", "src/main/resources/openapi/openapi_v4.yaml",
+        layout.buildDirectory.file("/resources/main/openapi/openapi_v4.yaml").get().asFile.absolutePath
+    )
+     */
+}
+
+tasks.compileKotlin.configure{
+    dependsOn("openapi")
+}
+
 repositories {
     mavenCentral()
     gradlePluginPortal()
@@ -77,6 +94,7 @@ dependencies {
     implementation("io.ktor:ktor-serialization-jackson-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-swagger:$ktor_version")
     implementation("io.ktor:ktor-server-openapi:$ktor_version")
+    //implementation("io.swagger.codegen.v3:swagger-codegen-generators:$swagger_codegen_version")
     implementation("io.ktor:ktor-server-compression-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")

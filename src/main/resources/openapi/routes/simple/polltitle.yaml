@@ -1,0 +1,18 @@
+parameters:
+  - name: pollid
+    in: path
+    required: true
+    description: "The id of the poll"
+    schema:
+      type: "string"
+get:
+  summary: "Get the title of a poll"
+  description: "Get the title of a poll"
+  responses:
+    '200':
+      description: "The title of the poll"
+      content:
+        text/plain:
+          schema:
+            type: "string"
+            example: "What is your favorite color?"

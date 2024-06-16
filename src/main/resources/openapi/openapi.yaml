@@ -1,11 +1,12 @@
-openapi: 3.0.0
+
+openapi: 3.0.3
 info:
   title: Expoll REST API
   description: This is the backend api documentation for expoll
   license:
     name: MIT
     url: https://github.com/Universumgames/expoll_server/blob/main/LICENSE
-  version: 3.2.6
+  version: 4.2.2
 servers:
   - url: https://expoll.mt32.net/api
     description: the production server api
@@ -19,1043 +20,174 @@ paths:
     get:
       description: Get Meta info of backend server
       responses:
-        200:
+        "200":
           description: Meta json object
           content:
             application/json:
               schema:
-                type: object
+                type: "object"
                 properties:
                   version:
-                    type: string
-                  minimumRequiredVersion:
-                    type: string
-                  serverPort:
-                    type: integer
-                    format: int32
-                  frontendPort:
-                    type: integer
-                    format: int32
-                  loginLinkBase:
-                    type: string
-                  mailSender:
-                    type: string
-  /metaInfo:
+                    type: "string"
+                  compatibleVersions:
+                    type: "array"
+                    title: CompatibleVersionDescriptor
+                    items:
+                      type: "object"
+                      properties:
+                        from:
+                          type: "object"
+                          title: "VersionDescriptor"
+                          nullable: true
+                          properties:
+                            version:
+                              type: "string"
+                              example: "4.2.2"
+                            build:
+                              type: "integer"
+                        to:
+                          type: "object"
+                          title: "VersionDescriptor"
+                          nullable: true
+                          properties:
+                            version:
+                              type: "string"
+                              example: "4.2.2"
+                            build:
+                              type: "integer"
+                        exact:
+                          type: "object"
+                          title: "VersionDescriptor"
+                          nullable: true
+                          properties:
+                            version:
+                              type: "string"
+                              example: "4.2.2"
+                            build:
+                              type: "integer"
+                        platform:
+                          type: "string"
+                          example: "ios"
+  /test:
     get:
-      description: get various debugging information
       responses:
         200:
-          description: Meta info json object
-  /compatibility:
-    post:
-      description: Check if your client version is supported by the backend
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                version:
-                  type: string
-                  required: true
-                  description: the version of the client
-                build:
-                  type: string
-                  description: the build number of the client
-                platform:
-                    type: string
-                    description: the platform the client is running on ("ios", "web")
-            example:
-                version: "2.6.0"
-                build: "90"
-                platform: "ios"
-      responses:
-        200:
-          description: Client is supported
-        409:
-          description: Client is not supported
-        400:
-          description: Version parameter missing
-  /user:
-    post:
-      description: Create a new user
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateUserRequest"
-            examples:
-              max:
-                value:
-                  firstName: Max
-                  lastName: Mustermann
-                  username: mamu
-                  mail: max.mustermann@example.de
-                  appAttest: "<app attest value>"
-        required: true
-      responses:
-        200:
-          description: User was successfully created, returns a cookie and the first jwt token
+          description: "test response"
           content:
             text/plain:
               schema:
                 type: string
-        400:
-          description: Parameters are missing
-        406:
-          description: User with the same mail or username already exists or the mail is not valid
+                example: "Hello World!"
+  /ping:
     get:
-      description: get basic user data
-      security:
-        - bearerAuth: []
       responses:
         200:
-          description: Basic userdata
+          description: "ping response"
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "pong"
+  /appInfo/{platform}:
+    parameters:
+      - name: platform
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+            #- android
+            - ios
+            #- web
+    get:
+      responses:
+        200:
+          description: "app info response"
           content:
             application/json:
               schema:
                 type: object
+                description: "Information about the app for a specific platform"
+                title: "PlatformInfo"
                 properties:
-                  id:
-                    type: string
-                  username:
-                    type: string
-                  firstName:
-                    type: string
-                  lastName:
-                    type: string
-                  mail:
-                    type: string
-                  active:
-                    type: string
-                  admin:
-                    type: string
-
-        401:
-          description: Unauthorized
-    put:
-      description: Edit the user
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                firstName:
-                  type: string
-                lastName:
-                  type: string
-                username:
-                  type: string
-            examples:
-              max:
-                value:
-                  firstName: Max
-                  lastName: Mustermann
-                  username: mamu
-      responses:
-        400:
-          description: Username already taken
-        200:
-          description: changes successfully saved
-  /vote:
-    post:
-      description: Vote for an option in a poll
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        description: The vote data
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/VoteChangeRequest"
-            example:
-              pollID: "<uuid>"
-              optionID: 43
-              votedFor: 2
-        required: true
-      responses:
-        "200":
-          description: Vote was successfull
-        "406":
-          description: Poll or option does not exist, the votedFor value is invalid or 'maybe' is disabled
-        403:
-          description: Maximum number on Yes/Maybe votes on this poll is too high or voting is disabled for the poll
-  /auth/simple:
-    post:
-      description: Login via otp or request a login mail
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                otp:
-                  type: string
-                  description: the one time password
-                mail:
-                  type: string
-                  description: the mail address of the user
-            examples:
-              Request:
-                summary: Requesting login mail
-                value: '{"mail": "max.mustermann@example.org"}'
-              JWT:
-                summary: Get jwt cookie and header value
-                value: '{"jwt": "value"}'
-        required: true
-      responses:
-        200:
-          description: The login was successfull
-          content:
-            cookie:
+                  beta:
+                    type: object
+                    title: AppInfo
+                    properties:
+                      version:
+                        type: string
+                        example: "1.0.0"
+                      build:
+                        type: integer
+                        example: 1
+                      url:
+                        type: string
+                        example: "https://expoll.mt32.net/download/ios/beta/1.0.0/1"
+                      releasedTimestamp:
+                        type: integer
+                        example: 1620000000
+                  stable:
+                    type: object
+                    title: AppInfo
+                    properties:
+                      version:
+                        type: string
+                        example: "1.0.0"
+                      build:
+                        type: integer
+                        example: 1
+                      url:
+                        type: string
+                        example: "https://expoll.mt32.net/download/ios/stable/1.0.0/1"
+                      releasedTimestamp:
+                        type: integer
+            application/xml:
               schema:
-                type: string
-              example: '{"loginKey":"<uuid>"}'
-        400:
-          description: Parameter missing, user does not exist
-        401:
-          description: The loginKey is invalid
-  /auth/logout:
-    delete:
-      description: Logout the current session or a specified one
-      requestBody:
-        required: false
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                shortKey:
-                  type: string
-                  description: the first 4 characters of a loginkey
-            example: '{"shortKey": "abcd"}'
-      responses:
-        200:
-          description: Session was deleted and cookie removed (if deleted SEssion is not the active one)
-        401:
-          description: Unauthorized
-  /auth/logoutAll:
-    delete:
-      security:
-        - bearerAuth: [ ]
-      description: Logout all sessions
-      responses:
-        200:
-          description: All sessions were deleted
-        401:
-          description: Unauthorized
-  /auth/webauthn/register:
+  /metaInfo:
     get:
-      security:
-        - bearerAuth: [ ]
       responses:
         200:
-          description: Get list of all webauthn authenticators
-      description: Undocumented endpoint to start webauthn registration
-    post:
-      security:
-        - bearerAuth: [ ]
-      description: Undocumented endpoint to save webauthn
-  /auth/webauthn/authenticate:
-    get:
-      description: Undocumented endpoint to start authentication
-    post:
-      description: Undocumented endpoint to start authentication
-  /auth/webauthn/list:
-    get:
-      description: get list of all webauthn authenticators
-      security:
-        - bearerAuth: [ ]
-      responses:
-        200:
-          description: list of the authenticators
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/SimpleAuthenticator'
-        401:
-          description: Unauthorized
-  /auth/webauthn/edit:
-    post:
-      description: edit an authenticator (currently only changing its name)
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                credentialID:
-                  type: string
-                newName:
-                  type: string
-                  description: The new name for the authenticator
-      responses:
-        200:
-          description: Renaming successfull
-        401:
-          description: Unauthorized
-        403:
-          description: Authenticator does not exist
-  /auth/webauthn/:
-    delete:
-      description: delete an authenticator TODO
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                credentialID:
-                  type: string
-                  description: the authenticator you want to delete
-      responses:
-        200:
-          description: Deletion was successfull
-        401:
-          description: Unauthorized
-        403:
-          description: Authenticator does not exist
-  /auth/oidc/providers:
-    get:
-      description: Get list of all oidc providers
-      responses:
-        200:
-          content:
-            application/json:
-              type: array
-              items:
-                type: string
-  /auth/oidc/{provider}:
-    get:
-      description: Initiate OIDC Login for provider
-      parameters:
-        - name: provider
-          in: path
-          required: true
-        - name: app
-          in: query
-          required: false
-          description: Wether the request was initiated from an app and should be redirected back to it ("1" if this is the case)
-      responses:
-        302:
-          description: The Redirect for the OIDC Login
-    post:
-      description: The return from the OIDC Provider
-      responses:
-        302:
-          description: Login was successfull and you are redirected to the login page
-        400:
-          description: Something was wrong with the OIDC data (e.g. data missing or signature could not be validated)
-  /auth/oidc/addConnection/{provider}:
-    get:
-      description: Add an OIDC connection to curent account
-      security:
-        - bearerAuth: [ ]
-      responses:
-        302:
-          description: the redirect for the OIDC Login
-  /auth/oidc/connections:
-    get:
-      description: Get a list of all connected OIDC providers for this account
-      security:
-        - bearerAuth: [ ]
-      responses:
-        200:
-          description: The list of connections
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    name:
-                      type: string
-                      description: the oidc name as described in the config file
-                    mail:
-                      type: string
-                      description: the mail address of the connection if one was provided by the OIDC provider
-                    subject:
-                      type: string
-                      description: The UID of the used user
-  /simple/poll/{pollId}/title:
-    get:
-      description: Get the name for a poll
-      parameters:
-        - name: pollId
-          in: path
-          required: true
-      responses:
-        200:
-          description: The name of the requested poll
-          content:
-            plain/text:
-              schema:
-                type: string
-              example: "This is a great pollname"
-        400:
-          description: PollID parameter missing or poll does not exist
+          description: "meta request info"
   /simple/mailregex:
     get:
-      description: Get all regex rules the mail has to comply to
+      summary: "Mail regex"
+      description: "Mail regex"
       responses:
-        200:
-          description: List of all regex rules
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/MailRegexRule"
-  /notifications/preferences:
-    get:
-      description: Get notification preferences
-      security:
-        - bearerAuth: [ ]
-      responses:
-        200:
-          description: Notification preferences
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/NotificationPreferences"
-        401:
-          description: Unauthorized
-    post:
-      description: Set notification preferences
-      security:
-        - bearerAuth: [ ]
-      requestBody:
+      '200':
+        description: "Mail regex"
+        content:
+        application/json:
+          schema:
+          type: "array"
+          properties:
+            id:
+              type: "string"
+            regex:
+              type: "string"
+            blacklist:
+  /simple/poll/{pollid}/title:
+    parameters:
+      - name: pollid
+        in: path
         required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/NotificationPreferences"
-      responses:
-        200:
-          description: Setting new Notification preferences was successful
-        401:
-          description: Unauthorized
-  /notifications/apple:
-    post:
-      description: register a new apple device for push notifications
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                deviceID:
-                  type: string
-            example: '{"deviceID":"the generated deviceid"}'
-      responses:
-        200:
-          description: Device was added (or moved) to user
-        400:
-          description: Unauthorized
-  /poll:
+        description: "The id of the poll"
+        schema:
+          type: "string"
     get:
-      description: Get poll list or poll details
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                pollID:
-                  type: string
-                  required: false
+      summary: "Get the title of a poll"
+      description: "Get the title of a poll"
       responses:
-        200:
-          description: Poll list
+        '200':
+          description: "The title of the poll"
           content:
-            application/json:
+            text/plain:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/SimplePoll"
-        200(alt):
-          description: Poll details
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/DetailedPoll"
-    post:
-      description: Edit the poll, only the poll creator can do this
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/EditPollRequest"
-      responses:
-        200:
-          description: Poll edited successfully
-        400:
-          description: parameters missing or poll does not exist
-        401:
-          description: the user is not authorized to edit this poll
-        403:
-          description: Editing the poll is not allowed
-    put:
-      description: Create a new Poll
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreatePollRequest"
-      responses:
-        200:
-          description: Poll created successfully
-        400:
-          description: some parameters are missing
-        413:
-          description: the user has exceeded the maximum number of polls that they created
-  /poll/join:
-    post:
-      description: Join a poll
-      security:
-        - bearerAuth: [ ]
-      parameters:
-        - name: pollID
-          in: query
-          required: true
-      responses:
-        200:
-          description: Successfully joined poll
-        400:
-          description: pollID missing or poll does not exist
-  /poll/leave:
-    post:
-      description: Leave a poll
-      security:
-        - bearerAuth: [ ]
-      parameters:
-        - name: pollID
-          in: query
-          required: true
-      responses:
-        200:
-          description: Left poll if it exists
-        400:
-          description: pollID parameter missing
-  /admin/isImpersonating:
-    get:
-      description: Check if you are currently impersonating a user
-      parameters:
-        - name: loginKey
-          in: cookie
-          required: true
-        - name: originalLoginKey
-          in: cookie
-          required: true
-      responses:
-        200:
-          description: you are currently impersonating a user
-        400:
-          description: Parameters missing or you are not impersonating someone
-  /admin/impersonate:
-    post:
-      description: Impersonate a user
-      security:
-        - bearerAuth: [ ]
-      parameters:
-        - name: userID
-          in: query
-          required: true
-      responses:
-        200:
-          description: Impersonation successfull
-          content:
-            cookie:
-              schema:
-                type: object
-                properties:
-                  loginKey:
-                    type: string
-                    description: a new session key of the user you impersonate
-                  originalLoginKey:
-                    type: string
-                    description: your original session key, used for unimpersonate
-            plain/text:
-              schema:
-                type: string
-                description: the new session key
-        400:
-          description: parameter missing or the user does not exist
-        401:
-          description: you are not allowed to impersonate someone
-
-
-
-          # TODO add loginKey parameter to all authorized endpoints
-  /admin/unimpersonate:
-    post:
-      description: give up the impersonation
-      security:
-        - bearerAuth: [ ]
-      parameters:
-        - name: loginKey
-          in: query
-          required: true
-        - name: originalLoginKey
-          in: query
-          required: true
-      responses:
-        200:
-          description: successfully removed impersonation
-          content:
-            cookie:
-              schema:
-                type: object
-                properties:
-                  loginKey:
-                    type: string
-                    description: your old session key
-        400:
-          description: you are currently not impersonating someone
-  /admin/users:
-    get:
-      description: get list of all users
-      security:
-        - bearerAuth: [ ]
-      responses:
-        200:
-          description: list of all users
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/UserInfo"
-        401:
-          description: you are not allowed to view the userlist
-    post:
-      description: Create a new user
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AdminUserCreateRequest"
-      responses:
-        200:
-          description: Created user successfully
-        406:
-          description: Username or mail is already used
-        401:
-          description: You are not allowed to to this
-    put:
-      description: edit a user
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/AdminUserEditRequest"
-      responses:
-        200:
-          description: User edited successfully
-        400:
-          description: parameters missing or user does not exist
-    delete:
-      description: Delete user
-      security:
-        - bearerAuth: [ ]
-      parameters:
-        - name: userID
-          in: query
-          required: true
-      responses:
-        200:
-          description: User deleted successfully
-        400:
-          description: User id missing or user does not exist
-  /admin/polls:
-    get:
-      description: List of all polls
-      security:
-        - bearerAuth: [ ]
-      responses:
-        200:
-          description: List of all polls
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  totalCount:
-                    type: number
-                  polls:
-                    type: array
-                    items:
-                      $ref: "#/components/schemas/SimplePoll"
-        401:
-          description: you are not allowed to view all polls
-  /admin/mailregex:
-    get:
-      description: Get list of all regex rules (basically a duplicate of "/simple/mailregex")
-      security:
-        - bearerAuth: [ ]
-      responses:
-        200:
-          description: List of all regex rules
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/MailRegexRule"
-    post:
-      description: edit mail regex rules, replaces all existing rules with the ones sent
-      security:
-        - bearerAuth: [ ]
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                mailRegex:
-                  type: array
-                  items:
-                    properties:
-                      regex:
-                        type: string
-                      blacklist:
-                        type: boolean
-                        summary: is this regex rule one which should be followed or avoided
-                        description: if any of the blacklisted rules match, the mail is rejected; all whitelisted rules have to match
-      responses:
-        200:
-          description: Editing was successfull
+                type: "string"
 
 components:
+  schemas:
   securitySchemes:
-    bearerAuth:
+    BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-  schemas:
-    VoteChangeRequest:
-      type: object
-      properties:
-        pollID:
-          type: string
-          description: the id of the poll to vote on
-        optionID:
-          type: integer
-          description: the id of the option to vote
-        votedFor:
-          type: integer
-          format: "0, 1 or 2"
-          description: value of the vote NO(0), YES(1), MAYBE(2)
-        userID:
-          type: string
-          required: if admins want to change the vote for other users
-    CreateUserRequest:
-      type: object
-      properties:
-        firstName:
-          type: string
-        lastName:
-          type: string
-        username:
-          type: string
-        mail:
-          type: string
-        captcha:
-          type: string
-          description: The google captchas code
-          required: either this or appAttest
-        appAttest:
-          type: string
-          description: Apples app attest
-          required: either this or captcha
-    MailRegexRule:
-      type: object
-      properties:
-        id:
-          type: string
-        regex:
-          type: string
-          description: the regex rule
-        blacklist:
-          type: boolean
-          description: indicates whether this is a rule that is not allowed or that must be followed
-    NotificationPreferences:
-      type: object
-      properties:
-        pollArchived:
-          type: boolean
-        pollDeleted:
-          type: boolean
-        pollEdited:
-          type: boolean
-        userAdded:
-          type: boolean
-        userRemoved:
-          type: boolean
-        voteChange:
-          type: boolean
-        userID:
-          type: string
-          readonly: true
-    SimpleAuthenticator:
-      type: object
-      properties:
-        credentialID:
-          type: string
-        name:
-          type: string
-        initiatorPlatform:
-          type: string
-        created:
-          type: string
-          format: DateTime
-    SimpleUser:
-      type: object
-      properties:
-        firstName:
-          type: string
-        lastName:
-          type: string
-        username:
-          type: string
-        id:
-          type: string
-    SimplePoll:
-      type: object
-      properties:
-        pollID:
-          type: string
-        name:
-          type: string
-        admin:
-          $ref: "#/components/schemas/SimpleUser"
-        description:
-          type: string
-        userCount:
-          type: number
-        lastUpdated:
-          type: epoch milliseconds
-        type:
-          type: number
-        editable:
-          type: boolean
-    ComplexOption:
-      type: object
-      properties:
-        id:
-          type: string
-        value:
-          type: string
-          optional: true
-        dateStart:
-          type: integer
-          format: epoch milliseconds
-          optional: true
-        dateEnd:
-          type: integer
-          format: epoch milliseconds
-          optional: true
-        dateTimeStart:
-          type: integer
-          format: epoch milliseconds
-          optional: true
-        dateTimeEnd:
-          type: integer
-          format: epoch milliseconds
-          optional: true
-    UserVote:
-      type: object
-      properties:
-        user:
-          $ref: "#/components/schemas/SimpleUser"
-        votes:
-          type: array
-          items:
-            properties:
-              optionID:
-                type: number
-              votedFor:
-                type: number
-    UserNote:
-      type: object
-      properties:
-        userID:
-          type: string
-        note:
-          type: string
-    DetailedPoll:
-      type: object
-      allOf:
-        - $ref: "#/components/schemas/SimplePoll"
-        - type: object
-          properties:
-            created:
-              type: epoch milliseconds
-            options:
-              type: array
-              items:
-                $ref: "#/components/schemas/ComplexOption"
-            userVotes:
-              type: array
-              items:
-                $ref: "#/components/schemas/UserVote"
-            userNotes:
-              type: array
-              items:
-                $ref: "#/components/schemas/UserNote"
-            allowedMaybe:
-              type: boolean
-            allowsEditing:
-              type: boolean
-            shareURL:
-              type: url
-    CreatePollRequest:
-      type: object
-      required:
-        - name
-        - maxPerUserVoteCount
-        - description
-        - type
-        - allowsMaybe
-        - allowsEditing
-      properties:
-        name:
-          type: string
-        maxPerUserVoteCount:
-          type: number
-          description: The number of yes/maybe votes a user can vote on, -1 for infitiy
-        description:
-          type: string
-        type:
-          type: number
-          description: The type of the poll, STRING(0), DATE(1), DATETIME(2)
-        allowsMaybe:
-          type: boolean
-          description: Wether or not "maybe" is an allowed vote option
-        allowsEditing:
-          type: boolean
-          description: wether or not the poll can be edited (votes or other edits, except re-enabling editing)
-    EditPollRequest:
-      type: object
-      required:
-        - pollID
-      $ref: "#/paths/poll/put"
-      properties:
-        pollID:
-          type: string
-          required: true
-        delete:
-          type: boolean
-          required: false
-        name:
-          type: string
-          required: false
-        description:
-          type: string
-          required: false
-        maxPerUserVoteCount:
-          type: number
-          required: false
-        allowsMaybe:
-          type: boolean
-          required: false
-        allowsEditing:
-          type: boolean
-          required: false
-        userRemove:
-          type: array
-          description: list of all userIDs that should be removed from this poll
-          items:
-            type: string
-        userAdd:
-          type: array
-          description: list of userIDs, emails or usernames that should be added to the poll
-          items:
-            type: string
-        votes:
-          type: array
-          description: list of vote changes (pollID can be left out)
-          items:
-            $ref: "#/components/schemas/VoteChangeRequest"
-        options:
-          type: array
-          description: list of option modifications, options with an id get deleted, all others get added to the poll
-          items:
-            $ref: "#/components/schemas/ComplexOption"
-        notes:
-          type: array
-          description: list of notes for users
-          items:
-            $ref: "#/components/schemas/UserNote"
-    UserInfo:
-      type: object
-      properties:
-        id:
-          type: string
-        username:
-          type: string
-        firstName:
-          type: string
-        lastName:
-          type: string
-        mail:
-          type: string
-        admin:
-          type: boolean
-        superAdmin:
-          type: boolean
-        active:
-          type: boolean
-    AdminUserCreateRequest:
-      type: object
-      properties:
-        mail:
-          type: string
-        firstName:
-          type: string
-        lastName:
-          type: string
-        username:
-          type: string
-    AdminUserEditRequest:
-      type: object
-      required:
-        - userID
-      properties:
-        userID:
-          type: string
-        firstName:
-          type: string
-        lastName:
-          type: string
-        mail:
-          type: string
