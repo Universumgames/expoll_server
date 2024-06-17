@@ -1,0 +1,90 @@
+#file: noinspection SwYamlUnresolvedReferencesInspection,YAMLSchemaValidation
+/notifications/preferences:
+  get:
+    summary: "Get notification preferences"
+    description: "Get notification preferences"
+    security:
+      - BearerAuth: [ ]
+    responses:
+      200:
+        description: "The notification preferences"
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NotificationPreferences"
+  post:
+    summary: "Update notification preferences"
+    description: "Update notification preferences"
+    security:
+      - BearerAuth: [ ]
+    requestBody:
+          $ref: "#/components/schemas/NotificationPreferences"
+    responses:
+      200:
+        description: "The updated notification preferences"
+      401:
+        description: "Unauthorized"
+
+/notifications/apple:
+  post:
+    summary: "Register Apple device"
+    description: "Register Apple device"
+    security:
+      - BearerAuth: [ ]
+    requestBody:
+      $ref: "#/components/schemas/AppleRegistrationData"
+    responses:
+      200:
+        description: "The device was registered"
+      401:
+        description: "Unauthorized"
+  delete:
+    summary: "Unregister Apple device"
+    description: "Unregister Apple device"
+    security:
+      - BearerAuth: [ ]
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppleRegistrationData"
+    responses:
+      200:
+        description: "The device was unregistered"
+      401:
+        description: "Unauthorized"
+
+/notifications/web:
+  post:
+    summary: "Register Web device"
+    description: "Register Web device"
+    security:
+      - BearerAuth: [ ]
+    requestBody:
+      required: true
+      content:
+          application/json:
+            schema:
+                $ref: "#/components/schemas/WebRegistrationData"
+    responses:
+      200:
+        description: "The device was registered"
+      401:
+        description: "Unauthorized"
+  delete:
+    summary: "Unregister Web device"
+    description: "Unregister Web device"
+    security:
+      - BearerAuth: [ ]
+    requestBody:
+        required: true
+        content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/WebRegistrationData"
+    responses:
+      200:
+        description: "The device was unregistered"
+      401:
+        description: "Unauthorized"

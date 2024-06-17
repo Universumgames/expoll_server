@@ -1,17 +1,18 @@
+#file: noinspection YAMLSchemaValidation
 get:
   summary: "Mail regex"
   description: "Mail regex"
   responses:
-  '200':
-    description: "Mail regex"
-    content:
-    application/json:
-      schema:
-      type: "array"
-      properties:
-        id:
-          type: "string"
-        regex:
-          type: "string"
-        blacklist:
-          type: "boolean"
+    200:
+      description: "Mail regex"
+      content:
+        application/json:
+          schema:
+          type: "array"
+          properties:
+            id:
+              type: "string"
+            regex:
+              type: "string"
+            blacklist:
+              type: "boolean"

@@ -15,13 +15,13 @@ get:
                 title: CompatibleVersionDescriptor
                 items:
                   type: "object"
-                  properties:
+                  additionalProperties:
                     from:
-                      $ref: "../types/versionDescriptor.yaml"
+                      $ref: "#/components/schemas/VersionDescriptor"
                     to:
-                      $ref: "../types/versionDescriptor.yaml"
+                      $ref: "#/components/schemas/VersionDescriptor"
                     exact:
-                      $ref: "../types/versionDescriptor.yaml"
+                      $ref: "#/components/schemas/VersionDescriptor"
                     platform:
                       type: "string"
                       example: "ios"

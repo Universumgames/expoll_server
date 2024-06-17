@@ -1,3 +1,4 @@
+#file: noinspection YAMLSchemaValidation
 parameters:
   - name: pollid
     in: path

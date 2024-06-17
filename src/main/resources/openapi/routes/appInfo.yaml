@@ -1,3 +1,4 @@
+#file: noinspection YAMLSchemaValidation
 parameters:
   - name: platform
     in: path
@@ -15,7 +16,7 @@ get:
       content:
         application/json:
           schema:
-            $ref: "../types/platformInfo.yaml"
+            $ref: "#/components/schemas/PlatformInfo"
         application/xml:
           schema:
-            $ref: "../types/platformInfo.yaml"
+            $ref: "#/components/schemas/PlatformInfo"

@@ -1,4 +1,5 @@
 
+#file: noinspection YAMLDuplicatedKeys
 openapi: 3.0.3
 info:
   title: Expoll REST API
@@ -34,37 +35,13 @@ paths:
                     title: CompatibleVersionDescriptor
                     items:
                       type: "object"
-                      properties:
+                      additionalProperties:
                         from:
-                          type: "object"
-                          title: "VersionDescriptor"
-                          nullable: true
-                          properties:
-                            version:
-                              type: "string"
-                              example: "4.2.2"
-                            build:
-                              type: "integer"
+                          $ref: "#/components/schemas/VersionDescriptor"
                         to:
-                          type: "object"
-                          title: "VersionDescriptor"
-                          nullable: true
-                          properties:
-                            version:
-                              type: "string"
-                              example: "4.2.2"
-                            build:
-                              type: "integer"
+                          $ref: "#/components/schemas/VersionDescriptor"
                         exact:
-                          type: "object"
-                          title: "VersionDescriptor"
-                          nullable: true
-                          properties:
-                            version:
-                              type: "string"
-                              example: "4.2.2"
-                            build:
-                              type: "integer"
+                          $ref: "#/components/schemas/VersionDescriptor"
                         platform:
                           type: "string"
                           example: "ios"
@@ -89,6 +66,7 @@ paths:
                 type: string
                 example: "pong"
   /appInfo/{platform}:
+    #file: noinspection YAMLSchemaValidation
     parameters:
       - name: platform
         in: path
@@ -106,41 +84,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                description: "Information about the app for a specific platform"
-                title: "PlatformInfo"
-                properties:
-                  beta:
-                    type: object
-                    title: AppInfo
-                    properties:
-                      version:
-                        type: string
-                        example: "1.0.0"
-                      build:
-                        type: integer
-                        example: 1
-                      url:
-                        type: string
-                        example: "https://expoll.mt32.net/download/ios/beta/1.0.0/1"
-                      releasedTimestamp:
-                        type: integer
-                        example: 1620000000
-                  stable:
-                    type: object
-                    title: AppInfo
-                    properties:
-                      version:
-                        type: string
-                        example: "1.0.0"
-                      build:
-                        type: integer
-                        example: 1
-                      url:
-                        type: string
-                        example: "https://expoll.mt32.net/download/ios/stable/1.0.0/1"
-                      releasedTimestamp:
-                        type: integer
+                $ref: "#/components/schemas/PlatformInfo"
             application/xml:
               schema:
   /metaInfo:
@@ -149,23 +93,25 @@ paths:
         200:
           description: "meta request info"
   /simple/mailregex:
+    #file: noinspection YAMLSchemaValidation
     get:
       summary: "Mail regex"
       description: "Mail regex"
       responses:
-      '200':
-        description: "Mail regex"
-        content:
-        application/json:
-          schema:
-          type: "array"
-          properties:
-            id:
-              type: "string"
-            regex:
-              type: "string"
-            blacklist:
+        200:
+          description: "Mail regex"
+          content:
+            application/json:
+              schema:
+              type: "array"
+              properties:
+                id:
+                  type: "string"
+                regex:
+                  type: "string"
+                blacklist:
   /simple/poll/{pollid}/title:
+    #file: noinspection YAMLSchemaValidation
     parameters:
       - name: pollid
         in: path
@@ -183,9 +129,261 @@ paths:
             text/plain:
               schema:
                 type: "string"
+  #file: noinspection YAMLSchemaValidation
+  /vote:
+    post:
+      summary: Vote on a poll
+      description: Vote on a poll
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VoteChange"
+      responses:
+        200:
+          description: "Vote was successful"
+        401:
+          description: "Unauthorized"
+        403:
+          description: "Voting not allowed or too many votes"
+        406:
+  #file: noinspection SwYamlUnresolvedReferencesInspection,YAMLSchemaValidation
+  /notifications/preferences:
+    get:
+      summary: "Get notification preferences"
+      description: "Get notification preferences"
+      security:
+        - BearerAuth: [ ]
+      responses:
+        200:
+          description: "The notification preferences"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NotificationPreferences"
+    post:
+      summary: "Update notification preferences"
+      description: "Update notification preferences"
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+            $ref: "#/components/schemas/NotificationPreferences"
+      responses:
+        200:
+          description: "The updated notification preferences"
+        401:
+          description: "Unauthorized"
+  
+  /notifications/apple:
+    post:
+      summary: "Register Apple device"
+      description: "Register Apple device"
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+        $ref: "#/components/schemas/AppleRegistrationData"
+      responses:
+        200:
+          description: "The device was registered"
+        401:
+          description: "Unauthorized"
+    delete:
+      summary: "Unregister Apple device"
+      description: "Unregister Apple device"
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppleRegistrationData"
+      responses:
+        200:
+          description: "The device was unregistered"
+        401:
+          description: "Unauthorized"
+  
+  /notifications/web:
+    post:
+      summary: "Register Web device"
+      description: "Register Web device"
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+        required: true
+        content:
+            application/json:
+              schema:
+                  $ref: "#/components/schemas/WebRegistrationData"
+      responses:
+        200:
+          description: "The device was registered"
+        401:
+          description: "Unauthorized"
+    delete:
+      summary: "Unregister Web device"
+      description: "Unregister Web device"
+      security:
+        - BearerAuth: [ ]
+      requestBody:
+          required: true
+          content:
+              application/json:
+                schema:
+                    $ref: "#/components/schemas/WebRegistrationData"
+      responses:
+        200:
+          description: "The device was unregistered"
+        401:
 
 components:
   schemas:
+    #file: noinspection YAMLSchemaValidation
+    NotificationPreferences:
+      type: object
+      description: "Notification preferences for a user"
+      title: "NotificationPreferences"
+      properties:
+        voteChanged:
+          type: boolean
+          example: true
+        voteChangeDetailed:
+          type: boolean
+          example: true
+        userAdded:
+          type: boolean
+          example: true
+        userRemoved:
+          type: boolean
+          example: true
+        pollDeleted:
+          type: boolean
+          example: true
+        pollEdited:
+          type: boolean
+          example: true
+        pollArchived:
+          type: boolean
+          example: true
+        newLogin:
+          type: boolean
+          example: true
+    AppleRegistrationData:
+      type: object
+      properties:
+        deviceID:
+        type: string
+        description: "The device token"
+        example: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+    WebRegistrationData:
+      type: object
+      properties:
+        endpoint:
+          type: "string"
+          description: "The endpoint"
+          example: "https://fcm.googleapis.com/fcm/send/1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+        expirationTime:
+          type: "string"
+          description: "The expiration time"
+          example: "2021-12-31T23:59:59Z"
+        keys:
+          type: list
+          items:
+            $ref: "#/components/schemas/WebRegistrationKeys"
+    WebRegistrationKeys:
+      type: object
+      properties:
+        p256dh:
+          type: string
+          description: "The p256dh key"
+          example: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+        auth:
+          type: string
+          description: "The auth key"
+    #file: noinspection YAMLSchemaValidation
+    PlatformInfo:
+      type: object
+      description: "Information about the app for a specific platform"
+      title: "PlatformInfo"
+      properties:
+        beta:
+          type: object
+          title: AppInfo
+          properties:
+            version:
+              type: string
+              example: "1.0.0"
+            build:
+              type: integer
+              example: 1
+            url:
+              type: string
+              example: "https://expoll.mt32.net/download/ios/beta/1.0.0/1"
+            releasedTimestamp:
+              type: integer
+              example: 1620000000
+        stable:
+          type: object
+          title: AppInfo
+          properties:
+            version:
+              type: string
+              example: "1.0.0"
+            build:
+              type: integer
+              example: 1
+            url:
+              type: string
+              example: "https://expoll.mt32.net/download/ios/stable/1.0.0/1"
+            releasedTimestamp:
+              type: integer
+    VersionDescriptor:
+      type: "object"
+      title: "VersionDescriptor"
+      nullable: true
+      properties:
+        version:
+          type: "string"
+          example: "4.2.2"
+        build:
+          type: "integer"
+    #file: noinspection YAMLSchemaValidation
+    VoteChange:
+      type: object
+      description: Request to vote on a poll
+      properties:
+        pollID:
+          type: string
+          description: The ID of the poll to vote on
+          example: "60b3b3b3b3b3b3b3b3b3b3b3"
+        optionID:
+          type: string
+          description: The ID of the option to vote for
+          example: 127
+        votedFor:
+          type: integer
+          description: The option the user voted for (see VoteValue)
+          minimum: 0
+          maximum: 2
+          examples:
+            No:
+                value: 0
+                summary: "vote for no"
+            Yes:
+                value: 1
+                summary: "vote for yes"
+            Maybe:
+                value: 2
+                summary: "vote for maybe"
+        userID:
+          optional: true
+          type: string
+          description: The ID of the user who voted (for admins)
+    VoteValue:
+      type: integer
+      description: The value of the vote
   securitySchemes:
     BearerAuth:
       type: http

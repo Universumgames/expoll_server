@@ -1,0 +1,35 @@
+#file: noinspection YAMLSchemaValidation
+VoteChange:
+  type: object
+  description: Request to vote on a poll
+  properties:
+    pollID:
+      type: string
+      description: The ID of the poll to vote on
+      example: "60b3b3b3b3b3b3b3b3b3b3b3"
+    optionID:
+      type: string
+      description: The ID of the option to vote for
+      example: 127
+    votedFor:
+      type: integer
+      description: The option the user voted for (see VoteValue)
+      minimum: 0
+      maximum: 2
+      examples:
+        No:
+            value: 0
+            summary: "vote for no"
+        Yes:
+            value: 1
+            summary: "vote for yes"
+        Maybe:
+            value: 2
+            summary: "vote for maybe"
+    userID:
+      optional: true
+      type: string
+      description: The ID of the user who voted (for admins)
+VoteValue:
+  type: integer
+  description: The value of the vote

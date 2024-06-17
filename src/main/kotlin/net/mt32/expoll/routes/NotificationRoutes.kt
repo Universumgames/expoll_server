@@ -74,7 +74,7 @@ private suspend fun registerAppleDevice(call:ApplicationCall){
 }
 
 private suspend fun unregisterAppleDevice(call: ApplicationCall){
-
+    TODO()
 }
 
 private suspend fun setNotification(call: ApplicationCall){

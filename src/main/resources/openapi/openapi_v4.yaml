@@ -1,3 +1,4 @@
+#file: noinspection YAMLDuplicatedKeys
 openapi: 3.0.3
 info:
   title: Expoll REST API
@@ -48,9 +49,18 @@ paths:
     $ref: "routes/simple/mailregex.yaml"
   /simple/poll/{pollid}/title:
     $ref: "routes/simple/polltitle.yaml"
+  $ref: "routes/user/user.yaml"
+  $ref: "routes/poll/poll.yaml"
+  $ref: "routes/vote/vote.yaml"
+  $ref: "routes/notification/notification.yaml"
+  $ref: "routes/auth/auth.yaml"
 
 components:
   schemas:
+    $ref: "types/notification.yaml"
+    $ref: "types/platformInfo.yaml"
+    $ref: "types/versionDescriptor.yaml"
+    $ref: "types/vote.yaml"
   securitySchemes:
     BearerAuth:
       type: http

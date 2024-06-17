@@ -1,0 +1,63 @@
+#file: noinspection YAMLSchemaValidation
+NotificationPreferences:
+  type: object
+  description: "Notification preferences for a user"
+  title: "NotificationPreferences"
+  properties:
+    voteChanged:
+      type: boolean
+      example: true
+    voteChangeDetailed:
+      type: boolean
+      example: true
+    userAdded:
+      type: boolean
+      example: true
+    userRemoved:
+      type: boolean
+      example: true
+    pollDeleted:
+      type: boolean
+      example: true
+    pollEdited:
+      type: boolean
+      example: true
+    pollArchived:
+      type: boolean
+      example: true
+    newLogin:
+      type: boolean
+      example: true
+AppleRegistrationData:
+  type: object
+  properties:
+    deviceID:
+    type: string
+    description: "The device token"
+    example: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+WebRegistrationData:
+  type: object
+  properties:
+    endpoint:
+      type: "string"
+      description: "The endpoint"
+      example: "https://fcm.googleapis.com/fcm/send/1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+    expirationTime:
+      type: "string"
+      description: "The expiration time"
+      example: "2021-12-31T23:59:59Z"
+    keys:
+      type: list
+      items:
+        $ref: "#/components/schemas/WebRegistrationKeys"
+WebRegistrationKeys:
+  type: object
+  properties:
+    p256dh:
+      type: string
+      description: "The p256dh key"
+      example: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+    auth:
+      type: string
+      description: "The auth key"
+      example: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"

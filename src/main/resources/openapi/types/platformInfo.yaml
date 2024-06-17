@@ -1,36 +1,38 @@
-type: object
-description: "Information about the app for a specific platform"
-title: "PlatformInfo"
-properties:
-  beta:
-    type: object
-    title: AppInfo
-    properties:
-      version:
-        type: string
-        example: "1.0.0"
-      build:
-        type: integer
-        example: 1
-      url:
-        type: string
-        example: "https://expoll.mt32.net/download/ios/beta/1.0.0/1"
-      releasedTimestamp:
-        type: integer
-        example: 1620000000
-  stable:
-    type: object
-    title: AppInfo
-    properties:
-      version:
-        type: string
-        example: "1.0.0"
-      build:
-        type: integer
-        example: 1
-      url:
-        type: string
-        example: "https://expoll.mt32.net/download/ios/stable/1.0.0/1"
-      releasedTimestamp:
-        type: integer
-        example: 1620000000
+#file: noinspection YAMLSchemaValidation
+PlatformInfo:
+  type: object
+  description: "Information about the app for a specific platform"
+  title: "PlatformInfo"
+  properties:
+    beta:
+      type: object
+      title: AppInfo
+      properties:
+        version:
+          type: string
+          example: "1.0.0"
+        build:
+          type: integer
+          example: 1
+        url:
+          type: string
+          example: "https://expoll.mt32.net/download/ios/beta/1.0.0/1"
+        releasedTimestamp:
+          type: integer
+          example: 1620000000
+    stable:
+      type: object
+      title: AppInfo
+      properties:
+        version:
+          type: string
+          example: "1.0.0"
+        build:
+          type: integer
+          example: 1
+        url:
+          type: string
+          example: "https://expoll.mt32.net/download/ios/stable/1.0.0/1"
+        releasedTimestamp:
+          type: integer
+          example: 1620000000
