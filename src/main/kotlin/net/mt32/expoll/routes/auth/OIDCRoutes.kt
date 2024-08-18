@@ -336,8 +336,7 @@ private suspend fun loginUser(
     if (userNameUse == null || User.byUsername(userNameUse) != null) {
         userNameUse = idp.name + "_user_" + baseTokenData.subject.encodeBase64()
     }
-    user = User(userNameUse, firstNameUse, lastNameUse ?: "", mailUse, admin = false)
-    user.save()
+    user = User.createUser(userNameUse, firstNameUse, lastNameUse ?: "", mailUse, admin = false)
     OIDCUserData(user.id, idp.name, baseTokenData.issuer, baseTokenData.subject, mailUse).save()
     createAndRespondWithSession(call, user, state, isNewUser = true)
 }

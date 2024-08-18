@@ -3,6 +3,8 @@
   post:
     summary: Vote on a poll
     description: Vote on a poll
+    security:
+      - bearerAuth: []
     requestBody:
       required: true
       content:

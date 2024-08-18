@@ -134,7 +134,7 @@ class User : IUser, DatabaseEntity {
     val outstandingDeletion: UserDeletionQueue?
         get() = UserDeletionQueue.getPendingDeletionForUser(id)
 
-    constructor(
+    private constructor(
         username: String,
         firstName: String,
         lastName: String,
@@ -474,6 +474,19 @@ class User : IUser, DatabaseEntity {
                             }
                 }.map { User(it) }
             }
+        }
+
+        fun createUser(
+            username: String,
+            firstName: String,
+            lastName: String,
+            mail: String,
+            admin: Boolean = false
+        ): User {
+            val user = User(username, firstName, lastName, mail, true, admin)
+            user.save()
+            UserPolls.addConnection(user.id, config.initialUserConfig.pollID)
+            return user
         }
 
         /*val id = "4411a4b1-f62a-11ec-bd56-0242ac190002"

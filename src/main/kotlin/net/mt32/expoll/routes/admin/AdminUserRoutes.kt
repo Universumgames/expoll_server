@@ -64,15 +64,13 @@ private suspend fun createUser(call: ApplicationCall) {
         return
     }
 
-    val user = User(
+    val user = User.createUser(
         createUserRequest.username,
         createUserRequest.firstName,
         createUserRequest.lastName,
         createUserRequest.mail,
-        active = true,
         admin = false
     )
-    user.save()
 
     async {
         UserPolls.addConnection(user.id, config.initialUserConfig.pollID)

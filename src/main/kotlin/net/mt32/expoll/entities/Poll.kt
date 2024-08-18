@@ -468,9 +468,9 @@ class Poll : DatabaseEntity, IPoll {
     fun addUser(userID: tUserID) {
         UserPolls.addConnection(userID, id)
         updatedTimestamp = UnixTimestamp.now()
-        if (defaultVote != null)
+        if (defaultVote != VoteValue.UNKNOWN)
             options.forEach { option ->
-                Vote.setVote(userID, id, option.id, defaultVote!!)
+                Vote.setVote(userID, id, option.id, defaultVote)
             }
     }
 

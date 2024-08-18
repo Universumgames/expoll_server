@@ -113,11 +113,10 @@ private suspend fun editPoll(call: ApplicationCall) {
 
     // add/remove options
     editPollRequest.options.forEach { cOption ->
-        if (cOption.id == null) { // new option
+        val option = poll.options.find { it.id == cOption.id }
+        if (cOption.id == null || option == null) { // new option
             poll.addOption(cOption)
         } else {
-            val option = poll.options.find { it.id == cOption.id }
-            if (option == null) return@forEach
             option.delete()
             Vote.fromPollOption(poll.id, option.id).forEach { it.delete() }
         }

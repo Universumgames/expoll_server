@@ -130,10 +130,60 @@ paths:
               schema:
                 type: "string"
   #file: noinspection YAMLSchemaValidation
+  /poll:
+    get:
+      summary: "Get a poll or poll list"
+      description: "Get a poll by its ID or the poll list"
+      security:
+        - bearerAuth: []
+  
+    query:
+      summary: "Get a poll or poll list"
+      description: "Get a poll by its ID or the poll list"
+      security:
+        - bearerAuth: []
+    post:
+      summary: "Create a new poll"
+      description: "Create a new poll"
+      security:
+        - bearerAuth: []
+    put:
+      summary: "Edit a poll"
+      description: "Edit a poll"
+      security:
+        - bearerAuth: []
+  
+  /poll/leave:
+    post:
+      summary: "Leave a poll"
+      description: "Leave a poll"
+      security:
+        - bearerAuth: []
+  
+  /poll/join:
+    post:
+      summary: "Join a poll"
+      description: "Join a poll"
+      security:
+        - bearerAuth: []
+  
+  /poll/hide:
+    post:
+      summary: "Hide a poll"
+      description: "Hide a poll"
+      security:
+        - bearerAuth: []
+  
+  /poll/availableSearch:
+    get:
+      summary: "Get available search options"
+  #file: noinspection YAMLSchemaValidation
   /vote:
     post:
       summary: Vote on a poll
       description: Vote on a poll
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
