@@ -1,16 +1,16 @@
 
   {
     "stable": {
-      "version": "3.3.1",
-      "build": "181",
+      "version": "3.4.0",
+      "build": "195",
       "url": "https://apps.apple.com/app/expoll/id1639799209",
-      "releasedTimestamp": 1714919336000
+      "releasedTimestamp": 1729035895000
     },
     "beta": {
       "version": "3.4.0",
-      "build": "194",
+      "build": "195",
       "url": "https://testflight.apple.com/join/OpUycQnW",
-      "releasedTimestamp": 1723125816000
+      "releasedTimestamp": 1729035895000
     },
     "platformKeys": [ "ios", "macos" ]
   }
