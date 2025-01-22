@@ -15,10 +15,10 @@ val swagger_codegen_version: String by project
 plugins {
     application
     java
-    kotlin("jvm") version "2.0.0"
-    id("io.ktor.plugin") version "2.3.11"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.0"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    kotlin("jvm") version "2.1.0"
+    id("io.ktor.plugin") version "3.0.3"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.0"
+    //id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 kotlin {
@@ -99,7 +99,7 @@ dependencies {
     implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("io.ktor:ktor-server-config-yaml:$ktor_version")
-    testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
+    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$kotlinx_serialization_version")
     implementation("org.mariadb.jdbc:mariadb-java-client:$maria_db_version")
@@ -123,7 +123,7 @@ dependencies {
     implementation("com.auth0:java-jwt:4.4.0")
     implementation("io.ktor:ktor-server-cors:$ktor_version")
     implementation("nl.martijndwars:web-push:5.1.1")
-    implementation("org.bouncycastle:bcprov-jdk18on:1.77")
+    implementation("org.bouncycastle:bcprov-jdk18on:1.78")
     // https://mvnrepository.com/artifact/org.thymeleaf/thymeleaf
     implementation("org.thymeleaf:thymeleaf:3.1.2.RELEASE")
     // https://mvnrepository.com/artifact/nz.net.ultraq.thymeleaf/thymeleaf-layout-dialect

@@ -7,10 +7,10 @@
       "releasedTimestamp": 1729035895000
     },
     "beta": {
-      "version": "3.4.0",
-      "build": "195",
+      "version": "3.4.1",
+      "build": "197",
       "url": "https://testflight.apple.com/join/OpUycQnW",
-      "releasedTimestamp": 1729035895000
+      "releasedTimestamp": 1737341012000
     },
     "platformKeys": [ "ios", "macos" ]
   }
