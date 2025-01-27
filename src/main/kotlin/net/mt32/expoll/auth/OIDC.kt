@@ -4,8 +4,6 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.DecodedJWT
-import io.github.nefilim.kjwt.sign
-import io.github.nefilim.kjwt.toJWTKeyID
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.java.*
@@ -20,7 +18,6 @@ import net.mt32.expoll.OIDCIDPConfig
 import net.mt32.expoll.config
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.defaultJSON
-import net.mt32.expoll.notification.asToken
 import net.mt32.expoll.notification.toECPrivateKey
 import net.mt32.expoll.security.loadECKeyFile
 import java.math.BigInteger
@@ -71,18 +68,15 @@ object OIDC {
                 return oidcidpConfig.clientSecret
                     ?: (runBlocking {
                         val key = loadECKeyFile(oidcidpConfig.privateKeyPath!!)!!
-                        val keyID = oidcidpConfig.privateKeyID!!.toJWTKeyID()
-                        val jwt = io.github.nefilim.kjwt.JWT.es256(keyID) {
-                            issuer(net.mt32.expoll.config.notifications.teamID)
-                            issuedAt(Instant.now())
-                            expiresAt(UnixTimestamp.now().addMinutes(90).toDate().toInstant())
-                            audience(oidcidpConfig.audience!!)
-                            subject(oidcidpConfig.clientID)
-                        }.sign(key.toECPrivateKey()!!)
-                        return@runBlocking jwt.fold(
-                            ifLeft = { null },
-                            ifRight = { it }
-                        )?.asToken()
+                        val keyID = oidcidpConfig.privateKeyID!!
+                        return@runBlocking JWT.create()
+                            .withKeyId(keyID)
+                            .withIssuer(config.notifications.teamID)
+                            .withIssuedAt(Instant.now())
+                            .withExpiresAt(UnixTimestamp.now().addMinutes(90).toDate().toInstant())
+                            .withAudience(oidcidpConfig.audience!!)
+                            .withSubject(oidcidpConfig.clientID)
+                            .sign(Algorithm.ECDSA256(key.toECPrivateKey()!!))
                     } ?: "")
             }
 

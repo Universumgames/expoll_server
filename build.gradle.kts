@@ -111,8 +111,6 @@ dependencies {
     implementation("io.ktor:ktor-client-java:$ktor_version")
     implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
     implementation("io.ktor:ktor-server-rate-limit:$ktor_version")
-    implementation("io.arrow-kt:arrow-core:$arrow_kt_version")
-    implementation("io.github.nefilim.kjwt:kjwt-core:0.8.0")
     implementation("jakarta.mail:jakarta.mail-api:$jakarta_mail_version")
     implementation("org.eclipse.angus:angus-mail:$angus_mail_version")
     //implementation("com.webauthn4j:webauthn4j-core:0.21.0.RELEASE")

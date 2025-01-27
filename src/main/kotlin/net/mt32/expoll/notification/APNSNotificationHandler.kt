@@ -1,6 +1,7 @@
 package net.mt32.expoll.notification
 
-import io.github.nefilim.kjwt.*
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.java.*
@@ -12,7 +13,6 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.notifications.APNDevice
 import net.mt32.expoll.helper.Hash
@@ -28,7 +28,6 @@ import java.security.spec.ECPrivateKeySpec
 import java.util.*
 import kotlin.math.min
 
-
 fun PrivateKey.toECPrivateKey(): ECPrivateKey? {
     var ecPrivateKey: ECPrivateKey? = null
     try {
@@ -39,10 +38,6 @@ fun PrivateKey.toECPrivateKey(): ECPrivateKey? {
         // Handle exception
     }
     return ecPrivateKey
-}
-
-fun <T : JWSAlgorithm> SignedJWT<T>.asToken(): String {
-    return this.rendered
 }
 
 object APNsNotificationHandler : NotificationHandler<APNDevice> {
@@ -118,7 +113,7 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
         }
     }
 
-    suspend fun getAPNSBearer(): SignedJWT<JWSES256Algorithm>? {
+    suspend fun getAPNSBearer(): String? {
         if (
             _apnsAge == null ||
             _apnsBearer == null ||
@@ -131,7 +126,7 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
         return _apnsBearer
     }
 
-    private var _apnsBearer: SignedJWT<JWSES256Algorithm>? = null
+    private var _apnsBearer: String? = null
     private var _apnsAge: Date? = null
 
     private val apnsKey: PrivateKey
@@ -160,22 +155,19 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
         //return getPrivateKey(config.notifications.apnsKeyPath, "EC")!!
     }
 
-    private suspend fun createAPNSBearerToken(): SignedJWT<JWSES256Algorithm>? {
+
+
+    private suspend fun createAPNSBearerToken(): String? {
         if (ecAPNsKey == null) return null
-        val jwt = JWT.es256(JWTKeyID(config.notifications.apnsKeyID)) {
-            issuedNow()
-            issuer(config.notifications.teamID)
-        }
-        val signed = jwt.sign(ecAPNsKey)
-        val signedOrNull = signed.fold(
-            ifLeft = { null },
-            ifRight = { it }
-        )
-        return signedOrNull
+        return JWT.create()
+            .withKeyId(config.notifications.apnsKeyID)
+            .withIssuedAt(Date())
+            .withIssuer(config.notifications.teamID)
+            .sign(Algorithm.ECDSA256(null, ecAPNsKey))
     }
 
     private suspend fun sendAPN(data: APNData): APNStatus {
-        val bearer = getAPNSBearer()?.asToken() ?: return APNStatus.UNKNOWN_ERROR
+        val bearer = getAPNSBearer() ?: return APNStatus.UNKNOWN_ERROR
 
         val response = client.request(Url(config.notifications.apnsURL + "/3/device/${data.deviceToken}")) {
             method = HttpMethod.Post
