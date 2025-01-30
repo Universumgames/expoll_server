@@ -21,7 +21,7 @@ plugins {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(23)
 }
 
 group = "net.mt32.expoll"
