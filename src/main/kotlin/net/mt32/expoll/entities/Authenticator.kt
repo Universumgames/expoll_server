@@ -92,6 +92,7 @@ class Challenge : DatabaseEntity {
 
 class Authenticator : DatabaseEntity {
     val userID: tUserID
+    val usedUsername: String
     val credentialID: String
     val credentialPublicKey: String
     var counter: Int
@@ -102,6 +103,7 @@ class Authenticator : DatabaseEntity {
 
     constructor(
         userID: tUserID,
+        usedUsername: String,
         credentialID: String,
         credentialPublicKey: String,
         counter: Int,
@@ -111,6 +113,7 @@ class Authenticator : DatabaseEntity {
         createdTimestamp: UnixTimestamp
     ) {
         this.userID = userID
+        this.usedUsername = usedUsername
         this.credentialID = credentialID
         this.credentialPublicKey = credentialPublicKey
         this.counter = counter
@@ -122,6 +125,7 @@ class Authenticator : DatabaseEntity {
 
     constructor(authRow: ResultRow) {
         this.userID = authRow[Authenticator.userID]
+        this.usedUsername = authRow[Authenticator.usedUsername]
         this.credentialID = authRow[Authenticator.credentialID]
         this.credentialPublicKey = authRow[Authenticator.credentialPublicKey]
         this.counter = authRow[Authenticator.counter]
@@ -135,6 +139,7 @@ class Authenticator : DatabaseEntity {
         transaction {
             Authenticator.upsertCustom(Authenticator.credentialID) {
                 it[Authenticator.userID] = this@Authenticator.userID
+                it[Authenticator.usedUsername] = this@Authenticator.usedUsername
                 it[Authenticator.credentialID] = this@Authenticator.credentialID
                 it[Authenticator.credentialPublicKey] = this@Authenticator.credentialPublicKey
                 it[Authenticator.counter] = this@Authenticator.counter
@@ -158,6 +163,7 @@ class Authenticator : DatabaseEntity {
 
     companion object : Table("authenticator") {
         val userID = varchar("userId", UUIDLength)
+        val usedUsername = varchar("usedUsername", 255)
         val credentialID = varchar("credentialID", 255)
         val name = varchar("name", 255)
         val credentialPublicKey = varchar("credentialPublicKey", 255)
@@ -179,6 +185,13 @@ class Authenticator : DatabaseEntity {
             return transaction {
                 val result = Authenticator.selectAll().where { Authenticator.credentialID eq credentialID }.firstOrNull()
                 return@transaction result?.let { Authenticator(it) }
+            }
+        }
+
+        fun fromUsername(username: String): List<Authenticator> {
+            return transaction {
+                val result = Authenticator.selectAll().where { Authenticator.usedUsername eq username }
+                return@transaction result.map { Authenticator(it) }
             }
         }
     }

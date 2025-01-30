@@ -10,10 +10,7 @@ import net.mt32.expoll.entities.interconnect.UserPolls
 import net.mt32.expoll.entities.notifications.APNDevice
 import net.mt32.expoll.entities.notifications.NotificationDevice
 import net.mt32.expoll.entities.notifications.WebNotificationDevice
-import net.mt32.expoll.helper.URLBuilder
-import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.toUnixTimestampFromDB
-import net.mt32.expoll.helper.upsertCustom
+import net.mt32.expoll.helper.*
 import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.serializable.admin.responses.UserInfo
 import net.mt32.expoll.serializable.request.SortingOrder
@@ -477,16 +474,27 @@ class User : IUser, DatabaseEntity {
         }
 
         fun createUser(
-            username: String,
+            username: String?,
             firstName: String,
             lastName: String,
             mail: String,
             admin: Boolean = false
         ): User {
-            val user = User(username, firstName, lastName, mail, true, admin)
+            val usernameToUse = getUniqueUsername(username)
+            val user = User(usernameToUse, firstName, lastName, mail, true, admin)
             user.save()
             UserPolls.addConnection(user.id, config.initialUserConfig.pollID)
             return user
+        }
+
+        fun getUniqueUsername(username: String?): String {
+            var newUsername = username ?: generateRandomUsername()
+            var i = 1
+            while (byUsername(newUsername) != null) {
+                newUsername = if (username == null) generateRandomUsername() else "$username$i"
+                i++
+            }
+            return newUsername
         }
 
         /*val id = "4411a4b1-f62a-11ec-bd56-0242ac190002"

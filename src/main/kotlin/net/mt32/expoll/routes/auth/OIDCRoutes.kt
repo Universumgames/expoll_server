@@ -334,8 +334,10 @@ private suspend fun loginUser(
         call.respond(ReturnCode.BAD_REQUEST)
         return
     }
-    if (userNameUse == null || User.byUsername(userNameUse) != null) {
-        userNameUse = idp.name + "_user_" + baseTokenData.subject.encodeBase64()
+    userNameUse?.let {
+        if(User.byUsername(it) != null) {
+            userNameUse = null
+        }
     }
     user = User.createUser(userNameUse, firstNameUse, lastNameUse ?: "", mailUse, admin = false)
     OIDCUserData(user.id, idp.name, baseTokenData.issuer, baseTokenData.subject, mailUse).save()
