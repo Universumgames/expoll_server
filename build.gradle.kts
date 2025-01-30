@@ -113,7 +113,6 @@ dependencies {
     implementation("io.ktor:ktor-server-rate-limit:$ktor_version")
     implementation("jakarta.mail:jakarta.mail-api:$jakarta_mail_version")
     implementation("org.eclipse.angus:angus-mail:$angus_mail_version")
-    //implementation("com.webauthn4j:webauthn4j-core:0.21.0.RELEASE")
     implementation("com.yubico:webauthn-server-core:2.5.0")
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
     testImplementation(platform("org.junit:junit-bom:5.7.0"))
@@ -122,11 +121,8 @@ dependencies {
     implementation("io.ktor:ktor-server-cors:$ktor_version")
     implementation("nl.martijndwars:web-push:5.1.1")
     implementation("org.bouncycastle:bcprov-jdk18on:1.78")
-    // https://mvnrepository.com/artifact/org.thymeleaf/thymeleaf
     implementation("org.thymeleaf:thymeleaf:3.1.2.RELEASE")
-    // https://mvnrepository.com/artifact/nz.net.ultraq.thymeleaf/thymeleaf-layout-dialect
     implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.3.0")
-    // https://mvnrepository.com/artifact/joda-time/joda-time
     implementation("joda-time:joda-time:2.12.7")
 
 
