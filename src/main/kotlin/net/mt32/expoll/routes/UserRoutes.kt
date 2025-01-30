@@ -41,9 +41,6 @@ fun Route.userRoutes() {
             get {
                 getUserData(call)
             }
-            get("/personalizeddata") {
-                getPersonalizedData(call)
-            }
             get("requestPersonalData") {
                 requestPersonalData(call)
             }
@@ -86,7 +83,7 @@ private suspend fun createUser(call: ApplicationCall) {
         return
     }
     // check user does not exist already
-    if (User.byMail(mail) != null || User.byUsername(username) != null) {
+    if (User.byMail(mail) != null) {
         call.respond(ReturnCode.USER_EXISTS)
         return
     }
