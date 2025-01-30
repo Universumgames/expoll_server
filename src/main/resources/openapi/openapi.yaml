@@ -1,4 +1,3 @@
-
 #file: noinspection YAMLDuplicatedKeys
 openapi: 3.0.3
 info:
@@ -87,7 +86,7 @@ paths:
                 $ref: "#/components/schemas/PlatformInfo"
             application/xml:
               schema:
-  /metaInfo:
+                $ref: "#/components/schemas/PlatformInfo"  /metaInfo:
     get:
       responses:
         200:
@@ -110,7 +109,7 @@ paths:
                 regex:
                   type: "string"
                 blacklist:
-  /simple/poll/{pollid}/title:
+                  type: "boolean"  /simple/poll/{pollid}/title:
     #file: noinspection YAMLSchemaValidation
     parameters:
       - name: pollid
@@ -129,7 +128,7 @@ paths:
             text/plain:
               schema:
                 type: "string"
-  #file: noinspection YAMLSchemaValidation
+                example: "What is your favorite color?"  #file: noinspection YAMLSchemaValidation  #file: noinspection YAMLSchemaValidation
   /poll:
     get:
       summary: "Get a poll or poll list"
@@ -177,7 +176,7 @@ paths:
   /poll/availableSearch:
     get:
       summary: "Get available search options"
-  #file: noinspection YAMLSchemaValidation
+      description: "Get available search options"  #file: noinspection YAMLSchemaValidation
   /vote:
     post:
       summary: Vote on a poll
@@ -198,7 +197,7 @@ paths:
         403:
           description: "Voting not allowed or too many votes"
         406:
-  #file: noinspection SwYamlUnresolvedReferencesInspection,YAMLSchemaValidation
+          description: "Vote invalid (wrong poll id, wrong option id or value)"  #file: noinspection SwYamlUnresolvedReferencesInspection,YAMLSchemaValidation
   /notifications/preferences:
     get:
       summary: "Get notification preferences"
@@ -287,7 +286,7 @@ paths:
         200:
           description: "The device was unregistered"
         401:
-
+          description: "Unauthorized"  #file: noinspection YAMLSchemaValidation
 components:
   schemas:
     #file: noinspection YAMLSchemaValidation
@@ -352,7 +351,7 @@ components:
         auth:
           type: string
           description: "The auth key"
-    #file: noinspection YAMLSchemaValidation
+          example: "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"    #file: noinspection YAMLSchemaValidation
     PlatformInfo:
       type: object
       description: "Information about the app for a specific platform"
@@ -389,7 +388,7 @@ components:
               example: "https://expoll.mt32.net/download/ios/stable/1.0.0/1"
             releasedTimestamp:
               type: integer
-    VersionDescriptor:
+              example: 1620000000    VersionDescriptor:
       type: "object"
       title: "VersionDescriptor"
       nullable: true
@@ -399,7 +398,7 @@ components:
           example: "4.2.2"
         build:
           type: "integer"
-    #file: noinspection YAMLSchemaValidation
+          example: 135    #file: noinspection YAMLSchemaValidation
     VoteChange:
       type: object
       description: Request to vote on a poll

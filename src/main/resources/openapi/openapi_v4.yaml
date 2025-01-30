@@ -46,7 +46,7 @@ paths:
         200:
           description: "meta request info"
   /simple/mailregex:
-    $ref: "routes/simple/mailregex.yaml"
+    $ref: "routes/simple/mailRegex.yaml"
   /simple/poll/{pollid}/title:
     $ref: "routes/simple/polltitle.yaml"
   $ref: "routes/user/user.yaml"

@@ -6,7 +6,6 @@ val logback_version: String by project
 val exposed_version: String by project
 val kotlinx_serialization_version: String by project
 val maria_db_version: String by project
-val arrow_kt_version: String by project
 val jakarta_mail_version: String by project
 val angus_mail_version: String by project
 val kotlinx_coroutines_version: String by project
@@ -18,7 +17,7 @@ plugins {
     kotlin("jvm") version "2.1.0"
     id("io.ktor.plugin") version "3.0.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "2.1.0"
-    //id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "8.3.5"
 }
 
 kotlin {
@@ -52,22 +51,6 @@ ktor {
 
 tasks.withType<ShadowJar>{
     mergeGroovyExtensionModules()
-}
-
-tasks.register("openapi", type = Exec::class){
-    workingDir = projectDir
-    executable = "bash"
-    commandLine("./scripts/openAPIBundle.sh", "src/main/resources/openapi/openapi_v4.yaml", "src/main/resources/openapi/openapi.yaml")
-    /*
-    commandLine(
-        "./scripts/openAPIBundle.sh", "src/main/resources/openapi/openapi_v4.yaml",
-        layout.buildDirectory.file("/resources/main/openapi/openapi_v4.yaml").get().asFile.absolutePath
-    )
-     */
-}
-
-tasks.compileKotlin.configure{
-    dependsOn("openapi")
 }
 
 repositories {
