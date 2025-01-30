@@ -1,6 +1,5 @@
 package net.mt32.expoll.notification
 
-import kotlinx.serialization.encodeToString
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.notifications.WebNotificationDevice
 import net.mt32.expoll.helper.defaultJSON
@@ -14,6 +13,7 @@ import java.security.Security
 data class WebNotification(val payload: String, val endpoint: String, val auth: String, val p256dh: String)
 
 object WebNotificationHandler : NotificationHandler<WebNotificationDevice> {
+
     private val pushService: PushAsyncService
 
     private val sendingThread: Thread
@@ -24,7 +24,7 @@ object WebNotificationHandler : NotificationHandler<WebNotificationDevice> {
         pushService = PushAsyncService(
             config.notifications.publicApplicationServerKey,
             config.notifications.privateApplicationServerKey,
-            "mailto:programming@universegame.de"
+            config.notifications.webPushSubject
         )
 
         notificationQueue = mutableListOf()
@@ -53,6 +53,16 @@ object WebNotificationHandler : NotificationHandler<WebNotificationDevice> {
         }catch (e:Exception){
             println("Error while sending web notification: ${e.message}")
         }
+        /*
+        val audience = notification.endpoint.substring(0, notification.endpoint.indexOf('/', 8))
+        val jwt = JWT.create()
+            .withSubject(config.notifications.webPushSubject)
+            .withAudience(audience)
+            .withExpiresAt(UnixTimestamp.now().addDays(7).toDate())
+            .withClaim("data", notification.payload)
+            .sign(Algorithm.ECDSA256())
+
+         */
     }
 
     override fun sendNotification(notification: UniversalNotification, device: WebNotificationDevice) {

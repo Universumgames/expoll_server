@@ -48,7 +48,8 @@
     "apnsKeyPath": "your key to the ios/macos app for notifications, relative path from root (this config file would be \"config/default.json\"",
     "apnsURL": "https://api.push.apple.com:443",
     "privateApplicationServerKey": "your application server key for web push notifications",
-    "publicApplicationServerKey": "your application server key for web push notifications"
+    "publicApplicationServerKey": "your application server key for web push notifications",
+    "webPushSubject": "mailto:your mail"
   },
   "testUser": {
     "firstName": "Test",
