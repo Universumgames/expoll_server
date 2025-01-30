@@ -13,8 +13,8 @@ import kotlin.jvm.optionals.getOrNull
 object WebauthnRegistrationStorage : CredentialRepository {
     override fun getCredentialIdsForUsername(username: String?): MutableSet<PublicKeyCredentialDescriptor> {
         if (username == null) return mutableSetOf()
-        val user = User.byUsername(username) ?: return mutableSetOf()
-        return Authenticator.fromUser(user.id).map { auth ->
+        val credentialIDs = Authenticator.fromUsername(username)
+        return credentialIDs.map { auth ->
             PublicKeyCredentialDescriptor.builder()
                 .id(ByteArray.fromBase64(auth.credentialID))
                 /*.transports(auth.transports.map { transport ->

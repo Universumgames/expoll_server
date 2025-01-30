@@ -119,6 +119,7 @@ object Transformer {
         addPrivateVotingOption()
         addUserLastLogin()
         nonNullDefaultVotes()
+        addUsernameToAuthenticator()
         renameOIDCUsernames()
 
         removeGhostVotes() // always last

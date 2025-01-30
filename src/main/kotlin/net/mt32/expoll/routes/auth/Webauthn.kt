@@ -24,7 +24,6 @@ import net.mt32.expoll.helper.respondWithOTPJSON
 import net.mt32.expoll.serializable.responses.SimpleAuthenticator
 import net.mt32.expoll.serializable.responses.SimpleAuthenticatorList
 import net.mt32.expoll.tUserID
-import kotlin.collections.set
 
 fun Route.webauthnRoutes() {
     route("webauthn") {
@@ -111,6 +110,7 @@ private suspend fun registerResponse(call: ApplicationCall) {
         )
         val auth = Authenticator(
             user.id,
+            user.username,
             result.keyId.id.base64,
             result.publicKeyCose.base64,
             result.signatureCount.toInt(),
