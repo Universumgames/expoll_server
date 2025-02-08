@@ -483,7 +483,8 @@ class User : IUser, DatabaseEntity {
             val usernameToUse = getUniqueUsername(username)
             val user = User(usernameToUse, firstName, lastName, mail, true, admin)
             user.save()
-            UserPolls.addConnection(user.id, config.initialUserConfig.pollID)
+            val poll = Poll.fromID(config.initialUserConfig.pollID)
+            poll?.addUser(user.id)
             return user
         }
 
@@ -495,6 +496,17 @@ class User : IUser, DatabaseEntity {
                 i++
             }
             return newUsername
+        }
+
+        fun empty(): User {
+            return User(
+                "empty",
+                "empty",
+                "empty",
+                "empty",
+                false,
+                false
+            )
         }
 
         /*val id = "4411a4b1-f62a-11ec-bd56-0242ac190002"
