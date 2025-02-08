@@ -19,7 +19,7 @@ import net.mt32.expoll.helper.Hash
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.async
 import net.mt32.expoll.helper.defaultJSON
-import net.mt32.expoll.security.loadECKeyFile
+import net.mt32.expoll.security.loadECPrivateKeyFromFile
 import net.mt32.expoll.tPollID
 import java.security.KeyFactory
 import java.security.PrivateKey
@@ -151,7 +151,7 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
 
 
     private fun getAPNsKey(): PrivateKey {
-        return loadECKeyFile(config.notifications.apnsKeyPath)!!
+        return loadECPrivateKeyFromFile(config.notifications.apnsKeyPath)!!
         //return getPrivateKey(config.notifications.apnsKeyPath, "EC")!!
     }
 

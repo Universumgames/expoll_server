@@ -6,6 +6,9 @@ import kotlin.math.abs
 fun ByteArray.toBase64(): String =
     String(Base64.getEncoder().encode(this))
 
+fun ByteArray.toBase64URL(): String =
+    String(Base64.getUrlEncoder().encode(this))
+
 fun String.base64ToByteArray(): ByteArray =
     Base64.getUrlDecoder().decode(this)
 

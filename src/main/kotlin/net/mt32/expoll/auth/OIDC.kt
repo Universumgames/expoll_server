@@ -19,7 +19,7 @@ import net.mt32.expoll.config
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.notification.toECPrivateKey
-import net.mt32.expoll.security.loadECKeyFile
+import net.mt32.expoll.security.loadECPrivateKeyFromFile
 import java.math.BigInteger
 import java.security.KeyFactory
 import java.security.interfaces.RSAPublicKey
@@ -67,7 +67,7 @@ object OIDC {
             get() {
                 return oidcidpConfig.clientSecret
                     ?: (runBlocking {
-                        val key = loadECKeyFile(oidcidpConfig.privateKeyPath!!)!!
+                        val key = loadECPrivateKeyFromFile(oidcidpConfig.privateKeyPath!!)!!
                         val keyID = oidcidpConfig.privateKeyID!!
                         return@runBlocking JWT.create()
                             .withKeyId(keyID)
