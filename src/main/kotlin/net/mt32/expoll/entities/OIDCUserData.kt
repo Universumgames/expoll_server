@@ -67,12 +67,11 @@ class OIDCUserData : DatabaseEntity {
         val subject = varchar("subject", 512)
         val mail = varchar("mail", 256).nullable()
 
-        fun bySubjectAndIDP(subject: String, idpName: String): OIDCUserData? {
+        fun bySubjectAndIDP(subject: String, idpName: String): List<OIDCUserData> {
             return transaction {
-                val row =
+                val rows =
                     OIDCUserData.selectAll().where { (OIDCUserData.subject eq subject) and (OIDCUserData.idpName eq idpName) }
-                        .firstOrNull()
-                return@transaction row?.let { OIDCUserData(it) }
+                return@transaction rows.map { OIDCUserData(it) }
             }
         }
 
