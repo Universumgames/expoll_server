@@ -19,9 +19,16 @@ data class CreatePollRequest(
     val defaultVote: Int? ,
 )
 
+interface IBasicPollOperation {
+    val pollID: tPollID
+}
+
+@Serializable
+data class BasicPollOperation(override val pollID: tPollID) : IBasicPollOperation
+
 @Serializable
 data class EditPollRequest(
-    val pollID: tPollID,
+    override val pollID: tPollID,
     val delete: Boolean? = null,
     val name: String? = null,
     val description: String? = null,
@@ -34,7 +41,7 @@ data class EditPollRequest(
     val votes: List<VoteChange> = listOf(),
     val options: List<ComplexOption> = listOf(),
     val notes: List<UserNote> = listOf()
-)
+) : IBasicPollOperation
 
 @Serializable
 data class UserNote(
