@@ -122,6 +122,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    implementation("joda-time:joda-time:2.13.0")
 
     // Unit Tests
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
