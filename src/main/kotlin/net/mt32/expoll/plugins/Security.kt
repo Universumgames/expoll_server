@@ -11,21 +11,16 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import kotlinx.coroutines.runBlocking
-import net.mt32.expoll.auth.ExpollJWTCookie
-import net.mt32.expoll.auth.adminAuth
-import net.mt32.expoll.auth.cookieName
-import net.mt32.expoll.auth.normalAuth
+import net.mt32.expoll.auth.*
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDataFromAny
-import kotlin.collections.set
 import kotlin.time.Duration.Companion.seconds
 
 
 fun Application.configureSecurity() {
-
     authentication {
         jwt(normalAuth) {
             realm = config.jwt.realm
@@ -97,6 +92,15 @@ fun Application.configureSecurity() {
     install(UserAgentBlocker){
         blockEmptyUserAgent = false
     }
+}
+
+public suspend fun ApplicationCall.getAuthPrincipal(): JWTSessionPrincipal {
+    val principal = this.principal<JWTSessionPrincipal>()
+    if (principal == null) {
+        this.respond(ReturnCode.INTERNAL_SERVER_ERROR)
+        return JWTSessionPrincipal.empty()
+    }
+    return principal
 }
 
 

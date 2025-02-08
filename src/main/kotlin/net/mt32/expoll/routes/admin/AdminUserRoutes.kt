@@ -12,6 +12,7 @@ import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.UserDeletionQueue
 import net.mt32.expoll.entities.interconnect.UserPolls
 import net.mt32.expoll.helper.*
+import net.mt32.expoll.plugins.getAuthPrincipal
 import net.mt32.expoll.plugins.query
 import net.mt32.expoll.serializable.admin.request.AdminCreateUserRequest
 import net.mt32.expoll.serializable.admin.request.AdminEditUserRequest
@@ -39,11 +40,7 @@ internal fun Route.adminUserRoutes() {
 }
 
 private suspend fun getUsers(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val adminListRequest: AdminUserListRequest = call.receiveNullable() ?: AdminUserListRequest()
     call.startNewTiming("users.load", "Load all users")
     val users = User.all(adminListRequest.limit, adminListRequest.offset, adminListRequest.searchParameters)

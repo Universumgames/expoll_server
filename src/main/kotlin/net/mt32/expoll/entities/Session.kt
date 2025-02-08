@@ -168,7 +168,6 @@ class Session : DatabaseEntity {
                 originalUserID = JWT.decode(originalJWT).getClaim("userID").asString()
             }
             return JWTSessionPrincipal(
-                payload,
                 session,
                 userID,
                 user,
@@ -182,6 +181,19 @@ class Session : DatabaseEntity {
             return transaction {
                 return@transaction Session.selectAll().map { Session(it) }
             }
+        }
+
+        fun empty(): Session {
+            return Session(
+                "-1",
+                0,
+                "",
+                null,
+                Platform.UNKNOWN,
+                UnixTimestamp.zero(),
+                UnixTimestamp.zero(),
+                UnixTimestamp.zero()
+            )
         }
     }
 

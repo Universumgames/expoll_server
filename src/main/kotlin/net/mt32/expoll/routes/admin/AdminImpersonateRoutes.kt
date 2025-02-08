@@ -6,12 +6,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import net.mt32.expoll.auth.ExpollJWTCookie
-import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.auth.adminAuth
 import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.plugins.getAuthPrincipal
 
 internal fun Route.adminImpersonateRoutes() {
     route("/") {
@@ -33,11 +33,7 @@ internal fun Route.adminImpersonateRoutes() {
 
 
 private suspend fun impersonate(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val session = call.sessions.get<ExpollJWTCookie>()
     val impersonateID = call.getDataFromAny("impersonateID")
     if (impersonateID == null) {
@@ -61,11 +57,7 @@ private suspend fun impersonate(call: ApplicationCall) {
 }
 
 private suspend fun isImpersonating(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val user = User.loadFromID(principal.originalUserID ?: "")
     if (user == null) {
         call.respond(ReturnCode.INVALID_PARAMS)

@@ -1,12 +1,10 @@
 package net.mt32.expoll.routes
 
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import net.mt32.expoll.VoteValue
-import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.Vote
@@ -14,6 +12,7 @@ import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.UnixTimestamp
 import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.notification.ExpollNotificationHandler
+import net.mt32.expoll.plugins.getAuthPrincipal
 import net.mt32.expoll.serializable.request.VoteChange
 
 fun Route.voteRoutes() {
@@ -25,11 +24,7 @@ fun Route.voteRoutes() {
 }
 
 suspend fun voteRoute(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     call.startNewTiming("vote.parse", "Parse request data")
     val voteChange: VoteChange = call.receive()
 

@@ -1,14 +1,12 @@
 package net.mt32.expoll.routes
 
 import io.ktor.server.application.*
-import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.PollType
 import net.mt32.expoll.VoteValue
-import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.PollUserNote
@@ -18,7 +16,9 @@ import net.mt32.expoll.entities.interconnect.UserPolls
 import net.mt32.expoll.helper.ReturnCode
 import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.notification.ExpollNotificationHandler
+import net.mt32.expoll.plugins.getAuthPrincipal
 import net.mt32.expoll.plugins.query
+import net.mt32.expoll.serializable.request.BasicPollOperation
 import net.mt32.expoll.serializable.request.CreatePollRequest
 import net.mt32.expoll.serializable.request.EditPollRequest
 import net.mt32.expoll.serializable.request.PollRequest
@@ -57,11 +57,7 @@ fun Route.pollRoutes() {
 }
 
 private suspend fun editPoll(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     call.startNewTiming("poll.edit.parse", "Parsing poll edit request")
     val editPollRequest: EditPollRequest = call.receive()
 
@@ -142,20 +138,9 @@ private suspend fun editPoll(call: ApplicationCall) {
     call.respond(ReturnCode.OK)
 }
 
-@Serializable
-data class BasicPollOperation(val pollID: tPollID)
-
 private suspend fun leavePoll(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val pollID = call.receive<BasicPollOperation>().pollID
-    if (pollID == null) {
-        call.respond(ReturnCode.MISSING_PARAMS)
-        return
-    }
     if (!Poll.exists(pollID)) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
@@ -172,16 +157,8 @@ private suspend fun leavePoll(call: ApplicationCall) {
 }
 
 private suspend fun joinPoll(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val pollID = call.receive<BasicPollOperation>().pollID
-    if (pollID == null) {
-        call.respond(ReturnCode.MISSING_PARAMS)
-        return
-    }
     if (!Poll.exists(pollID)) {
         call.respond(ReturnCode.INVALID_PARAMS)
         return
@@ -203,11 +180,7 @@ private suspend fun joinPoll(call: ApplicationCall) {
 }
 
 private suspend fun createPoll(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
 
     call.startNewTiming("poll.create.parse", "Parse poll creation data")
     val createPollRequest: CreatePollRequest = call.receive()
@@ -246,11 +219,7 @@ private suspend fun createPoll(call: ApplicationCall) {
 }
 
 private suspend fun getPolls(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val pollRequest: PollRequest = call.receiveNullable() ?: PollRequest()
     val oldPollID = call.request.queryParameters["pollID"] // TODO browser does not work with query method
     if (pollRequest.pollID != null || oldPollID != null) {
@@ -261,11 +230,7 @@ private suspend fun getPolls(call: ApplicationCall) {
 }
 
 private suspend fun getPollList(call: ApplicationCall, pollRequest: PollRequest) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
 
     call.startNewTiming("polls.list", "Retrieve poll data from database")
     val searchParameters = pollRequest.searchParameters ?: PollSearchParameters()
@@ -281,11 +246,7 @@ private suspend fun getPollList(call: ApplicationCall, pollRequest: PollRequest)
 }
 
 private suspend fun getDetailedPoll(call: ApplicationCall, pollID: tPollID) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     call.startNewTiming("polls.fetch", "Load basic poll data from database")
     val poll = Poll.fromID(pollID)
     if (poll == null) {
@@ -301,11 +262,7 @@ private suspend fun getDetailedPoll(call: ApplicationCall, pollID: tPollID) {
 data class PollHideRequest(val pollID: tPollID, val hide: Boolean? = true)
 
 private suspend fun hidePoll(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val pollHideRequest: PollHideRequest = call.receive()
 
     val poll = Poll.fromID(pollHideRequest.pollID)

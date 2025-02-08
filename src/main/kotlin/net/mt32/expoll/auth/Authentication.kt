@@ -1,11 +1,7 @@
 package net.mt32.expoll.auth
 
-import com.auth0.jwt.interfaces.Payload
-import io.ktor.server.auth.*
 import io.ktor.server.sessions.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.defaultJSON
@@ -32,14 +28,26 @@ data class ExpollJWTCookie(
 }
 
 data class JWTSessionPrincipal(
-    val payload: Payload,
     val session: Session,
     val userID: tUserID,
     val user: User,
     val admin: Boolean,
     val superAdmin: Boolean,
     val originalUserID: tUserID?
-): Principal
+){
+    companion object {
+        fun empty(): JWTSessionPrincipal {
+            return JWTSessionPrincipal(
+                Session.empty(),
+                "-1",
+                User.empty(),
+                false,
+                false,
+                null
+            )
+        }
+    }
+}
 
 @Serializable
 data class PublicKeyCredential(

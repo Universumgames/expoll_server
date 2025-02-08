@@ -26,6 +26,7 @@ import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.OIDCUserData
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.*
+import net.mt32.expoll.plugins.getAuthPrincipal
 import net.mt32.expoll.tUserID
 import java.util.*
 
@@ -70,7 +71,7 @@ fun Route.oidcRoutes() {
             }
         }
 
-        // not working
+        // auth not working
         // authenticate(normalAuth, strategy = AuthenticationStrategy.Optional) {
         for (idp in OIDC.data.values) {
             route(idp.name) {
@@ -126,11 +127,7 @@ private suspend fun listIDPs(call: ApplicationCall) {
 }
 
 private suspend fun getConnections(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val connections = OIDCUserData.byUser(principal.userID)
     call.respond(connections.map { it.toConnectionOverview() })
 }
@@ -273,7 +270,8 @@ private suspend fun addOIDCConnection(
     val mailUse = parsedUser?.email ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull
     ?: tokenDataMap["email"]?.jsonPrimitive?.contentOrNull
     val userID = principal?.userID ?: state.userID
-    if (OIDCUserData.bySubjectAndIDP(baseTokenData.subject, idp.name) != null) {
+    // filter for duplicate connection
+    if (OIDCUserData.bySubjectAndIDP(baseTokenData.subject, idp.name).any{ it.subject == baseTokenData.subject }) {
         if (state.isApp)
             call.respondRedirect("expoll://reload")
         else call.respondRedirect("/")
@@ -302,12 +300,12 @@ private suspend fun loginUser(
     println(baseTokenData)
     // fetch user from db or create new
     val oidcUserData = OIDCUserData.bySubjectAndIDP(baseTokenData.subject, idp.name)
-    if (oidcUserData == null && (mailUse == null) && parsedUser == null) {
+    if (oidcUserData.isEmpty() && (mailUse == null)) {
         call.respond(ReturnCode.BAD_REQUEST)
         return
     }
     // check for user connection exists
-    var user = oidcUserData?.let { User.loadFromID(it.userID) }
+    var user = oidcUserData.firstOrNull()?.let { User.loadFromID(it.userID) }
     if (user != null) {
         createAndRespondWithSession(call, user, state)
         return
@@ -354,11 +352,7 @@ private suspend fun createAndRespondWithSession(
 }
 
 private suspend fun removeOIDCConnection(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val connections = OIDCUserData.byUser(principal.userID)
     val connection = connections.firstOrNull { it.idpName == idp.name }
     if (connection == null) {

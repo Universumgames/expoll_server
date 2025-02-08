@@ -9,12 +9,16 @@ import io.ktor.server.sessions.*
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.ExpollMail
 import net.mt32.expoll.Mail
-import net.mt32.expoll.auth.*
+import net.mt32.expoll.auth.ExpollJWTCookie
+import net.mt32.expoll.auth.normalAuth
+import net.mt32.expoll.auth.verifyAppAttest
+import net.mt32.expoll.auth.verifyGoogleCAPTCHA
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.MailRule
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.UserDeletionConfirmation
 import net.mt32.expoll.helper.*
+import net.mt32.expoll.plugins.getAuthPrincipal
 import net.mt32.expoll.serializable.request.CreateUserRequest
 import net.mt32.expoll.serializable.request.EditUserRequest
 import net.mt32.expoll.serializable.request.VoteChange
@@ -138,11 +142,7 @@ private suspend fun createUser(call: ApplicationCall) {
 }
 
 private suspend fun getUserData(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val user = principal.user
 
     val simpleUserResponse = user.asUserDataResponse()
@@ -152,11 +152,7 @@ private suspend fun getUserData(call: ApplicationCall) {
 @Deprecated("Use requestPersonalData instead")
 private suspend fun getPersonalizedData(call: ApplicationCall) {
     call.startNewTiming("user.basic", "Gather user and session data")
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
 
     val user = principal.user
 
@@ -192,11 +188,7 @@ private suspend fun getPersonalizedData(call: ApplicationCall) {
 }
 
 private suspend fun requestPersonalData(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val user = principal.user
 
     val polls = user.polls.map { it.asSimplePoll(user) }
@@ -228,11 +220,7 @@ private suspend fun requestPersonalData(call: ApplicationCall) {
 }
 
 private suspend fun getSessions(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val user = principal.user
     val sessions = user.sessions.map { it.asSafeSession(principal.session) }
     call.respond(sessions)
@@ -247,11 +235,7 @@ private suspend fun createChallenge(call: ApplicationCall) {
 }
 
 private suspend fun editUser(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val editRequest = call.receive<EditUserRequest>()
     val user = principal.user
     val username = editRequest.username
@@ -270,11 +254,7 @@ private suspend fun editUser(call: ApplicationCall) {
 }
 
 private suspend fun deleteUser(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val user = principal.user
     val confirmation = UserDeletionConfirmation(user.id)
     confirmation.save()
@@ -289,11 +269,7 @@ private suspend fun deleteUser(call: ApplicationCall) {
 }
 
 private suspend fun deleteUserConfirm(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val user = principal.user
     val confirmation = call.getDataFromAny("deleteConfirmationKey")
     if (confirmation == null) {
@@ -314,11 +290,7 @@ private suspend fun deleteUserConfirm(call: ApplicationCall) {
 }
 
 private suspend fun deleteCancel(call: ApplicationCall) {
-    val principal = call.principal<JWTSessionPrincipal>()
-    if (principal == null) {
-        call.respond(ReturnCode.INTERNAL_SERVER_ERROR)
-        return
-    }
+    val principal = call.getAuthPrincipal()
     val user = principal.user
     val confirmation = UserDeletionConfirmation.getPendingConfirmationForUser(user.id)
     if (confirmation == null) {
