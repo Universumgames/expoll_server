@@ -540,7 +540,7 @@ class User : IUser, DatabaseEntity {
             admin || superAdmin,
             superAdmin,
             active,
-            oidConnections.map { it.toConnectionOverview().name },
+            oidConnections.mapIndexed { index: Int, it: OIDCUserData -> it.toConnectionOverview(index) },
             created.toClient(),
             deleted?.toClient(),
             pollsOwned,

@@ -56,8 +56,8 @@ class OIDCUserData : DatabaseEntity {
         return true
     }
 
-    fun toConnectionOverview(): OIDCConnection {
-        return OIDCConnection(idpName, mail, subject)
+    fun toConnectionOverview(index: Int): OIDCConnection {
+        return OIDCConnection(idpName, idpName, mail, subject, index)
     }
 
     companion object : Table("oidcUserData") {
@@ -86,7 +86,9 @@ class OIDCUserData : DatabaseEntity {
 
 @Serializable
 data class OIDCConnection(
-    val name: String,
+    @Deprecated("Use key instead", ReplaceWith("key")) val name: String,
+    val key: String,
     val mail: String?,
-    val subject: String
+    val subject: String,
+    val index: Int = 0
 )

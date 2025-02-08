@@ -48,3 +48,4 @@ privateScripts
 config/*secret*
 config/testSaml
 config/webPush
+config/vapid*

@@ -1,6 +1,7 @@
 package net.mt32.expoll.serializable.admin.responses
 
 import kotlinx.serialization.Serializable
+import net.mt32.expoll.entities.OIDCConnection
 import net.mt32.expoll.serializable.responses.IUserDataResponse
 import net.mt32.expoll.serializable.responses.SafeSession
 import net.mt32.expoll.tClientDateTime
@@ -16,7 +17,7 @@ data class UserInfo(
     override val admin: Boolean,
     val superAdmin: Boolean,
     override val active: Boolean,
-    val oidcConnections: List<String>,
+    val oidcConnections: List<OIDCConnection>,
     override val createdTimestamp: tClientDateTime,
     val deletedTimestamp: tClientDateTime? = null,
     override val pollsOwned: Long,

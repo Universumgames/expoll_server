@@ -129,7 +129,7 @@ private suspend fun listIDPs(call: ApplicationCall) {
 private suspend fun getConnections(call: ApplicationCall) {
     val principal = call.getAuthPrincipal()
     val connections = OIDCUserData.byUser(principal.userID)
-    call.respond(connections.map { it.toConnectionOverview() })
+    call.respond(connections.mapIndexed { index: Int, it: OIDCUserData -> it.toConnectionOverview(index) })
 }
 
 private interface State {
