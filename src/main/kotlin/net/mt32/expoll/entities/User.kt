@@ -209,6 +209,7 @@ class User : IUser, DatabaseEntity {
     }
 
     fun anonymizeUserData() {
+        if (deleted != null) return
         notifyDeletion()
         UserDeletionQueue.addUserToDeletionQueueOrPropagate(
             id,
@@ -350,7 +351,9 @@ class User : IUser, DatabaseEntity {
 
                         UserSearchParameters.SpecialFilter.ADMIN -> User.admin
                         UserSearchParameters.SpecialFilter.DEACTIVATED -> User.active eq false
-                        UserSearchParameters.SpecialFilter.WITHOUT_SESSION -> User.id notInSubQuery Session.select(Session.userID).where { Session.userID eq User.id}
+                        UserSearchParameters.SpecialFilter.WITHOUT_SESSION -> User.id notInSubQuery Session.select(
+                            Session.userID
+                        ).where { Session.userID eq User.id }
                     }
 
                     val username =
@@ -430,7 +433,8 @@ class User : IUser, DatabaseEntity {
             return transaction {
                 return@transaction User.selectAll().where {
                     User.lastLogin less UnixTimestamp.now().addDays(-config.dataRetention.userDeactivateAfterDays)
-                        .toDB()
+                        .toDB() and
+                            (User.active eq true)
                 }
                     .map { User(it) }
             }
@@ -456,7 +460,8 @@ class User : IUser, DatabaseEntity {
                             UserDeletionQueue.select(UserDeletionQueue.userID).where {
                                 (UserDeletionQueue.currentDeletionStage eq UserDeletionQueue.DeletionStage.DEACTIVATION.value) and
                                         (UserDeletionQueue.nextDeletionDate less UnixTimestamp.now().toDB())
-                            }
+                            } and
+                            (User.deleted.isNull())
                 }.map { User(it) }
             }
         }
@@ -582,6 +587,7 @@ class User : IUser, DatabaseEntity {
     }
 
     fun deactivateUser() {
+        if (active == false) return
         active = false
         sessions.forEach { it.delete() }
         val deletionDate = UserDeletionQueue.deactivateUser(id)

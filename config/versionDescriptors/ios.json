@@ -8,9 +8,9 @@
     },
     "beta": {
       "version": "3.4.1",
-      "build": "197",
+      "build": "198",
       "url": "https://testflight.apple.com/join/OpUycQnW",
-      "releasedTimestamp": 1737341012000
+      "releasedTimestamp": 1738998191000
     },
     "platformKeys": [ "ios", "macos" ]
   }
