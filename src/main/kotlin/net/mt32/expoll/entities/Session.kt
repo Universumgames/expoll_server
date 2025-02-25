@@ -48,7 +48,7 @@ class Session : DatabaseEntity {
         this.clientVersion = null
         this.platform = Platform.UNKNOWN
         this.createdTimestamp = UnixTimestamp.now()
-        this.expirationTimestamp = UnixTimestamp.now().addDays(120)
+        this.expirationTimestamp = UnixTimestamp.now().addDays(config.jwt.validDays)
         this.lastUsedTimestamp = UnixTimestamp.now()
     }
 
