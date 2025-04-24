@@ -60,7 +60,7 @@ repositories {
     maven {
         url = uri("https://git.mt32.net/api/v4/projects/170/packages/maven")
         credentials(HttpHeaderCredentials::class) {
-            name = "Private-Token"
+            name = "Job-Token"
             value = System.getenv("CI_JOB_TOKEN")
         }
         authentication {
