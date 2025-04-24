@@ -24,7 +24,6 @@ compiling: # This job runs in the build stage, which runs first.
     image: gradle:8-jdk23
     stage: build
     script:
-        - ls -l ..
         - gradle buildFatJar --no-daemon
 
 build_docker:

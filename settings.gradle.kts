@@ -1,3 +1,5 @@
 rootProject.name = "de.universegame.expoll"
 
-includeBuild("../expoll-kotlin-commons")
+if (file("../expoll-kotlin-commons").exists()) {
+    includeBuild("../expoll-kotlin-commons") // use composite build locally
+}

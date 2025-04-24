@@ -56,6 +56,17 @@ tasks.withType<ShadowJar>{
 repositories {
     mavenCentral()
     gradlePluginPortal()
+
+    maven {
+        url = uri("https://git.mt32.net/api/v4/projects/170/packages/maven")
+        credentials(HttpHeaderCredentials::class) {
+            name = "Private-Token"
+            value = System.getenv("CI_JOB_TOKEN")
+        }
+        authentication {
+            create("header", HttpHeaderAuthentication::class)
+        }
+    }
 }
 
 dependencies {
