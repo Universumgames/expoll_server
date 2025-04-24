@@ -10,8 +10,8 @@ import net.mt32.expoll.entities.OTP
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.notifications.APNDevice
-import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.getDelayToMidnight
+import net.mt32.expoll.commons.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.getDelayToMidnight
 import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.plugins.*
 import org.jetbrains.exposed.sql.transactions.transaction

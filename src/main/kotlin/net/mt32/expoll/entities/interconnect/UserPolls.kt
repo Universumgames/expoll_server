@@ -1,11 +1,11 @@
 package net.mt32.expoll.entities.interconnect
 
 import net.mt32.expoll.database.UUIDLength
-import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.toUnixTimestampAsSecondsSince1970
-import net.mt32.expoll.helper.toUnixTimestampFromDB
-import net.mt32.expoll.tPollID
-import net.mt32.expoll.tUserID
+import net.mt32.expoll.commons.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.toUnixTimestampAsSecondsSince1970
+import net.mt32.expoll.commons.helper.toUnixTimestampFromDB
+import net.mt32.expoll.commons.tPollID
+import net.mt32.expoll.commons.tUserID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction

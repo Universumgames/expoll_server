@@ -2,7 +2,7 @@ package net.mt32.expoll.serializable.request.search
 
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.serializable.request.SortingOrder
-import net.mt32.expoll.tPollID
+import net.mt32.expoll.commons.tPollID
 import kotlin.reflect.full.memberProperties
 
 @Serializable

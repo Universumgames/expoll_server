@@ -3,12 +3,12 @@ package net.mt32.expoll.entities
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.IDatabaseEntity
 import net.mt32.expoll.database.UUIDLength
-import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.toUnixTimestampFromDB
+import net.mt32.expoll.commons.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsertCustom
 import net.mt32.expoll.serializable.responses.ComplexOption
-import net.mt32.expoll.tOptionID
-import net.mt32.expoll.tPollID
+import net.mt32.expoll.commons.tOptionID
+import net.mt32.expoll.commons.tPollID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction

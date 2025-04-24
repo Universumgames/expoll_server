@@ -3,8 +3,8 @@ package net.mt32.expoll.serializable.request
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.serializable.request.search.PollSearchParameters
 import net.mt32.expoll.serializable.responses.ComplexOption
-import net.mt32.expoll.tPollID
-import net.mt32.expoll.tUserID
+import net.mt32.expoll.commons.tPollID
+import net.mt32.expoll.commons.tUserID
 
 @Serializable
 data class CreatePollRequest(

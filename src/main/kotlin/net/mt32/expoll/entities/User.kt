@@ -4,6 +4,10 @@ import com.yubico.webauthn.data.ByteArray
 import io.ktor.server.application.*
 import io.ktor.util.*
 import net.mt32.expoll.*
+import net.mt32.expoll.commons.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.toUnixTimestampFromDB
+import net.mt32.expoll.commons.tPollID
+import net.mt32.expoll.commons.tUserID
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.entities.interconnect.UserPolls

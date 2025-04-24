@@ -3,10 +3,9 @@ package net.mt32.expoll
 import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
-import kotlinx.serialization.encodeToString
 import net.mt32.expoll.entities.OTP
 import net.mt32.expoll.entities.User
-import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.UnixTimestamp
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.serializable.responses.UserPersonalizeResponse
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect

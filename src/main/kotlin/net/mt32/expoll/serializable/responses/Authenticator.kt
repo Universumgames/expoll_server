@@ -1,7 +1,7 @@
 package net.mt32.expoll.serializable.responses
 
 import kotlinx.serialization.Serializable
-import net.mt32.expoll.tClientDateTime
+import net.mt32.expoll.commons.tClientDateTime
 
 @Serializable
 data class SimpleAuthenticator(

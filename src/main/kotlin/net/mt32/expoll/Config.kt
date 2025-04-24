@@ -3,8 +3,8 @@ package net.mt32.expoll
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
+import net.mt32.expoll.commons.helper.mergeJsonObjects
 import net.mt32.expoll.helper.defaultJSON
-import net.mt32.expoll.helper.mergeJsonObjects
 import java.io.File
 
 @Serializable
@@ -42,6 +42,8 @@ data class NotificationConfig(
     val privateApplicationServerKey : String = "",
     val publicApplicationServerKey : String = "",
     val webPushSubject: String = "",
+    val webPushPublicKeyPath: String = "",
+    val webPushPrivateKeyPath: String = ""
 )
 
 @Serializable

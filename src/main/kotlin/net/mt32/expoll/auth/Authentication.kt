@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.defaultJSON
-import net.mt32.expoll.tUserID
+import net.mt32.expoll.commons.tUserID
 
 const val cookieName = "expoll_session"
 val normalAuth: String? = null

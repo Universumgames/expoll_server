@@ -13,7 +13,7 @@ import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.OTP
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.DeepLinkBuilder
-import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.commons.helper.ReturnCode
 import net.mt32.expoll.serializable.request.SimpleLoginRequest
 
 fun Route.simpleAuthRoutes() {

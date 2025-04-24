@@ -4,6 +4,8 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import kotlinx.serialization.json.jsonObject
 import net.mt32.expoll.auth.cookieName
+import net.mt32.expoll.commons.helper.removeNullString
+import net.mt32.expoll.commons.helper.toMap
 import java.net.URLDecoder
 
 @Deprecated(
@@ -30,6 +32,7 @@ suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
         isForm = true
         params[key]
     } catch (e: Exception) {
+        e.printStackTrace()
         null
     }
     if (form != null)

@@ -4,6 +4,7 @@ import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.auth.*
 import io.ktor.util.*
+import net.mt32.expoll.commons.helper.UnixTimestamp
 
 
 private class ServerTimings : Principal {
@@ -34,10 +35,10 @@ private class ServerTimings : Principal {
     fun startNewTiming(key: String, description: String) {
         val timing = latestTiming
         if (timing != null) {
-            timing.endTime = UnixTimestamp.now()
+            timing.endTime = UnixTimestamp.Companion.now()
             timings.add(timing)
         }
-        latestTiming = Timing(key, description, UnixTimestamp.now())
+        latestTiming = Timing(key, description, UnixTimestamp.Companion.now())
     }
 
     fun finishTiming() {

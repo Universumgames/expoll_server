@@ -7,8 +7,8 @@ import io.ktor.util.*
 import net.mt32.expoll.analytics.AnalyticsStorage
 import net.mt32.expoll.analytics.registerRequest
 import net.mt32.expoll.analytics.registerRequestDuration
-import net.mt32.expoll.helper.ReturnCode
-import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.ReturnCode
+import net.mt32.expoll.commons.helper.UnixTimestamp
 import net.mt32.expoll.notification.ExpollNotificationHandler
 
 private val RequestStartAttributeKey = AttributeKey<Long>("RequestStart")

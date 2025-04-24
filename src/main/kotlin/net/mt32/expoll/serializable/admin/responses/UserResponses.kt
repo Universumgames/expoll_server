@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 import net.mt32.expoll.entities.OIDCConnection
 import net.mt32.expoll.serializable.responses.IUserDataResponse
 import net.mt32.expoll.serializable.responses.SafeSession
-import net.mt32.expoll.tClientDateTime
-import net.mt32.expoll.tUserID
+import net.mt32.expoll.commons.tClientDateTime
+import net.mt32.expoll.commons.tUserID
 
 @Serializable
 data class UserInfo(

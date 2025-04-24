@@ -1,9 +1,9 @@
 package net.mt32.expoll.serializable.request
 
 import kotlinx.serialization.Serializable
-import net.mt32.expoll.tOptionID
-import net.mt32.expoll.tPollID
-import net.mt32.expoll.tUserID
+import net.mt32.expoll.commons.tOptionID
+import net.mt32.expoll.commons.tPollID
+import net.mt32.expoll.commons.tUserID
 
 @Serializable
 data class VoteChange(

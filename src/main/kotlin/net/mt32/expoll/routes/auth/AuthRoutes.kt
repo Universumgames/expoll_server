@@ -11,7 +11,7 @@ import net.mt32.expoll.auth.ExpollJWTCookie
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.Session
-import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.commons.helper.ReturnCode
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction

@@ -1,7 +1,7 @@
 package net.mt32.expoll.analytics
 
-import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.helper.getDelayToMidnight
+import net.mt32.expoll.commons.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.getDelayToMidnight
 import net.mt32.expoll.notification.ExpollNotificationHandler
 import java.util.*
 

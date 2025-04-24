@@ -1,13 +1,11 @@
 package net.mt32.expoll.routes
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
-import kotlinx.serialization.encodeToString
 import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.routes.admin.adminRoute

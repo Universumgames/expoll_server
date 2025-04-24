@@ -3,7 +3,7 @@ package net.mt32.expoll.database.transform
 import net.mt32.expoll.database.DatabaseFactory
 import net.mt32.expoll.database.Transformer
 import net.mt32.expoll.entities.interconnect.UserPolls
-import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.UnixTimestamp
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 

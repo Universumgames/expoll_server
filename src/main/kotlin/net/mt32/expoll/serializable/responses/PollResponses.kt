@@ -4,9 +4,9 @@ import kotlinx.serialization.Serializable
 import net.mt32.expoll.entities.ISimpleUser
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
-import net.mt32.expoll.tClientDate
-import net.mt32.expoll.tClientDateTime
-import net.mt32.expoll.tOptionID
+import net.mt32.expoll.commons.tClientDate
+import net.mt32.expoll.commons.tClientDateTime
+import net.mt32.expoll.commons.tOptionID
 
 @Serializable
 data class PollSimpleUser(

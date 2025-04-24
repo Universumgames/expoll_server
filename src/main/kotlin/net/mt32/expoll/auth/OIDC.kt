@@ -16,7 +16,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.OIDCIDPConfig
 import net.mt32.expoll.config
-import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.UnixTimestamp
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.notification.toECPrivateKey
 import net.mt32.expoll.security.loadECPrivateKeyFromFile

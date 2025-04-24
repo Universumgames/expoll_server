@@ -2,7 +2,7 @@ package net.mt32.expoll.serializable
 
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.helper.defaultJSON
-import net.mt32.expoll.tClientDateTime
+import net.mt32.expoll.commons.tClientDateTime
 import java.io.File
 
 @Serializable

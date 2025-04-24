@@ -49,7 +49,9 @@
     "apnsURL": "https://api.push.apple.com:443",
     "privateApplicationServerKey": "your application server key for web push notifications",
     "publicApplicationServerKey": "your application server key for web push notifications",
-    "webPushSubject": "mailto:your mail"
+    "webPushSubject": "mailto:your mail",
+    "webPushPublicKeyPath": "path to your public key for web push notifications",
+    "webPushPrivateKeyPath": "path to your private key for web push notifications"
   },
   "testUser": {
     "firstName": "Test",
@@ -110,7 +112,7 @@
     "pollID": "00000000-0000-0000-0000-000000000000"
   },
   "dataRetention": {
-    "userDeactivateAfterDays": 365,
+    "userDeactivateAfterDays": 1095,
     "userDeleteAfterAdditionalDays": 180,
     "userDeletionFinalAfterDays": 100,
     "userNotifyBeforeDeletionDays": 90

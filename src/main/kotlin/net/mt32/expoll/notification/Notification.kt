@@ -1,8 +1,8 @@
 package net.mt32.expoll.notification
 
 import kotlinx.serialization.Serializable
-import net.mt32.expoll.helper.UnixTimestamp
-import net.mt32.expoll.tClientDateTime
+import net.mt32.expoll.commons.helper.UnixTimestamp
+import net.mt32.expoll.commons.tClientDateTime
 
 
 data class UniversalNotification(

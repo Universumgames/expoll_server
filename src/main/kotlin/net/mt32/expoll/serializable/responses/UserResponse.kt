@@ -5,9 +5,9 @@ import net.mt32.expoll.entities.ISimpleUser
 import net.mt32.expoll.entities.PollUserNote
 import net.mt32.expoll.serializable.request.Platform
 import net.mt32.expoll.serializable.request.VoteChange
-import net.mt32.expoll.tClientDateTime
-import net.mt32.expoll.tPollID
-import net.mt32.expoll.tUserID
+import net.mt32.expoll.commons.tClientDateTime
+import net.mt32.expoll.commons.tPollID
+import net.mt32.expoll.commons.tUserID
 
 interface IUserDataResponse{
     val id: String

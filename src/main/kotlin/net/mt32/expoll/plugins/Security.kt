@@ -14,8 +14,8 @@ import kotlinx.coroutines.runBlocking
 import net.mt32.expoll.auth.*
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Session
-import net.mt32.expoll.helper.ReturnCode
-import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.ReturnCode
+import net.mt32.expoll.commons.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDataFromAny
 import kotlin.time.Duration.Companion.seconds
 

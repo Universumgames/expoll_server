@@ -5,7 +5,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import net.mt32.expoll.entities.MailRule
-import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.commons.helper.ReturnCode
 import net.mt32.expoll.serializable.admin.request.MailRegexEditRequest
 import net.mt32.expoll.serializable.responses.MailRegexRules
 

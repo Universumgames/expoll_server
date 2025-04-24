@@ -1,7 +1,10 @@
 package net.mt32.expoll.entities
 
-import net.mt32.expoll.PollType
-import net.mt32.expoll.VoteValue
+import net.mt32.expoll.commons.PollType
+import net.mt32.expoll.commons.VoteValue
+import net.mt32.expoll.commons.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.toUnixTimestampFromClient
+import net.mt32.expoll.commons.helper.toUnixTimestampFromDB
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.entities.interconnect.PollJoinTimestamp
@@ -10,8 +13,8 @@ import net.mt32.expoll.helper.*
 import net.mt32.expoll.serializable.request.SortingOrder
 import net.mt32.expoll.serializable.request.search.PollSearchParameters
 import net.mt32.expoll.serializable.responses.*
-import net.mt32.expoll.tPollID
-import net.mt32.expoll.tUserID
+import net.mt32.expoll.commons.tPollID
+import net.mt32.expoll.commons.tUserID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction

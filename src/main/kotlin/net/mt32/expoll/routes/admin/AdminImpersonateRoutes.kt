@@ -9,7 +9,7 @@ import net.mt32.expoll.auth.ExpollJWTCookie
 import net.mt32.expoll.auth.adminAuth
 import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.entities.User
-import net.mt32.expoll.helper.ReturnCode
+import net.mt32.expoll.commons.helper.ReturnCode
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.plugins.getAuthPrincipal
 

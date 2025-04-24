@@ -1,7 +1,7 @@
 package net.mt32.expoll.analytics
 
 import kotlinx.serialization.Serializable
-import net.mt32.expoll.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.UnixTimestamp
 
 data class RequestCountStorageElement(
     val name: String,

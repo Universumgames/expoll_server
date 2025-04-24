@@ -1,7 +1,7 @@
 package net.mt32.expoll.serializable.admin.request
 
 import kotlinx.serialization.Serializable
-import net.mt32.expoll.tUserID
+import net.mt32.expoll.commons.tUserID
 
 @Serializable
 data class AdminCreateUserRequest(
