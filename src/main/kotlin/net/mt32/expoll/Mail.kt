@@ -3,11 +3,11 @@ package net.mt32.expoll
 import jakarta.mail.*
 import jakarta.mail.internet.InternetAddress
 import jakarta.mail.internet.MimeMessage
+import net.mt32.expoll.commons.helper.UnixTimestamp
+import net.mt32.expoll.commons.serializable.responses.UserPersonalizeResponse
 import net.mt32.expoll.entities.OTP
 import net.mt32.expoll.entities.User
-import net.mt32.expoll.commons.helper.UnixTimestamp
 import net.mt32.expoll.helper.defaultJSON
-import net.mt32.expoll.serializable.responses.UserPersonalizeResponse
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect
 import org.thymeleaf.TemplateEngine
 import org.thymeleaf.templatemode.TemplateMode

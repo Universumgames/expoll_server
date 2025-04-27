@@ -5,16 +5,17 @@ import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.server.application.*
 import io.ktor.server.auth.jwt.*
 import net.mt32.expoll.auth.JWTSessionPrincipal
+import net.mt32.expoll.commons.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.toUnixTimestampFromDB
+import net.mt32.expoll.commons.interfaces.ISession
+import net.mt32.expoll.commons.serializable.request.Platform
+import net.mt32.expoll.commons.serializable.responses.SafeSession
+import net.mt32.expoll.commons.tUserID
 import net.mt32.expoll.config
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
-import net.mt32.expoll.commons.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDataFromAny
-import net.mt32.expoll.commons.helper.toUnixTimestampFromDB
 import net.mt32.expoll.helper.upsertCustom
-import net.mt32.expoll.serializable.request.Platform
-import net.mt32.expoll.serializable.responses.SafeSession
-import net.mt32.expoll.commons.tUserID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -22,15 +23,15 @@ import java.util.*
 import java.util.Random
 import kotlin.math.pow
 
-class Session : DatabaseEntity {
-    val userID: tUserID
-    val nonce: Long
-    val userAgent: String
-    var clientVersion: String?
-    var platform: Platform
-    val createdTimestamp: UnixTimestamp
-    val expirationTimestamp: UnixTimestamp
-    var lastUsedTimestamp: UnixTimestamp
+class Session : ISession, DatabaseEntity {
+    override val userID: tUserID
+    override val nonce: Long
+    override val userAgent: String
+    override var clientVersion: String?
+    override var platform: Platform
+    override val createdTimestamp: UnixTimestamp
+    override val expirationTimestamp: UnixTimestamp
+    override var lastUsedTimestamp: UnixTimestamp
 
     val isValid: Boolean
         get() = expirationTimestamp > UnixTimestamp.now()

@@ -1,22 +1,23 @@
 package net.mt32.expoll.entities
 
 import net.mt32.expoll.commons.VoteValue
-import net.mt32.expoll.database.DatabaseEntity
-import net.mt32.expoll.database.UUIDLength
-import net.mt32.expoll.helper.upsertCustom
+import net.mt32.expoll.commons.interfaces.IVote
 import net.mt32.expoll.commons.tOptionID
 import net.mt32.expoll.commons.tPollID
 import net.mt32.expoll.commons.tUserID
+import net.mt32.expoll.database.DatabaseEntity
+import net.mt32.expoll.database.UUIDLength
+import net.mt32.expoll.helper.upsertCustom
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
-class Vote : DatabaseEntity {
-    val id: Int
-    val userID: tUserID
-    val pollID: tPollID
-    val optionID: tOptionID
-    var votedFor: VoteValue
+class Vote : IVote, DatabaseEntity {
+    override val id: Int
+    override val userID: tUserID
+    override val pollID: tPollID
+    override val optionID: tOptionID
+    override var votedFor: VoteValue
 
     constructor(id: Int, userID: tUserID, pollID: tPollID, optionID: tOptionID, votedFor: VoteValue) {
         this.id = id

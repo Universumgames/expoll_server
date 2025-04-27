@@ -15,20 +15,21 @@ import net.mt32.expoll.auth.verifyAppAttest
 import net.mt32.expoll.auth.verifyGoogleCAPTCHA
 import net.mt32.expoll.commons.helper.ReturnCode
 import net.mt32.expoll.commons.helper.UnixTimestamp
-import net.mt32.expoll.helper.startNewTiming
+import net.mt32.expoll.commons.serializable.request.CreateUserRequest
+import net.mt32.expoll.commons.serializable.request.EditUserRequest
+import net.mt32.expoll.commons.serializable.request.VoteChange
+import net.mt32.expoll.commons.serializable.request.search.UserSearchParameters
+import net.mt32.expoll.commons.serializable.responses.CreateUserResponse
+import net.mt32.expoll.commons.serializable.responses.StrippedPollData
+import net.mt32.expoll.commons.serializable.responses.UserPersonalizeResponse
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.MailRule
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.UserDeletionConfirmation
-import net.mt32.expoll.helper.*
+import net.mt32.expoll.helper.URLBuilder
+import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.plugins.getAuthPrincipal
-import net.mt32.expoll.serializable.request.CreateUserRequest
-import net.mt32.expoll.serializable.request.EditUserRequest
-import net.mt32.expoll.serializable.request.VoteChange
-import net.mt32.expoll.serializable.request.search.UserSearchParameters
-import net.mt32.expoll.serializable.responses.CreateUserResponse
-import net.mt32.expoll.serializable.responses.StrippedPollData
-import net.mt32.expoll.serializable.responses.UserPersonalizeResponse
 
 fun Route.userRoutes() {
     route("/user") {

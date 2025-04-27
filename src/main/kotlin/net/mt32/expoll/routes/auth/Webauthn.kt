@@ -14,16 +14,16 @@ import io.ktor.server.routing.*
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.auth.WebauthnRegistrationStorage
 import net.mt32.expoll.auth.normalAuth
+import net.mt32.expoll.commons.helper.ReturnCode
+import net.mt32.expoll.commons.helper.UnixTimestamp
+import net.mt32.expoll.commons.serializable.responses.SimpleAuthenticator
+import net.mt32.expoll.commons.serializable.responses.SimpleAuthenticatorList
+import net.mt32.expoll.commons.tUserID
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Authenticator
 import net.mt32.expoll.entities.User
-import net.mt32.expoll.commons.helper.ReturnCode
-import net.mt32.expoll.commons.helper.UnixTimestamp
 import net.mt32.expoll.helper.getDataFromAny
 import net.mt32.expoll.helper.respondWithOTPJSON
-import net.mt32.expoll.serializable.responses.SimpleAuthenticator
-import net.mt32.expoll.serializable.responses.SimpleAuthenticatorList
-import net.mt32.expoll.commons.tUserID
 
 fun Route.webauthnRoutes() {
     route("webauthn") {

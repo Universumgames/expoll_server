@@ -4,6 +4,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import net.mt32.expoll.commons.helper.mergeJsonObjects
+import net.mt32.expoll.commons.serializable.CompatibleVersionDescriptor
 import net.mt32.expoll.helper.defaultJSON
 import java.io.File
 
@@ -53,20 +54,6 @@ data class TestUserConfig(
     val email: String = "",
     val username: String = "",
     val otp: String = ""
-)
-
-@Serializable
-data class CompatibleVersionDescriptor(
-    val from: VersionDescriptor? = null,
-    val to: VersionDescriptor? = null,
-    val exact: VersionDescriptor? = null,
-    val platform: String? = null
-)
-
-@Serializable
-data class VersionDescriptor(
-    val version: String,
-    val build: Int? = null
 )
 
 @Serializable

@@ -1,21 +1,21 @@
 package net.mt32.expoll.entities
 
-import kotlinx.serialization.Serializable
+import net.mt32.expoll.commons.interfaces.IPollUserNote
+import net.mt32.expoll.commons.interfaces.SerializablePollUserNote
+import net.mt32.expoll.commons.tPollID
+import net.mt32.expoll.commons.tUserID
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.upsertCustom
-import net.mt32.expoll.commons.tPollID
-import net.mt32.expoll.commons.tUserID
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 
 
-@Serializable
-class PollUserNote : DatabaseEntity {
-    val userID: tUserID
-    val pollID: tPollID
-    var note: String
+class PollUserNote : IPollUserNote, DatabaseEntity {
+    override val userID: tUserID
+    override val pollID: tPollID
+    override var note: String
 
     constructor(userID: tUserID, pollID: tPollID, note: String) {
         this.userID = userID
@@ -52,6 +52,10 @@ class PollUserNote : DatabaseEntity {
             }
         }
         return true
+    }
+
+    fun toSerializable(): IPollUserNote {
+        return SerializablePollUserNote(userID, pollID, note)
     }
 
     companion object : Table("poll_user_note") {

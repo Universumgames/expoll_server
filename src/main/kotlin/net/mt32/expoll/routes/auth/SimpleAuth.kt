@@ -10,11 +10,11 @@ import net.mt32.expoll.auth.ExpollJWTCookie
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.auth.cookieName
 import net.mt32.expoll.auth.normalAuth
+import net.mt32.expoll.commons.helper.ReturnCode
+import net.mt32.expoll.commons.serializable.request.SimpleLoginRequest
 import net.mt32.expoll.entities.OTP
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.DeepLinkBuilder
-import net.mt32.expoll.commons.helper.ReturnCode
-import net.mt32.expoll.serializable.request.SimpleLoginRequest
 
 fun Route.simpleAuthRoutes() {
     route("simple") {

@@ -5,34 +5,22 @@ import net.mt32.expoll.commons.VoteValue
 import net.mt32.expoll.commons.helper.UnixTimestamp
 import net.mt32.expoll.commons.helper.toUnixTimestampFromClient
 import net.mt32.expoll.commons.helper.toUnixTimestampFromDB
+import net.mt32.expoll.commons.interfaces.IPoll
+import net.mt32.expoll.commons.serializable.request.SortingOrder
+import net.mt32.expoll.commons.serializable.request.search.PollSearchParameters
+import net.mt32.expoll.commons.serializable.responses.*
+import net.mt32.expoll.commons.tPollID
+import net.mt32.expoll.commons.tUserID
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.entities.interconnect.PollJoinTimestamp
 import net.mt32.expoll.entities.interconnect.UserPolls
-import net.mt32.expoll.helper.*
-import net.mt32.expoll.serializable.request.SortingOrder
-import net.mt32.expoll.serializable.request.search.PollSearchParameters
-import net.mt32.expoll.serializable.responses.*
-import net.mt32.expoll.commons.tPollID
-import net.mt32.expoll.commons.tUserID
+import net.mt32.expoll.helper.URLBuilder
+import net.mt32.expoll.helper.upsertCustom
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
-
-interface IPoll {
-    val admin: User
-    val id: String
-    var name: String
-    val createdTimestamp: UnixTimestamp
-    var updatedTimestamp: UnixTimestamp
-    var description: String
-    val type: PollType
-    var maxPerUserVoteCount: Int
-    var allowsMaybe: Boolean
-    var allowsEditing: Boolean
-    var privateVoting: Boolean
-}
 
 class Poll : DatabaseEntity, IPoll {
 
@@ -438,13 +426,13 @@ class Poll : DatabaseEntity, IPoll {
         val createdOption = when (type) {
             PollType.STRING -> {
                 if (option.value == null) return false
-                PollOptionString(option.value, id, PollOptionString.newID(id))
+                PollOptionString(option.value!!, id, PollOptionString.newID(id))
             }
 
             PollType.DATE -> {
                 if (option.dateStart == null) return false
                 PollOptionDate(
-                    option.dateStart.toUnixTimestampFromClient(),
+                    option.dateStart!!.toUnixTimestampFromClient(),
                     option.dateEnd?.toUnixTimestampFromClient(),
                     id,
                     PollOptionDate.newID(id)
@@ -454,7 +442,7 @@ class Poll : DatabaseEntity, IPoll {
             PollType.DATETIME -> {
                 if (option.dateTimeStart == null) return false
                 PollOptionDateTime(
-                    option.dateTimeStart.toUnixTimestampFromClient(),
+                    option.dateTimeStart!!.toUnixTimestampFromClient(),
                     option.dateTimeEnd?.toUnixTimestampFromClient(),
                     id,
                     PollOptionDateTime.newID(id)
@@ -488,3 +476,18 @@ class Poll : DatabaseEntity, IPoll {
 
 }
 
+fun List<Poll>.asSummaryList(user: User?): List<PollSummary> {
+    return sortedBy {
+        it.updatedTimestamp.secondsSince1970
+    }
+        .reversed()
+        .map { poll ->
+            poll.asSimplePoll(user)
+        }
+}
+
+fun List<Poll>.asPollListResponse(user: User?): PollListResponse {
+    return PollListResponse(
+        asSummaryList(user)
+    )
+}

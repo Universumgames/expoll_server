@@ -1,15 +1,17 @@
 package net.mt32.expoll.entities
 
-import kotlinx.serialization.Serializable
+import net.mt32.expoll.commons.serializable.responses.MailRegexRule
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.helper.upsertCustom
-import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.deleteWhere
+import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
-@Serializable
 class MailRule : DatabaseEntity {
     val id: String
     val regex: String
@@ -55,6 +57,14 @@ class MailRule : DatabaseEntity {
             }
         }
         return true
+    }
+
+    fun toSerializable(): MailRegexRule {
+        return MailRegexRule(
+            id = this.id,
+            regex = this.regex,
+            blacklist = this.blacklist
+        )
     }
 
     companion object : Table("mail_regex_rules") {

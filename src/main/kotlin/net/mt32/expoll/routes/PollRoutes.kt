@@ -7,25 +7,21 @@ import io.ktor.server.routing.*
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.commons.PollType
 import net.mt32.expoll.commons.VoteValue
-import net.mt32.expoll.config
-import net.mt32.expoll.entities.Poll
-import net.mt32.expoll.entities.PollUserNote
-import net.mt32.expoll.entities.User
-import net.mt32.expoll.entities.Vote
-import net.mt32.expoll.entities.interconnect.UserPolls
 import net.mt32.expoll.commons.helper.ReturnCode
+import net.mt32.expoll.commons.serializable.request.BasicPollOperation
+import net.mt32.expoll.commons.serializable.request.CreatePollRequest
+import net.mt32.expoll.commons.serializable.request.EditPollRequest
+import net.mt32.expoll.commons.serializable.request.PollRequest
+import net.mt32.expoll.commons.serializable.request.search.PollSearchParameters
+import net.mt32.expoll.commons.serializable.responses.PollCreatedResponse
+import net.mt32.expoll.commons.tPollID
+import net.mt32.expoll.config
+import net.mt32.expoll.entities.*
+import net.mt32.expoll.entities.interconnect.UserPolls
 import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.plugins.getAuthPrincipal
 import net.mt32.expoll.plugins.query
-import net.mt32.expoll.serializable.request.BasicPollOperation
-import net.mt32.expoll.serializable.request.CreatePollRequest
-import net.mt32.expoll.serializable.request.EditPollRequest
-import net.mt32.expoll.serializable.request.PollRequest
-import net.mt32.expoll.serializable.request.search.PollSearchParameters
-import net.mt32.expoll.serializable.responses.PollCreatedResponse
-import net.mt32.expoll.serializable.responses.asPollListResponse
-import net.mt32.expoll.commons.tPollID
 
 fun Route.pollRoutes() {
     route("/poll") {
@@ -121,8 +117,8 @@ private suspend fun editPoll(call: ApplicationCall) {
     // update notes
     editPollRequest.notes.distinctBy { it.userID }.forEach { note ->
         if (note.note == null) return@forEach
-        val dbNote = poll.notes.find { it.userID == note.userID } ?: PollUserNote(note.userID, poll.id, note.note)
-        dbNote.note = note.note
+        val dbNote = poll.notes.find { it.userID == note.userID } ?: PollUserNote(note.userID, poll.id, note.note!!)
+        dbNote.note = note.note.toString()
         dbNote.save()
     }
 

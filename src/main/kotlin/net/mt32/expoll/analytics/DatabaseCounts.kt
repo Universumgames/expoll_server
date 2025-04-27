@@ -1,10 +1,10 @@
 package net.mt32.expoll.analytics
 
 import kotlinx.serialization.Serializable
+import net.mt32.expoll.commons.serializable.request.Platform
 import net.mt32.expoll.database.DatabaseFactory
 import net.mt32.expoll.entities.*
 import net.mt32.expoll.entities.notifications.APNDevice
-import net.mt32.expoll.serializable.request.Platform
 import org.jetbrains.exposed.sql.or
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction

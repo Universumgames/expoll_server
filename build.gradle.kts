@@ -25,7 +25,7 @@ kotlin {
 }
 
 group = "net.mt32.expoll"
-version = "4.2.4"
+version = "4.6.0"
 
 application {
     mainClass.set("net.mt32.expoll.ApplicationKt")

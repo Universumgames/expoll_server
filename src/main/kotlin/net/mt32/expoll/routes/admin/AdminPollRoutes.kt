@@ -4,10 +4,10 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import net.mt32.expoll.commons.serializable.admin.request.AdminPollListRequest
+import net.mt32.expoll.commons.serializable.admin.responses.AdminPollResponse
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.plugins.query
-import net.mt32.expoll.serializable.admin.request.AdminPollListRequest
-import net.mt32.expoll.serializable.admin.responses.AdminPollResponse
 
 internal fun Route.adminPollRoutes() {
     route("/polls") {

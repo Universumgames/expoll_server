@@ -7,11 +7,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import net.mt32.expoll.auth.normalAuth
+import net.mt32.expoll.commons.serializable.ServerInfo
 import net.mt32.expoll.helper.defaultJSON
+import net.mt32.expoll.instance
+import net.mt32.expoll.iosPlatformInfo
 import net.mt32.expoll.routes.admin.adminRoute
 import net.mt32.expoll.routes.auth.authRoutes
-import net.mt32.expoll.serializable.ServerInfo
-import net.mt32.expoll.serializable.iosPlatformInfo
 
 fun Route.apiRouting() {
     route("/") {

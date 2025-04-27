@@ -3,35 +3,33 @@ package net.mt32.expoll.entities
 import com.yubico.webauthn.data.ByteArray
 import io.ktor.server.application.*
 import io.ktor.util.*
-import net.mt32.expoll.*
+import net.mt32.expoll.ExpollMail
+import net.mt32.expoll.Mail
 import net.mt32.expoll.commons.helper.UnixTimestamp
 import net.mt32.expoll.commons.helper.toUnixTimestampFromDB
+import net.mt32.expoll.commons.interfaces.*
+import net.mt32.expoll.commons.serializable.admin.responses.UserInfo
+import net.mt32.expoll.commons.serializable.request.SortingOrder
+import net.mt32.expoll.commons.serializable.request.search.UserSearchParameters
+import net.mt32.expoll.commons.serializable.responses.SimpleUser
+import net.mt32.expoll.commons.serializable.responses.UserDataResponse
 import net.mt32.expoll.commons.tPollID
 import net.mt32.expoll.commons.tUserID
+import net.mt32.expoll.config
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.entities.interconnect.UserPolls
 import net.mt32.expoll.entities.notifications.APNDevice
 import net.mt32.expoll.entities.notifications.NotificationDevice
 import net.mt32.expoll.entities.notifications.WebNotificationDevice
-import net.mt32.expoll.helper.*
+import net.mt32.expoll.helper.URLBuilder
+import net.mt32.expoll.helper.generateRandomUsername
+import net.mt32.expoll.helper.upsertCustom
 import net.mt32.expoll.notification.ExpollNotificationHandler
-import net.mt32.expoll.serializable.admin.responses.UserInfo
-import net.mt32.expoll.serializable.request.SortingOrder
-import net.mt32.expoll.serializable.request.search.UserSearchParameters
-import net.mt32.expoll.serializable.responses.SimpleUser
-import net.mt32.expoll.serializable.responses.UserDataResponse
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
-
-interface ISimpleUser {
-    val firstName: String
-    val lastName: String
-    val username: String
-    val id: String
-}
 
 interface IUser : ISimpleUser {
     override val id: tUserID
@@ -39,10 +37,10 @@ interface IUser : ISimpleUser {
     override var firstName: String
     override var lastName: String
     var mail: String
-    val polls: List<Poll>
-    val votes: List<Vote>
-    val sessions: List<Session>
-    val notes: List<PollUserNote>
+    val polls: List<IPoll>
+    val votes: List<IVote>
+    val sessions: List<ISession>
+    val notes: List<IPollUserNote>
     val active: Boolean
     var admin: Boolean
     val challenges: List<Challenge>
@@ -549,12 +547,12 @@ class User : IUser, DatabaseEntity {
             admin || superAdmin,
             superAdmin,
             active,
-            oidConnections.mapIndexed { index: Int, it: OIDCUserData -> it.toConnectionOverview(index) },
+            oidConnections.mapIndexed { index: Int, it: OIDCUserData -> it.toConnectionOverview(index) }.toList(),
             created.toClient(),
             deleted?.toClient(),
             pollsOwned,
             maxPollsOwned,
-            sessions.map { it.asSafeSession(null) },
+            sessions.map { it.asSafeSession(null) }.toList(),
             lastLogin.toClient()
         )
     }

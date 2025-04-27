@@ -9,18 +9,19 @@ import net.mt32.expoll.Mail
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.commons.helper.ReturnCode
 import net.mt32.expoll.commons.helper.async
-import net.mt32.expoll.helper.startNewTiming
+import net.mt32.expoll.commons.serializable.admin.request.AdminCreateUserRequest
+import net.mt32.expoll.commons.serializable.admin.request.AdminEditUserRequest
+import net.mt32.expoll.commons.serializable.admin.request.AdminUserListRequest
+import net.mt32.expoll.commons.serializable.admin.responses.UserListResponse
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.UserDeletionQueue
 import net.mt32.expoll.entities.interconnect.UserPolls
-import net.mt32.expoll.helper.*
+import net.mt32.expoll.helper.URLBuilder
+import net.mt32.expoll.helper.getDataFromAny
+import net.mt32.expoll.helper.startNewTiming
 import net.mt32.expoll.plugins.getAuthPrincipal
 import net.mt32.expoll.plugins.query
-import net.mt32.expoll.serializable.admin.request.AdminCreateUserRequest
-import net.mt32.expoll.serializable.admin.request.AdminEditUserRequest
-import net.mt32.expoll.serializable.admin.request.AdminUserListRequest
-import net.mt32.expoll.serializable.admin.responses.UserListResponse
 
 internal fun Route.adminUserRoutes() {
     route("/users") {
@@ -108,7 +109,7 @@ private suspend fun editUser(call: ApplicationCall) {
     if (!user.admin || admin.superAdmin) user.admin = editUserRequest.admin ?: user.admin
     user.maxPollsOwned = editUserRequest.maxPollsOwned ?: user.maxPollsOwned
     if (editUserRequest.active != null) {
-        if (editUserRequest.active) {
+        if (editUserRequest.active == true) {
             user.reactivateUser()
         } else {
             user.deactivateUser()
