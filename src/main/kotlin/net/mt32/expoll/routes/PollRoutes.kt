@@ -4,14 +4,10 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
 import net.mt32.expoll.commons.PollType
 import net.mt32.expoll.commons.VoteValue
 import net.mt32.expoll.commons.helper.ReturnCode
-import net.mt32.expoll.commons.serializable.request.BasicPollOperation
-import net.mt32.expoll.commons.serializable.request.CreatePollRequest
-import net.mt32.expoll.commons.serializable.request.EditPollRequest
-import net.mt32.expoll.commons.serializable.request.PollRequest
+import net.mt32.expoll.commons.serializable.request.*
 import net.mt32.expoll.commons.serializable.request.search.PollSearchParameters
 import net.mt32.expoll.commons.serializable.responses.PollCreatedResponse
 import net.mt32.expoll.commons.tPollID
@@ -253,9 +249,6 @@ private suspend fun getDetailedPoll(call: ApplicationCall, pollID: tPollID) {
     val detailedPoll = poll.asDetailedPoll(principal.user)
     call.respond(detailedPoll)
 }
-
-@Serializable
-data class PollHideRequest(val pollID: tPollID, val hide: Boolean? = true)
 
 private suspend fun hidePoll(call: ApplicationCall) {
     val principal = call.getAuthPrincipal()

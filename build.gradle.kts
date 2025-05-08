@@ -10,6 +10,7 @@ val jakarta_mail_version: String by project
 val angus_mail_version: String by project
 val kotlinx_coroutines_version: String by project
 val swagger_codegen_version: String by project
+val expoll_commons_version: String by project
 
 plugins {
     application
@@ -25,7 +26,7 @@ kotlin {
 }
 
 group = "net.mt32.expoll"
-version = "4.6.0"
+version = "4.6.1"
 
 application {
     mainClass.set("net.mt32.expoll.ApplicationKt")
@@ -133,7 +134,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    implementation("net.mt32.expoll.commons:expoll-kotlin-commons:$version")
+    implementation("net.mt32.expoll.commons:expoll-kotlin-commons:$expoll_commons_version")
 
     // Unit Tests
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")

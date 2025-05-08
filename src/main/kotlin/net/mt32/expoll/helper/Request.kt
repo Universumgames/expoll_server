@@ -23,7 +23,11 @@ suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
                 .removeNullString()
         }
     }
-    val query = request.queryParameters[key]
+    val query = try {
+        request.queryParameters[key]
+    } catch (_: Exception) {
+        null
+    }
     if (query != null)
         return query.removeNullString()
     var isForm = false
@@ -43,7 +47,7 @@ suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
     if (body != null)
         return body.removeNullString()
     val header = request.headers[key]
-    if(header != null)
+    if (header != null)
         return header.removeNullString()
     return null
 }
@@ -56,8 +60,8 @@ suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
 suspend fun ApplicationCall.getDataFromAny(key: String): String? =
     getDataFromAny(this, key)
 
-suspend fun ApplicationCall.anyParameter(key: String):String?
-= parameters[key] ?: request.queryParameters[key] ?: receiveParameters()[key]
+suspend fun ApplicationCall.anyParameter(key: String): String? =
+    parameters[key] ?: request.queryParameters[key] ?: receiveParameters()[key]
 
 /*suspend fun ApplicationCall.respondRedirect(url: Url, body: String){
     response.headers.append("Location", url.toString())

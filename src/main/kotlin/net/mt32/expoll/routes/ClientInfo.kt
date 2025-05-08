@@ -3,17 +3,9 @@ package net.mt32.expoll.routes
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
 import net.mt32.expoll.commons.helper.ReturnCode
+import net.mt32.expoll.commons.serializable.ClientInfo
 import net.mt32.expoll.helper.checkVersionCompatibility
-
-@Serializable
-data class ClientInfo(
-    val version: String,
-    val build: String? = null,
-    val platform: String? = null,
-)
-
 
 fun Route.clientCompatibilityRoute(){
     post("compatibility") {

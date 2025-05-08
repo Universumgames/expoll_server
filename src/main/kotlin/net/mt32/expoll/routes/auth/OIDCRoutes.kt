@@ -25,14 +25,17 @@ import net.mt32.expoll.auth.OIDC
 import net.mt32.expoll.auth.normalAuth
 import net.mt32.expoll.commons.helper.ReturnCode
 import net.mt32.expoll.commons.helper.UnixTimestamp
-import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.commons.helper.removeNullString
 import net.mt32.expoll.commons.helper.replaceEmptyWithNull
+import net.mt32.expoll.commons.serializable.responses.OIDCInfo
+import net.mt32.expoll.commons.tUserID
 import net.mt32.expoll.entities.OIDCUserData
 import net.mt32.expoll.entities.User
-import net.mt32.expoll.helper.*
+import net.mt32.expoll.helper.anyParameter
+import net.mt32.expoll.helper.createNonce
+import net.mt32.expoll.helper.defaultJSON
+import net.mt32.expoll.helper.respondWithOTPRedirect
 import net.mt32.expoll.plugins.getAuthPrincipal
-import net.mt32.expoll.commons.tUserID
 import java.util.*
 
 private val client = HttpClient(Java) {
@@ -107,16 +110,6 @@ fun Route.oidcRoutes() {
         //}
     }
 }
-
-@Serializable
-data class OIDCInfo(
-    val key: String,
-    val imageURI: String,
-    val iconFileName: String,
-    val iconBackgroundColorHex: String,
-    val textColorHex: String,
-    val title: String
-)
 
 private suspend fun listIDPs(call: ApplicationCall) {
     call.respond(OIDC.data.map {
@@ -359,6 +352,7 @@ private suspend fun createAndRespondWithSession(
 private suspend fun removeOIDCConnection(call: ApplicationCall, idp: OIDC.OIDCIDPData) {
     val principal = call.getAuthPrincipal()
     val connections = OIDCUserData.byUser(principal.userID)
+    // TODO: wrong implementation for multiple connections
     val connection = connections.firstOrNull { it.idpName == idp.name }
     if (connection == null) {
         call.respond(ReturnCode.BAD_REQUEST)

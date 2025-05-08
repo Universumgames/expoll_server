@@ -5,16 +5,17 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.serialization.Serializable
 import net.mt32.expoll.auth.JWTSessionPrincipal
-import net.mt32.expoll.entities.NotificationPreferences
-import net.mt32.expoll.entities.NotificationPreferencesSerial
-import net.mt32.expoll.entities.notifications.APNDevice
-import net.mt32.expoll.entities.notifications.WebNotificationDevice
 import net.mt32.expoll.commons.helper.ReturnCode
 import net.mt32.expoll.commons.helper.UnixTimestamp
-import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.commons.helper.toUnixTimestampFromClient
+import net.mt32.expoll.commons.interfaces.AppleRegistrationData
+import net.mt32.expoll.commons.interfaces.NotificationPreferencesSerial
+import net.mt32.expoll.commons.interfaces.WebRegistrationData
+import net.mt32.expoll.entities.NotificationPreferences
+import net.mt32.expoll.entities.notifications.APNDevice
+import net.mt32.expoll.entities.notifications.WebNotificationDevice
+import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.notification.ExpollNotificationHandler
 
 fun Route.notificationRoutes() {
@@ -46,10 +47,7 @@ fun Route.notificationRoutes() {
     }
 }
 
-@Serializable
-data class AppleRegistrationData(
-    val deviceID: String
-)
+
 
 private suspend fun registerAppleDevice(call:ApplicationCall){
     val principal = call.principal<JWTSessionPrincipal>()
@@ -129,18 +127,7 @@ private suspend fun getNotifications(call: ApplicationCall) {
     call.respond(NotificationPreferences.fromUser(principal.userID).toSerializable())
 }
 
-@Serializable
-data class WebRegistrationData(
-    val endpoint: String,
-    val expirationTime: Long? = null,
-    val keys: WebRegistrationKeys
-)
 
-@Serializable
-data class WebRegistrationKeys(
-    val p256dh: String,
-    val auth: String
-)
 
 private suspend fun registerWebDevice(call: ApplicationCall){
     val principal = call.principal<JWTSessionPrincipal>()

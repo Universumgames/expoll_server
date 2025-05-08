@@ -6,12 +6,12 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import kotlinx.serialization.Serializable
 import net.mt32.expoll.auth.ExpollJWTCookie
 import net.mt32.expoll.auth.JWTSessionPrincipal
 import net.mt32.expoll.auth.normalAuth
-import net.mt32.expoll.entities.Session
 import net.mt32.expoll.commons.helper.ReturnCode
+import net.mt32.expoll.commons.serializable.request.LogoutRequest
+import net.mt32.expoll.entities.Session
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -46,11 +46,6 @@ private suspend fun logoutAll(call: ApplicationCall){
     }
     call.respond(ReturnCode.OK)
 }
-
-@Serializable
-data class LogoutRequest(
-    val nonce: Long? = null
-)
 
 private suspend fun logout(call: ApplicationCall){
     val principal = call.principal<JWTSessionPrincipal>()
