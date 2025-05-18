@@ -35,8 +35,7 @@ suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
         val params = call.receiveParameters()
         isForm = true
         params[key]
-    } catch (e: Exception) {
-        e.printStackTrace()
+    } catch (_: Exception) {
         null
     }
     if (form != null)

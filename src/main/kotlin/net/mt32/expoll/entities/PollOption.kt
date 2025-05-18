@@ -19,7 +19,7 @@ interface PollOption : IDatabaseEntity {
 
     fun toComplexOption(): ComplexOption
 
-    override fun toString(): String
+    fun toNotificationString(useUTC: Boolean = false): String
 }
 
 class PollOptionString : PollOption, DatabaseEntity {
@@ -69,7 +69,7 @@ class PollOptionString : PollOption, DatabaseEntity {
         )
     }
 
-    override fun toString(): String {
+    override fun toNotificationString(useUTC: Boolean): String {
         return value
     }
 
@@ -83,7 +83,8 @@ class PollOptionString : PollOption, DatabaseEntity {
         fun fromPollIDAndID(pollID: tPollID, optionID: tOptionID): PollOptionString? {
             return transaction {
                 val result =
-                    PollOptionString.selectAll().where { (PollOptionString.pollID eq pollID) and (PollOptionString.id eq optionID) }
+                    PollOptionString.selectAll()
+                        .where { (PollOptionString.pollID eq pollID) and (PollOptionString.id eq optionID) }
                         .firstOrNull()
                 return@transaction result?.let { PollOptionString(it) }
             }
@@ -109,15 +110,27 @@ class PollOptionString : PollOption, DatabaseEntity {
     }
 }
 
-class PollOptionDate : PollOption, DatabaseEntity {
+interface TimedPollOption : PollOption {
+    val ianaTimezone: String
+}
+
+class PollOptionDate : TimedPollOption, DatabaseEntity {
     val dateStartTimestamp: UnixTimestamp
     val dateEndTimestamp: UnixTimestamp?
+    override val ianaTimezone: String
     override val pollID: tPollID
     override var id: tOptionID
 
-    constructor(dateStartTimestamp: UnixTimestamp, dateEndTimestamp: UnixTimestamp?, pollID: tPollID, id: tOptionID) {
+    constructor(
+        dateStartTimestamp: UnixTimestamp,
+        dateEndTimestamp: UnixTimestamp?,
+        timeZone: String,
+        pollID: tPollID,
+        id: tOptionID
+    ) {
         this.dateStartTimestamp = dateStartTimestamp
         this.dateEndTimestamp = dateEndTimestamp
+        this.ianaTimezone = timeZone
         this.pollID = pollID
         this.id = id
     }
@@ -127,6 +140,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
         pollID = optionRow[PollOptionDate.pollID]
         dateStartTimestamp = optionRow[PollOptionDate.dateStartTimestamp].toUnixTimestampFromDB()
         dateEndTimestamp = optionRow[PollOptionDate.dateEndTimestamp]?.toUnixTimestampFromDB()
+        ianaTimezone = optionRow[PollOptionDate.timeZone]
     }
 
     override fun save(): Boolean {
@@ -136,6 +150,7 @@ class PollOptionDate : PollOption, DatabaseEntity {
                 it[pollID] = this@PollOptionDate.pollID
                 it[dateStartTimestamp] = this@PollOptionDate.dateStartTimestamp.toDB()
                 it[dateEndTimestamp] = this@PollOptionDate.dateEndTimestamp?.toDB()
+                it[timeZone] = this@PollOptionDate.ianaTimezone
             }.resultedValues?.firstOrNull()?.get(PollOptionDate.id)
         } ?: id
         return true
@@ -156,19 +171,24 @@ class PollOptionDate : PollOption, DatabaseEntity {
 
     override fun toComplexOption(): ComplexOption {
         return ComplexOption(
-            id, dateStart = dateStartTimestamp.toClient(), dateEnd = dateEndTimestamp?.toClient()
+            id,
+            dateStart = dateStartTimestamp.toClient(),
+            dateEnd = dateEndTimestamp?.toClient(),
+            timezone = ianaTimezone,
         )
     }
 
-    override fun toString(): String {
-        return dateStartTimestamp.toDateString()
+    override fun toNotificationString(useUTC: Boolean): String {
+        return dateStartTimestamp.toDateString(if (useUTC) null else ianaTimezone)
     }
 
     companion object : Table("poll_option_date") {
         val id = integer("id").autoIncrement()
+        val pollID = varchar("pollId", UUIDLength)
+
         val dateStartTimestamp = long("dateStartTimestamp")
         val dateEndTimestamp = long("dateEndTimestamp").nullable()
-        val pollID = varchar("pollId", UUIDLength)
+        val timeZone = varchar("timeZone", 50)
 
         override val primaryKey = PrimaryKey(id)
 
@@ -201,20 +221,23 @@ class PollOptionDate : PollOption, DatabaseEntity {
     }
 }
 
-class PollOptionDateTime : PollOption, DatabaseEntity {
+class PollOptionDateTime : TimedPollOption, DatabaseEntity {
     val dateTimeStartTimestamp: UnixTimestamp
     val dateTimeEndTimestamp: UnixTimestamp?
+    override val ianaTimezone: String
     override val pollID: tPollID
     override var id: tOptionID
 
     constructor(
         dateTimeStartTimestamp: UnixTimestamp,
         dateTImeEndTimestamp: UnixTimestamp?,
+        timeZone: String,
         pollID: tPollID,
         id: tOptionID
     ) {
         this.dateTimeStartTimestamp = dateTimeStartTimestamp
         this.dateTimeEndTimestamp = dateTImeEndTimestamp
+        this.ianaTimezone = timeZone
         this.pollID = pollID
         this.id = id
     }
@@ -224,6 +247,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
         pollID = optionRow[PollOptionDateTime.pollID]
         dateTimeStartTimestamp = optionRow[PollOptionDateTime.dateTimeStartTimestamp].toUnixTimestampFromDB()
         dateTimeEndTimestamp = optionRow[PollOptionDateTime.dateTimeEndTimestamp]?.toUnixTimestampFromDB()
+        ianaTimezone = optionRow[PollOptionDateTime.timeZone]
     }
 
     override fun save(): Boolean {
@@ -233,6 +257,7 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
                 it[pollID] = this@PollOptionDateTime.pollID
                 it[PollOptionDateTime.dateTimeStartTimestamp] = this@PollOptionDateTime.dateTimeStartTimestamp.toDB()
                 it[PollOptionDateTime.dateTimeEndTimestamp] = this@PollOptionDateTime.dateTimeEndTimestamp?.toDB()
+                it[timeZone] = this@PollOptionDateTime.ianaTimezone
             }.resultedValues?.firstOrNull()?.get(PollOptionDateTime.id)
         } ?: id
         return true
@@ -253,19 +278,24 @@ class PollOptionDateTime : PollOption, DatabaseEntity {
 
     override fun toComplexOption(): ComplexOption {
         return ComplexOption(
-            id, dateTimeStart = dateTimeStartTimestamp.toClient(), dateTimeEnd = dateTimeEndTimestamp?.toClient()
+            id,
+            dateTimeStart = dateTimeStartTimestamp.toClient(),
+            dateTimeEnd = dateTimeEndTimestamp?.toClient(),
+            timezone = ianaTimezone
         )
     }
 
-    override fun toString(): String {
-        return dateTimeStartTimestamp.toDateTimeString()
+    override fun toNotificationString(useUTC: Boolean): String {
+        return dateTimeStartTimestamp.toDateTimeString(if(useUTC) null else ianaTimezone)
     }
 
     companion object : Table("poll_option_date_time") {
         val id = integer("id").autoIncrement()
+        val pollID = varchar("pollId", UUIDLength)
+
         val dateTimeStartTimestamp = long("dateTimeStartTimestamp")
         val dateTimeEndTimestamp = long("dateTimeEndTimestamp").nullable()
-        val pollID = varchar("pollId", UUIDLength)
+        val timeZone = varchar("timeZone", 50)
 
         override val primaryKey = PrimaryKey(id)
 

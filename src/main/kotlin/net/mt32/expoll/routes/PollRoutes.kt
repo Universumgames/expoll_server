@@ -196,7 +196,8 @@ private suspend fun createPoll(call: ApplicationCall) {
         createPollRequest.allowsMaybe,
         createPollRequest.allowsEditing,
         createPollRequest.privateVoting,
-        VoteValue.valueOf(createPollRequest.defaultVote) ?: VoteValue.UNKNOWN
+        VoteValue.valueOf(createPollRequest.defaultVote) ?: VoteValue.UNKNOWN,
+        createPollRequest.useUTC
     )
 
 

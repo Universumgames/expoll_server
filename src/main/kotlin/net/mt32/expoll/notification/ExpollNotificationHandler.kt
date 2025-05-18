@@ -1,14 +1,14 @@
 package net.mt32.expoll.notification
 
-import net.mt32.expoll.commons.VoteValue
 import net.mt32.expoll.analytics.AnalyticsStorage
+import net.mt32.expoll.commons.VoteValue
+import net.mt32.expoll.commons.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.async
+import net.mt32.expoll.commons.tOptionID
 import net.mt32.expoll.config
 import net.mt32.expoll.entities.Poll
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.notifications.NotificationDevice
-import net.mt32.expoll.commons.helper.UnixTimestamp
-import net.mt32.expoll.commons.helper.async
-import net.mt32.expoll.commons.tOptionID
 
 
 object ExpollNotificationHandler {
@@ -163,7 +163,9 @@ object ExpollNotificationHandler {
             oldVote: VoteValue?,
             newVote: VoteValue?
         ): UniversalNotification {
-            val optionString = optionID?.let { poll?.options?.find { it.id == optionID }?.toString() }
+            val optionString = optionID?.let { poll?.options?.find { it.id == optionID }?.toNotificationString(
+                poll.useUTC
+            ) }
             return UniversalNotification(
                 title,
                 body,

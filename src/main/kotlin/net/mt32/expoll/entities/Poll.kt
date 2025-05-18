@@ -76,6 +76,8 @@ class Poll : DatabaseEntity, IPoll {
 
     var defaultVote: VoteValue
 
+    var useUTC: Boolean
+
     constructor(
         adminID: tUserID,
         id: String,
@@ -88,7 +90,8 @@ class Poll : DatabaseEntity, IPoll {
         allowsMaybe: Boolean,
         allowsEditing: Boolean,
         privateVoting: Boolean,
-        defaultVoteValue: VoteValue
+        defaultVoteValue: VoteValue,
+        useUTC: Boolean
     ) : super() {
         this.adminID = adminID
         this.id = id
@@ -102,6 +105,7 @@ class Poll : DatabaseEntity, IPoll {
         this.allowsEditing = allowsEditing
         this.privateVoting = privateVoting
         this.defaultVote = defaultVoteValue
+        this.useUTC = useUTC
     }
 
 
@@ -118,6 +122,7 @@ class Poll : DatabaseEntity, IPoll {
         this.allowsEditing = pollRow[Poll.allowsEditing]
         this.privateVoting = pollRow[Poll.privateVoting]
         this.defaultVote = VoteValue.valueOf(pollRow[Poll.defaultVote]) ?: VoteValue.UNKNOWN
+        this.useUTC = pollRow[Poll.useUTC]
     }
 
     override fun save(): Boolean {
@@ -146,6 +151,7 @@ class Poll : DatabaseEntity, IPoll {
                     it[Poll.allowsEditing] = this@Poll.allowsEditing
                     it[Poll.privateVoting] = this@Poll.privateVoting
                     it[Poll.defaultVote] = this@Poll.defaultVote.id
+                    it[Poll.useUTC] = this@Poll.useUTC
                 }
             }
         }
@@ -181,6 +187,7 @@ class Poll : DatabaseEntity, IPoll {
         val allowsEditing = bool("allowsEditing")
         val privateVoting = bool("privateVoting")
         val defaultVote = integer("defaultVote")
+        val useUTC = bool("useUTC")
 
         override val primaryKey = PrimaryKey(id)
 
@@ -234,7 +241,8 @@ class Poll : DatabaseEntity, IPoll {
             allowsMaybe: Boolean,
             allowsEditing: Boolean,
             privateVoting: Boolean,
-            defaultVoteValue: VoteValue
+            defaultVoteValue: VoteValue,
+            useUTC: Boolean
         ): Poll {
             return Poll(
                 adminID,
@@ -248,7 +256,8 @@ class Poll : DatabaseEntity, IPoll {
                 allowsMaybe,
                 allowsEditing,
                 privateVoting,
-                defaultVoteValue
+                defaultVoteValue,
+                useUTC
             )
         }
 
@@ -402,7 +411,8 @@ class Poll : DatabaseEntity, IPoll {
             privateVoting,
             shareURL,
             UserPolls.getHidden(id, adminID),
-            defaultVote.id
+            defaultVote.id,
+            useUTC
         )
     }
 
@@ -434,6 +444,7 @@ class Poll : DatabaseEntity, IPoll {
                 PollOptionDate(
                     option.dateStart!!.toUnixTimestampFromClient(),
                     option.dateEnd?.toUnixTimestampFromClient(),
+                    option.timezone ?: "Europe/Berlin",
                     id,
                     PollOptionDate.newID(id)
                 )
@@ -444,6 +455,7 @@ class Poll : DatabaseEntity, IPoll {
                 PollOptionDateTime(
                     option.dateTimeStart!!.toUnixTimestampFromClient(),
                     option.dateTimeEnd?.toUnixTimestampFromClient(),
+                    option.timezone ?: "Europe/Berlin",
                     id,
                     PollOptionDateTime.newID(id)
                 )

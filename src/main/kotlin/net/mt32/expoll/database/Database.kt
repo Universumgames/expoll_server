@@ -121,6 +121,7 @@ object Transformer {
         nonNullDefaultVotes()
         addUsernameToAuthenticator()
         renameOIDCUsernames()
+        addTimezoneColumn()
 
         removeGhostVotes() // always last
     }

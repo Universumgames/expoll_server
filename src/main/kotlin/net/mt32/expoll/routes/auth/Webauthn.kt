@@ -132,7 +132,7 @@ val challengeStorage: MutableMap<ByteArray, AssertionRequest> = mutableMapOf()
 private suspend fun authInit(call: ApplicationCall) {
     val username = call.getDataFromAny("username")
     val mail = call.getDataFromAny("mail")
-    /*if (username == null && mail == null) {
+    if (username == null && mail == null) {
         call.respond(ReturnCode.MISSING_PARAMS)
         return
     }
@@ -140,7 +140,7 @@ private suspend fun authInit(call: ApplicationCall) {
     if (user == null || !user.loginAble) {
         call.respond(ReturnCode.BAD_REQUEST)
         return
-    }*/
+    }
 
     val request = rp.startAssertion(
         StartAssertionOptions.builder()
