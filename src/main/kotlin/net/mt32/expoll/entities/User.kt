@@ -133,6 +133,8 @@ class User : IUser, DatabaseEntity {
     val outstandingDeletion: UserDeletionQueue?
         get() = UserDeletionQueue.getPendingDeletionForUser(id)
 
+    var personalDataRequestCount: Int
+
     private constructor(
         username: String,
         firstName: String,
@@ -152,6 +154,7 @@ class User : IUser, DatabaseEntity {
         this.deleted = null
         this._maxPollsOwned = 10
         this.lastLogin = UnixTimestamp.now()
+        this.personalDataRequestCount = 0
     }
 
     constructor(userRow: ResultRow) {
@@ -166,6 +169,7 @@ class User : IUser, DatabaseEntity {
         this.deleted = userRow[User.deleted]?.toUnixTimestampFromDB()
         this._maxPollsOwned = userRow[User.maxPollsOwned]
         this.lastLogin = userRow[User.lastLogin].toUnixTimestampFromDB()
+        this.personalDataRequestCount = userRow[User.personalDataRequestCount]
     }
 
     override fun save(): Boolean {
@@ -182,6 +186,7 @@ class User : IUser, DatabaseEntity {
                 it[deleted] = this@User.deleted?.toDB()
                 it[lastLogin] = this@User.lastLogin.toDB()
                 it[maxPollsOwned] = this@User._maxPollsOwned
+                it[this.personalDataRequestCount] = this@User.personalDataRequestCount
             }
         }
         return true
@@ -310,6 +315,7 @@ class User : IUser, DatabaseEntity {
         val deleted = long("deletedTimestamp").nullable()
         val lastLogin = long("lastLogin")
         val maxPollsOwned = long("maxPollsOwned").default(10)
+        val personalDataRequestCount = integer("personalDataRequestCount").default(0)
 
 
         override val primaryKey = PrimaryKey(id)

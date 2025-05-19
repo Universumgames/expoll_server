@@ -122,6 +122,7 @@ object Transformer {
         addUsernameToAuthenticator()
         renameOIDCUsernames()
         addTimezoneColumn()
+        addPersonalizedDateRequestCountColumn()
 
         removeGhostVotes() // always last
     }

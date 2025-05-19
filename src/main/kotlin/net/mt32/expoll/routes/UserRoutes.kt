@@ -179,7 +179,7 @@ private suspend fun getPersonalizedData(call: ApplicationCall) {
         polls.map { StrippedPollData(it.pollID) },
         votes,
         sessions,
-        user.notes,
+        user.notes.map { it.toSerializable() },
         user.active,
         user.admin,
         user.superAdmin,
@@ -209,7 +209,7 @@ private suspend fun requestPersonalData(call: ApplicationCall) {
         polls.map { StrippedPollData(it.pollID) },
         votes,
         sessions,
-        user.notes,
+        user.notes.map { it.toSerializable() },
         user.active,
         user.admin,
         user.superAdmin,
@@ -220,6 +220,8 @@ private suspend fun requestPersonalData(call: ApplicationCall) {
     )
     val mailData = ExpollMail.PersonalDataMail(user, personalizeResponse)
     Mail.sendMailAsync(mailData)
+    user.personalDataRequestCount++
+    user.save()
     call.respond(ReturnCode.OK)
 }
 

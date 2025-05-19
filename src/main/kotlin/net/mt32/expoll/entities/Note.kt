@@ -54,7 +54,7 @@ class PollUserNote : IPollUserNote, DatabaseEntity {
         return true
     }
 
-    fun toSerializable(): IPollUserNote {
+    fun toSerializable(): SerializablePollUserNote {
         return SerializablePollUserNote(userID, pollID, note)
     }
 
