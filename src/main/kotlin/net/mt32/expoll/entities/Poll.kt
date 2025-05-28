@@ -361,8 +361,7 @@ class Poll : DatabaseEntity, IPoll {
             }.indexOfFirst { option ->
                 when (type) {
                     PollType.DATE -> {
-                        return@indexOfFirst (option as PollOptionDate).dateStartTimestamp.nextMidnight() >= UnixTimestamp.now()
-                            .todaysMidnight()
+                        return@indexOfFirst UnixTimestamp.isSameDay((option as PollOptionDate).dateStartTimestamp, UnixTimestamp.now())
                     }
                     PollType.DATETIME -> (option as PollOptionDateTime).dateTimeStartTimestamp > UnixTimestamp.now()
                     else -> false
