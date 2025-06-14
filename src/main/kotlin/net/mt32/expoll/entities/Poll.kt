@@ -1,7 +1,6 @@
 package net.mt32.expoll.entities
 
-import net.mt32.expoll.commons.PollType
-import net.mt32.expoll.commons.VoteValue
+import net.mt32.expoll.commons.*
 import net.mt32.expoll.commons.helper.UnixTimestamp
 import net.mt32.expoll.commons.helper.toUnixTimestampFromClient
 import net.mt32.expoll.commons.helper.toUnixTimestampFromDB
@@ -9,8 +8,6 @@ import net.mt32.expoll.commons.interfaces.IPoll
 import net.mt32.expoll.commons.serializable.request.SortingOrder
 import net.mt32.expoll.commons.serializable.request.search.PollSearchParameters
 import net.mt32.expoll.commons.serializable.responses.*
-import net.mt32.expoll.commons.tPollID
-import net.mt32.expoll.commons.tUserID
 import net.mt32.expoll.database.DatabaseEntity
 import net.mt32.expoll.database.UUIDLength
 import net.mt32.expoll.entities.interconnect.PollJoinTimestamp
@@ -344,6 +341,37 @@ class Poll : DatabaseEntity, IPoll {
         }
     }
 
+    fun getRelevantOptionID(): tOptionID? {
+        if (type == PollType.STRING) return null
+
+
+        val optionIndex = options.sortedBy {
+            when (type) {
+                PollType.DATE -> (it as PollOptionDate).dateStartTimestamp
+                PollType.DATETIME -> (it as PollOptionDateTime).dateTimeStartTimestamp
+                else -> UnixTimestamp.now()
+            }
+        }.indexOfFirst { option ->
+            when (type) {
+                PollType.DATE -> {
+                    val option = option as PollOptionDate
+                    return@indexOfFirst option.dateStartTimestamp > UnixTimestamp.now() || UnixTimestamp.isSameDay(
+                        option.dateStartTimestamp,
+                        UnixTimestamp.now()
+                    )
+                }
+
+                PollType.DATETIME -> {
+                    val option = option as PollOptionDateTime
+                    return@indexOfFirst option.dateTimeStartTimestamp > UnixTimestamp.now()
+                }
+
+                else -> false
+            }
+        }
+        return if (optionIndex == -1) null else options[optionIndex].id
+    }
+
     fun asDetailedPoll(forUser: User): DetailedPollResponse {
         val userIDs = this.userIDs
         val users = this.users
@@ -351,24 +379,7 @@ class Poll : DatabaseEntity, IPoll {
         val notes = this.notes
         val joinTimestamps = this.joinedTimestamps
 
-        val relevantOptionID = if (type == PollType.STRING) null else {
-            val optionIndex = options.sortedBy {
-                when (type) {
-                    PollType.DATE -> (it as PollOptionDate).dateStartTimestamp
-                    PollType.DATETIME -> (it as PollOptionDateTime).dateTimeStartTimestamp
-                    else -> UnixTimestamp.now()
-                }
-            }.indexOfFirst { option ->
-                when (type) {
-                    PollType.DATE -> {
-                        return@indexOfFirst UnixTimestamp.isSameDay((option as PollOptionDate).dateStartTimestamp, UnixTimestamp.now())
-                    }
-                    PollType.DATETIME -> (option as PollOptionDateTime).dateTimeStartTimestamp > UnixTimestamp.now()
-                    else -> false
-                }
-            }
-            if (optionIndex == -1) null else options[optionIndex].id
-        }
+        val relevantOptionID = getRelevantOptionID()
         val usersThatVoted =
             if (!privateVoting || forUser.superAdminOrAdmin || forUser.id == adminID) users else listOf(forUser)
         return DetailedPollResponse(
@@ -389,7 +400,8 @@ class Poll : DatabaseEntity, IPoll {
                 val votes = Vote.fromUserPoll(user.id, id)//.filter { options.map { it.id }.contains(it.optionID) }
                 val existingVotesOptionIds = votes.map { it.optionID }
                 val missingVotes = options.map { it.id }.filterNot { existingVotesOptionIds.contains(it) }
-                UserVote(PollSimpleUser(
+                UserVote(
+                    PollSimpleUser(
                     user.firstName,
                     user.lastName,
                     user.username,
@@ -416,7 +428,8 @@ class Poll : DatabaseEntity, IPoll {
     }
 
     fun asSimplePoll(user: User?): PollSummary {
-        return PollSummary(id,
+        return PollSummary(
+            id,
             name,
             admin.asSimpleUser(),
             description,
