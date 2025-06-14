@@ -6,13 +6,14 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import net.mt32.expoll.config
 import net.mt32.expoll.helper.defaultJSON
 
 private val client = HttpClient(Java)
 @OptIn(InternalAPI::class)
-suspend fun verifyGoogleCAPTCHA(token: String): reCAPTCHAResponse {
+suspend fun verifyGoogleCAPTCHA(token: String): ReCAPTCHAResponse {
     val response = client.post("https://www.google.com/recaptcha/api/siteverify"){
         /*body = """
         {
@@ -32,10 +33,11 @@ suspend fun verifyGoogleCAPTCHA(token: String): reCAPTCHAResponse {
 }
 
 @Serializable
-data class reCAPTCHAResponse(
+data class ReCAPTCHAResponse(
     val success: Boolean,
     val score: Double,
     val action: String,
-    val challenge_ts: String,
+    @SerialName("challenge_ts")
+    val challengeTS: String,
     val hostname: String
 )

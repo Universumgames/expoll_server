@@ -99,7 +99,7 @@ private suspend fun registerResponse(call: ApplicationCall) {
     }
 
     val publicKeyCredentialJson = call.receiveText()
-    val pkc = PublicKeyCredential.parseRegistrationResponseJson(publicKeyCredentialJson);
+    val pkc = PublicKeyCredential.parseRegistrationResponseJson(publicKeyCredentialJson)
 
     try {
         val result = rp.finishRegistration(

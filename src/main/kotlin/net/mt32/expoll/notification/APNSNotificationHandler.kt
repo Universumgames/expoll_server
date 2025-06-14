@@ -13,14 +13,14 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import net.mt32.expoll.config
-import net.mt32.expoll.entities.notifications.APNDevice
 import net.mt32.expoll.commons.helper.Hash
 import net.mt32.expoll.commons.helper.UnixTimestamp
 import net.mt32.expoll.commons.helper.async
+import net.mt32.expoll.commons.tPollID
+import net.mt32.expoll.config
+import net.mt32.expoll.entities.notifications.APNDevice
 import net.mt32.expoll.helper.defaultJSON
 import net.mt32.expoll.security.loadECPrivateKeyFromFile
-import net.mt32.expoll.commons.tPollID
 import java.security.KeyFactory
 import java.security.PrivateKey
 import java.security.interfaces.ECPrivateKey
@@ -76,7 +76,7 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
 
         companion object {
             fun fromInt(value: Int): APNStatusCodes {
-                return values().firstOrNull { it.value == value } ?: Unknown
+                return entries.firstOrNull { it.value == value } ?: Unknown
             }
         }
     }
@@ -95,7 +95,7 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
 
         companion object {
             fun fromString(value: String): APNStatus? {
-                return values().firstOrNull { it.value == value }
+                return entries.firstOrNull { it.value == value }
             }
         }
 
@@ -118,7 +118,7 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
             _apnsAge == null ||
             _apnsBearer == null ||
             // check that the bearer is not older than 40 minutes
-            Date().getTime() - (_apnsAge ?: Date()).getTime() > 40 * 60 * 1000
+            Date().time - (_apnsAge ?: Date()).time > 40 * 60 * 1000
         ) {
             _apnsBearer = createAPNSBearerToken()
             _apnsAge = Date()
@@ -157,7 +157,7 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
 
 
 
-    private suspend fun createAPNSBearerToken(): String? {
+    private fun createAPNSBearerToken(): String? {
         if (ecAPNsKey == null) return null
         return JWT.create()
             .withKeyId(config.notifications.apnsKeyID)
@@ -173,7 +173,7 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
             method = HttpMethod.Post
             headers {
                 append("scheme", "https")
-                append("authorization", "bearer ${bearer}")
+                append("authorization", "bearer $bearer")
                 //append("path", "/3/device/${deviceToken}")
                 append("apns-push-type", data.pushType.value)
                 append("apns-expiration", "0")
@@ -216,8 +216,7 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
         override val aps: APS,
         override val additionalData: Map<String, String>,
         val pollID: tPollID? = null
-    ) : IAPNsPayload {
-    }
+    ) : IAPNsPayload
 
     override fun sendNotification(notification: UniversalNotification, device: APNDevice) {
         val apnsNotification = APNsNotification(
@@ -244,17 +243,17 @@ object APNsNotificationHandler : NotificationHandler<APNDevice> {
 }
 
 private suspend inline fun <reified T> HttpResponse.bodyOrNull(): T? {
-    try {
-        return this.body()
+    return try {
+        this.body()
     } catch (e: Exception) {
-        return null
+        null
     }
 }
 
 private suspend inline fun <reified T> HttpResponse.jsonBodyOrNull(): T? {
-    try {
-        return defaultJSON.decodeFromString(this.bodyAsText())
+    return try {
+        defaultJSON.decodeFromString(this.bodyAsText())
     } catch (e: Exception) {
-        return null
+        null
     }
 }

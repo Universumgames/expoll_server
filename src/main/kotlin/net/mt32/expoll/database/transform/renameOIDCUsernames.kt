@@ -8,7 +8,7 @@ fun Transformer.renameOIDCUsernames() {
     val users = User.all()
     for (user in users) {
         val username = user.username
-        var unnamedOIDCUser =
+        val unnamedOIDCUser =
             config.oidc.idps.keys.any { oidcProvider ->
                 if (username.startsWith(oidcProvider)) {
                     return@any true

@@ -12,10 +12,10 @@ import io.ktor.server.response.*
 import io.ktor.server.sessions.*
 import kotlinx.coroutines.runBlocking
 import net.mt32.expoll.auth.*
-import net.mt32.expoll.config
-import net.mt32.expoll.entities.Session
 import net.mt32.expoll.commons.helper.ReturnCode
 import net.mt32.expoll.commons.helper.UnixTimestamp
+import net.mt32.expoll.config
+import net.mt32.expoll.entities.Session
 import net.mt32.expoll.helper.getDataFromAny
 import kotlin.time.Duration.Companion.seconds
 
@@ -40,7 +40,7 @@ fun Application.configureSecurity() {
                     if (call.sessions.get(cookieName) != null)
                         call.sessions.clear(cookieName)
                 }catch (e: Exception){
-                    error("Cookie ${cookieName} not registered")
+                    error("Cookie $cookieName not registered")
                 }
                 call.respond(ReturnCode.UNAUTHORIZED)
             }
@@ -94,7 +94,7 @@ fun Application.configureSecurity() {
     }
 }
 
-public suspend fun ApplicationCall.getAuthPrincipal(): JWTSessionPrincipal {
+suspend fun ApplicationCall.getAuthPrincipal(): JWTSessionPrincipal {
     val principal = this.principal<JWTSessionPrincipal>()
     if (principal == null) {
         this.respond(ReturnCode.INTERNAL_SERVER_ERROR)

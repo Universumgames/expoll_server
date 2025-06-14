@@ -153,44 +153,6 @@ private suspend fun getUserData(call: ApplicationCall) {
     call.respond(simpleUserResponse)
 }
 
-@Deprecated("Use requestPersonalData instead")
-private suspend fun getPersonalizedData(call: ApplicationCall) {
-    call.startNewTiming("user.basic", "Gather user and session data")
-    val principal = call.getAuthPrincipal()
-
-    val user = principal.user
-
-    call.startNewTiming("user.polls", "Gather polls")
-    val polls = user.polls.map { it.asSimplePoll(user) }
-    call.startNewTiming("user.votes", "Gather votes")
-    val votes = user.votes.map { VoteChange(it.pollID, it.optionID, it.votedFor.id) }
-    call.startNewTiming("user.sessions", "Gather sessions")
-    val sessions = user.sessions.map { it.asSafeSession(principal.session) }
-    call.startNewTiming("user.auths", "Gather authenticators")
-    val auths = user.authenticators.map { it.asSimpleAuthenticator() }
-
-
-    val personalizedData = UserPersonalizeResponse(
-        user.id,
-        user.username,
-        user.firstName,
-        user.lastName,
-        user.mail,
-        polls.map { StrippedPollData(it.pollID) },
-        votes,
-        sessions,
-        user.notes.map { it.toSerializable() },
-        user.active,
-        user.admin,
-        user.superAdmin,
-        auths,
-        user.created.toClient(),
-        user.pollsOwned,
-        user.maxPollsOwned
-    )
-    call.respond(personalizedData)
-}
-
 private suspend fun requestPersonalData(call: ApplicationCall) {
     val principal = call.getAuthPrincipal()
     val user = principal.user
@@ -218,7 +180,7 @@ private suspend fun requestPersonalData(call: ApplicationCall) {
         user.pollsOwned,
         user.maxPollsOwned
     )
-    val mailData = ExpollMail.PersonalDataMail(user, personalizeResponse)
+    val mailData = ExpollMail.createPersonalDataMail(user, personalizeResponse)
     Mail.sendMailAsync(mailData)
     user.personalDataRequestCount++
     user.save()

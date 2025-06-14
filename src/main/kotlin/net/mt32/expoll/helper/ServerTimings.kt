@@ -17,16 +17,13 @@ private class ServerTimings : Principal {
         override fun toString(): String {
             val endTime = this.endTime ?: return ""
             val duration = (endTime - startTime).asMillisSince1970()
-            return key + ";desc=\"" + description + "\";dur=" + duration
+            return "$key;desc=\"$description\";dur=$duration"
         }
     }
 
     val timings: MutableList<Timing> = mutableListOf()
 
     var latestTiming: Timing? = null
-
-    constructor() {
-    }
 
     constructor(key: String, description: String) {
         startNewTiming(key, description)
@@ -67,7 +64,7 @@ var ServerTimingsHeader = createApplicationPlugin("ServerTimings") {
         try {
             call.response.headers.append(
                 "Server-Timing",
-                timing.timings.sortedBy { it.startTime.millisSince1970 }.map { it.toString() }.joinToString(",")
+                timing.timings.sortedBy { it.startTime.millisSince1970 }.joinToString(",") { it.toString() }
             )
         } catch (e: UnsupportedOperationException) {
             // ignore error "Headers can no longer be set because response was already completed"

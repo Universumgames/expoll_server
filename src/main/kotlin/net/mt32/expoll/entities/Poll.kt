@@ -198,14 +198,14 @@ class Poll : DatabaseEntity, IPoll {
         fun accessibleForUser(userID: tUserID): List<Poll> {
             return transaction {
                 val pollIDs = UserPolls.selectAll().where { UserPolls.userID eq userID }.map { it[UserPolls.pollID] }
-                return@transaction pollIDs.map { Poll.fromID(it) }.filterNotNull()
+                return@transaction pollIDs.mapNotNull { fromID(it) }
             }
         }
 
         fun usersInPoll(pollID: tPollID): List<User> {
             return transaction {
                 val userIDs = UserPolls.selectAll().where { UserPolls.pollID eq pollID }.map { it[UserPolls.userID] }
-                return@transaction userIDs.map { User.loadFromID(it) }.filterNotNull()
+                return@transaction userIDs.mapNotNull { User.loadFromID(it) }
             }
         }
 
@@ -373,7 +373,6 @@ class Poll : DatabaseEntity, IPoll {
     }
 
     fun asDetailedPoll(forUser: User): DetailedPollResponse {
-        val userIDs = this.userIDs
         val users = this.users
         val options = this.options
         val notes = this.notes

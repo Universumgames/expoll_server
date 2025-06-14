@@ -7,7 +7,7 @@ import net.mt32.expoll.entities.Vote
 /**
  * Remove votes for options that do not exist anymore
  */
-fun Transformer.removeGhostVotes(): Boolean {
+fun Transformer.removeGhostVotes() {
     val votes = Vote.all()
     val polls = Poll.all()
 
@@ -26,5 +26,4 @@ fun Transformer.removeGhostVotes(): Boolean {
             return@forEach
         }
     }
-    return true
 }

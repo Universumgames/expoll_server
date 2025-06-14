@@ -34,8 +34,8 @@ fun compareVersionString(version1: String, version2: String): Int {
 fun compareVersion(version: VersionDescriptor, toCheck: ClientInfo): Int {
     if (version.version != toCheck.version) return compareVersionString(toCheck.version, version.version)
     if (version.build == null || toCheck.build == null) return 0
-    if (version.build!!.toInt() > toCheck.build!!.toInt()) return -1
-    if (version.build!!.toInt() < toCheck.build!!.toInt()) return 1
+    if (version.build!! > toCheck.build!!.toInt()) return -1
+    if (version.build!! < toCheck.build!!.toInt()) return 1
     return 0
 }
 

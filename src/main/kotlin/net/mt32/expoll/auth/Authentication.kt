@@ -2,10 +2,10 @@ package net.mt32.expoll.auth
 
 import io.ktor.server.sessions.*
 import kotlinx.serialization.Serializable
+import net.mt32.expoll.commons.tUserID
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.helper.defaultJSON
-import net.mt32.expoll.commons.tUserID
 
 const val cookieName = "expoll_session"
 val normalAuth: String? = null
@@ -41,9 +41,9 @@ data class JWTSessionPrincipal(
                 Session.empty(),
                 "-1",
                 User.empty(),
-                false,
-                false,
-                null
+                admin = false,
+                superAdmin = false,
+                originalUserID = null
             )
         }
     }

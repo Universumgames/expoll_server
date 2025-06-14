@@ -289,26 +289,26 @@ class User : IUser, DatabaseEntity {
 
     fun sendOTPMail(call: ApplicationCall, forApp: Boolean = false) {
         val otp = createOTP(forApp)
-        val mailData = ExpollMail.OTPMail(this, otp, URLBuilder.buildLoginLink(call, this, otp, false))
+        val mailData = ExpollMail.createOTPMail(this, otp, URLBuilder.buildLoginLink(call, this, otp, false))
         Mail.sendMailAsync(mailData)
     }
 
     fun sendUserCreationMail(scheme: String) {
-        val mailData = ExpollMail.UserCreationMail(this, scheme)
+        val mailData = ExpollMail.createUserCreationMail(this, scheme)
         Mail.sendMailAsync(mailData)
     }
 
     companion object : Table("user") {
-        const val maxUserNameLength = 255
-        const val maxNameComponentLength = 255
-        const val maxMailLength = 255
+        const val MAX_USERNAME_LENGTH = 255
+        const val MAX_NAME_COMPONENT_LENGTH = 255
+        const val MAX_MAIL_LENGTH = 255
 
 
         val id = varchar("id", UUIDLength).default(UUID.randomUUID().toString())
-        val username = varchar("username", maxUserNameLength).uniqueIndex()
-        val firstName = varchar("firstName", maxNameComponentLength)
-        val lastName = varchar("lastName", maxNameComponentLength)
-        val mail = varchar("mail", maxMailLength).uniqueIndex()
+        val username = varchar("username", MAX_USERNAME_LENGTH).uniqueIndex()
+        val firstName = varchar("firstName", MAX_NAME_COMPONENT_LENGTH)
+        val lastName = varchar("lastName", MAX_NAME_COMPONENT_LENGTH)
+        val mail = varchar("mail", MAX_MAIL_LENGTH).uniqueIndex()
         val active = bool("active")
         val admin = bool("admin")
         val created = long("createdTimestamp")
@@ -364,14 +364,14 @@ class User : IUser, DatabaseEntity {
                         ).where { Session.userID eq User.id }
                     }
 
-                    val username =
-                        (if (searchParameters.searchQuery.username != null) (User.username like "%${searchParameters.searchQuery.username}%") else Op.TRUE)
-                    val firstName =
-                        (if (searchParameters.searchQuery.firstName != null) (User.firstName like "%${searchParameters.searchQuery.firstName}%") else Op.TRUE)
-                    val lastName =
-                        (if (searchParameters.searchQuery.lastName != null) (User.lastName like "%${searchParameters.searchQuery.lastName}%") else Op.TRUE)
-                    val mail =
-                        (if (searchParameters.searchQuery.mail != null) (User.mail like "%${searchParameters.searchQuery.mail}%") else Op.TRUE)
+                    fun sqlLike(value: String?, column: Column<String>): Op<Boolean> {
+                        return if (value != null) (column like "%$value%") else Op.TRUE
+                    }
+
+                    val username = sqlLike(searchParameters.searchQuery.username, User.username)
+                    val firstName = sqlLike(searchParameters.searchQuery.firstName, User.firstName)
+                    val lastName = sqlLike(searchParameters.searchQuery.lastName, User.lastName)
+                    val mail = sqlLike(searchParameters.searchQuery.mail, User.mail)
                     val memberInPoll =
                         (if (searchParameters.searchQuery.memberInPoll != null) (User.id inSubQuery UserPolls.select(
                             UserPolls.userID
@@ -384,7 +384,7 @@ class User : IUser, DatabaseEntity {
                                 (User.mail like "%${searchParameters.searchQuery.any}%")
                                 ) else Op.TRUE)
 
-                    val query = username and firstName and lastName and memberInPoll and any
+                    val query = username and firstName and lastName and mail and memberInPoll and any
 
                     return@where query and specialFilter
 
@@ -517,8 +517,8 @@ class User : IUser, DatabaseEntity {
                 "empty",
                 "empty",
                 "empty",
-                false,
-                false
+                active = false,
+                admin = false
             )
         }
 
@@ -584,6 +584,10 @@ class User : IUser, DatabaseEntity {
         return super.equals(other)
     }
 
+    override fun hashCode(): Int {
+        return super.hashCode()
+    }
+
     @Deprecated("Use Poll.addUser instead", ReplaceWith("poll.addUser(userID)"))
     fun addPoll(pollID: tPollID) {
         val poll = Poll.fromID(pollID) ?: return
@@ -595,7 +599,7 @@ class User : IUser, DatabaseEntity {
     }
 
     fun deactivateUser() {
-        if (active == false) return
+        if (!active) return
         active = false
         sessions.forEach { it.delete() }
         val deletionDate = UserDeletionQueue.deactivateUser(id)
@@ -611,13 +615,13 @@ class User : IUser, DatabaseEntity {
     }
 
     fun notifyInactivity(deletionDate: UnixTimestamp) {
-        val mailData = ExpollMail.UserDeactivationNotificationMail(this, deletionDate)
+        val mailData = ExpollMail.createUserDeactivationNotificationMail(this, deletionDate)
         Mail.sendMailAsync(mailData)
     }
 
     fun notifyDeletion() {
         val mailData =
-            ExpollMail.UserDeletionInformationMail(this)
+            ExpollMail.createUserDeletionInformationMail(this)
         Mail.sendMailAsync(mailData)
     }
 }

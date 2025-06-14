@@ -16,7 +16,7 @@ import org.thymeleaf.templateresolver.ITemplateResolver
 import java.util.*
 
 object ExpollMail {
-    fun OTPMail(user: User, otp: OTP, loginLink: String): Mail.MailData {
+    fun createOTPMail(user: User, otp: OTP, loginLink: String): Mail.MailData {
         return Mail.MailData(
             user.mail, user.fullName, "Login to expoll",
             Mail.fromTemplate(
@@ -33,7 +33,7 @@ object ExpollMail {
         )
     }
 
-    fun UserCreationMail(user: User, scheme: String): Mail.MailData {
+    fun createUserCreationMail(user: User, scheme: String): Mail.MailData {
         val port = config.frontEndPort
         val data = mapOf(
             "scheme" to scheme,
@@ -50,7 +50,7 @@ object ExpollMail {
         )
     }
 
-    fun UserDeactivationNotificationMail(user: User, deletionDate: UnixTimestamp): Mail.MailData {
+    fun createUserDeactivationNotificationMail(user: User, deletionDate: UnixTimestamp): Mail.MailData {
         val data = mapOf(
             "user" to user,
             "title" to "Account Deactivation",
@@ -65,7 +65,7 @@ object ExpollMail {
         )
     }
 
-    fun UserDeletionInformationMail(
+    fun createUserDeletionInformationMail(
         user: User
     ): Mail.MailData {
         return Mail.MailData(
@@ -78,7 +78,7 @@ object ExpollMail {
         )
     }
 
-    fun PersonalDataMail(user: User, personalizeResponse: UserPersonalizeResponse): Mail.MailData {
+    fun createPersonalDataMail(user: User, personalizeResponse: UserPersonalizeResponse): Mail.MailData {
         val data = mapOf(
             "user" to user,
             "personalizeResponse" to personalizeResponse,
@@ -132,7 +132,7 @@ object Mail {
             props["mail.smtp.auth"] = "true"
             props["mail.smtp.starttls.enable"] = config.mailPort
             props["mail.smtp.starttls.enable"] = "true"
-            props.setProperty("mail.debug", "false");
+            props.setProperty("mail.debug", "false")
             props.setProperty("mail.smtp.ssl.protocols", "TLSv1.2")
 
 

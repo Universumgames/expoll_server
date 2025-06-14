@@ -1,6 +1,5 @@
 package net.mt32.expoll.routes.admin
 
-import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import net.mt32.expoll.analytics.AnalyticsStorage

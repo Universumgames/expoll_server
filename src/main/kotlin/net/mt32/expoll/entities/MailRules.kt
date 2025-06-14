@@ -87,7 +87,6 @@ class MailRule : DatabaseEntity {
         /**
          * Check if a mail is not banned
          * @param mail the mial adress to check
-         * @param regexRules not allowed mail adresss
          * @return true if mail is allowed, false otherwise
          */
         fun mailIsAllowed(mail: String): Boolean {

@@ -178,7 +178,7 @@ object Transformer {
      * drop a table
      */
     fun dropColumn(table: String, column: String): Boolean {
-        return DatabaseFactory.runRawSQL("ALTER TABLE ${table} DROP COLUMN ${column};") {
+        return DatabaseFactory.runRawSQL("ALTER TABLE $table DROP COLUMN $column;") {
             return@runRawSQL it.next()
         } ?: false
     }
