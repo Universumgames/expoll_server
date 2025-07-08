@@ -28,6 +28,7 @@ import net.mt32.expoll.helper.upsertCustom
 import net.mt32.expoll.notification.ExpollNotificationHandler
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.neq
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.*
 
@@ -437,25 +438,28 @@ class User : IUser, DatabaseEntity {
             }
         }
 
+        private fun sqlQualifyForDeletionProcess(): Op<Boolean> {
+            return (User.admin eq false) and (User.username neq config.testUser.username)
+        }
+
         fun oldLoginUsers(): List<User> {
+            val cutoffDate = UnixTimestamp.now().addDays(-config.dataRetention.userDeactivateAfterDays)
             return transaction {
                 return@transaction User.selectAll().where {
-                    User.lastLogin less UnixTimestamp.now().addDays(-config.dataRetention.userDeactivateAfterDays)
-                        .toDB() and
-                            (User.active eq true)
-                }
-                    .map { User(it) }
+                    User.lastLogin less cutoffDate.toDB() and
+                            (User.active eq true) and
+                            sqlQualifyForDeletionProcess()
+
+                }.map { User(it) }
             }
         }
 
         fun inactiveUsers(): List<User> {
             return transaction {
                 return@transaction User.selectAll().where {
-                    User.id inSubQuery
-                            UserDeletionQueue.select(UserDeletionQueue.userID).where {
-                                UserDeletionQueue.currentDeletionStage eq
-                                        UserDeletionQueue.DeletionStage.DEACTIVATION.value
-                            }
+                    User.id inSubQuery UserDeletionQueue.select(UserDeletionQueue.userID).where {
+                        UserDeletionQueue.currentDeletionStage eq UserDeletionQueue.DeletionStage.DEACTIVATION.value
+                    }
 
                 }.map { User(it) }
             }
@@ -464,12 +468,10 @@ class User : IUser, DatabaseEntity {
         fun usersToDelete(): List<User> {
             return transaction {
                 return@transaction User.selectAll().where {
-                    User.id inSubQuery
-                            UserDeletionQueue.select(UserDeletionQueue.userID).where {
-                                (UserDeletionQueue.currentDeletionStage eq UserDeletionQueue.DeletionStage.DEACTIVATION.value) and
-                                        (UserDeletionQueue.nextDeletionDate less UnixTimestamp.now().toDB())
-                            } and
-                            (User.deleted.isNull())
+                    User.id inSubQuery UserDeletionQueue.select(UserDeletionQueue.userID).where {
+                        (UserDeletionQueue.currentDeletionStage eq UserDeletionQueue.DeletionStage.DEACTIVATION.value) and (UserDeletionQueue.nextDeletionDate less UnixTimestamp.now()
+                            .toDB())
+                    } and (User.deleted.isNull())
                 }.map { User(it) }
             }
         }
@@ -477,11 +479,10 @@ class User : IUser, DatabaseEntity {
         fun usersToFinalDelete(): List<User> {
             return transaction {
                 return@transaction User.selectAll().where {
-                    User.id inSubQuery
-                            UserDeletionQueue.select(UserDeletionQueue.userID).where {
-                                (UserDeletionQueue.currentDeletionStage eq UserDeletionQueue.DeletionStage.DELETION.value) and
-                                        (UserDeletionQueue.nextDeletionDate less UnixTimestamp.now().toDB())
-                            }
+                    User.id inSubQuery UserDeletionQueue.select(UserDeletionQueue.userID).where {
+                        (UserDeletionQueue.currentDeletionStage eq UserDeletionQueue.DeletionStage.DELETION.value) and (UserDeletionQueue.nextDeletionDate less UnixTimestamp.now()
+                            .toDB())
+                    }
                 }.map { User(it) }
             }
         }
@@ -536,10 +537,7 @@ class User : IUser, DatabaseEntity {
 
     fun asSimpleUser(): SimpleUser {
         return SimpleUser(
-            firstName,
-            lastName,
-            username,
-            id
+            firstName, lastName, username, id
         )
     }
 
@@ -620,8 +618,7 @@ class User : IUser, DatabaseEntity {
     }
 
     fun notifyDeletion() {
-        val mailData =
-            ExpollMail.createUserDeletionInformationMail(this)
+        val mailData = ExpollMail.createUserDeletionInformationMail(this)
         Mail.sendMailAsync(mailData)
     }
 }
