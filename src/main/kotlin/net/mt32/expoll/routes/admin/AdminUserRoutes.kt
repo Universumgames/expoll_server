@@ -47,13 +47,13 @@ private suspend fun getUsers(call: ApplicationCall) {
     val principal = call.getAuthPrincipal()
     val adminListRequest: AdminUserListRequest = call.receiveNullable() ?: AdminUserListRequest()
     call.startNewTiming("users.load", "Load all users")
-    val users = User.all(adminListRequest.limit, adminListRequest.offset, adminListRequest.searchParameters)
+    val (users, count) = User.all(adminListRequest.limit, adminListRequest.offset, adminListRequest.searchParameters)
 
     call.startNewTiming("users.transform", "Transform user list to simple")
     val userInfos = users.map { user ->
         user.asUserInfo()
     }
-    call.respond(UserListResponse(userInfos, users.size))
+    call.respond(UserListResponse(userInfos, count.toInt()))
 }
 
 private suspend fun createUser(call: ApplicationCall) {

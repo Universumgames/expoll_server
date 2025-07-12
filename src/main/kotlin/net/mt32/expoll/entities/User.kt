@@ -348,7 +348,7 @@ class User : IUser, DatabaseEntity {
             }
         }
 
-        fun all(limit: Int, offset: Long, searchParameters: UserSearchParameters? = null): List<User> {
+        fun all(limit: Int, offset: Long, searchParameters: UserSearchParameters? = null): Pair<List<User>, Long> {
             return transaction {
                 val query = if (searchParameters == null) User.selectAll()
                 else User.selectAll().where {
@@ -398,6 +398,7 @@ class User : IUser, DatabaseEntity {
                         UserSearchParameters.SortingStrategy.MAIL -> mail
                         UserSearchParameters.SortingStrategy.CREATED -> created
                         UserSearchParameters.SortingStrategy.DELETED -> deleted
+                        UserSearchParameters.SortingStrategy.POLLS_OWNED -> wrapAsExpression(Poll.select(Poll.adminID.count()).where { Poll.adminID eq User.id })
                         null -> created
                     } to
                             when (searchParameters?.sortingOrder) {
@@ -406,7 +407,7 @@ class User : IUser, DatabaseEntity {
                                 null -> SortOrder.ASC
                             }
                 )
-                return@transaction sorted.limit(limit, offset).toList().map { User(it) }
+                return@transaction sorted.limit(limit, offset).toList().map { User(it) } to User.selectAll().count()
             }
         }
 
