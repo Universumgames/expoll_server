@@ -48,7 +48,10 @@ class OTP : DatabaseEntity {
         val expirationTimestamp = long("expirationTimestamp")
 
         enum class OTPResult {
-            OK, TEST, INVALID, NOT_FOUND
+            OK, TEST, INVALID, NOT_FOUND;
+
+            val isValid: Boolean
+                get() = this == OK || this == TEST
         }
 
         fun fromOTP(otpString: String): Pair<OTP?, OTPResult> {

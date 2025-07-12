@@ -56,7 +56,7 @@ suspend fun simpleLoginRoute(call: ApplicationCall) {
             .replace(" ", "")
             .replace("\t", "")
         val otp = OTP.fromOTP(cleanedOTP)
-        if (otp.second != OTP.Companion.OTPResult.OK) {
+        if (!otp.second.isValid) {
             call.respond(ReturnCode.UNAUTHORIZED, otp.second.toString())
             return
         }
