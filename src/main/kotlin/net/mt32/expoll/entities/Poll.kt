@@ -381,13 +381,15 @@ class Poll : DatabaseEntity, IPoll {
         val relevantOptionID = getRelevantOptionID()
         val usersThatVoted =
             if (!privateVoting || forUser.superAdminOrAdmin || forUser.id == adminID) users else listOf(forUser)
+
+        val obscuredUserCount = if(privateVoting && !forUser.admin) 1 else userCount
         return DetailedPollResponse(
             id,
             name,
             admin.asSimpleUser(),
             description,
             maxPerUserVoteCount,
-            userCount,
+            obscuredUserCount,
             updatedTimestamp.toClient(),
             createdTimestamp.toClient(),
             type.id,

@@ -20,10 +20,11 @@ data class DatabaseCounts(
     val notificationDeviceCount: Long,
     val deletedUserCount: Long,
     val oidcConnections: Long,
+    val otpCount: Long,
     val totalDiskUsage: Long
 )
 
-fun AnalyticsStorage.getCounts(): DatabaseCounts {
+fun AnalyticsStorage.getDatabaseCounts(): DatabaseCounts {
     return transaction {
         val userCount = User.selectAll().count()
         val voteCount = Vote.selectAll().count()
@@ -48,6 +49,7 @@ fun AnalyticsStorage.getCounts(): DatabaseCounts {
                 }
             }
         }
+        val otpCount = OTP.selectAll().count()
         return@transaction DatabaseCounts(
             userCount,
             voteCount,
@@ -58,6 +60,7 @@ fun AnalyticsStorage.getCounts(): DatabaseCounts {
             notificationDevices,
             deletedUserCount,
             oidcConnections,
+            otpCount,
             totalDiskUsage
         )
     }
