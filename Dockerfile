@@ -3,14 +3,14 @@ WORKDIR /expoll/api_server
 ADD ./ /expoll/api_server
 RUN python3 ./scripts/openAPIBundle.py /expoll/api_server/src/main/resources/openapi/openapi_v4.yaml /expoll/api_server/src/main/resources/openapi/openapi.yaml > /dev/null
 
-FROM gradle:8.12-jdk23 AS build
+FROM gradle:9.0.0-jdk24 AS build
 WORKDIR /expoll/api_server
 COPY --chown=gradle:gradle ./ .
 COPY --from=docu --chown=gradle:gradle /expoll/api_server/src/main/resources/openapi/openapi.yaml src/main/resources/openapi/openapi.yaml
 RUN gradle buildFatJar --no-daemon --warning-mode all
 #ENTRYPOINT ["gradle", "run", "--no-deamon"]
 
-FROM openjdk:23
+FROM openjdk:24
 EXPOSE 6060:6060
 RUN mkdir -p /expoll/api_server
 COPY --from=build /expoll/api_server/build/libs/*.jar /expoll/api_server/server.jar
