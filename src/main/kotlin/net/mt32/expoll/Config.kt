@@ -3,7 +3,7 @@ package net.mt32.expoll
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
-import net.mt32.expoll.commons.helper.mergeJsonObjects
+import net.mt32.expoll.commons.helper.JSONHelper
 import net.mt32.expoll.commons.serializable.CompatibleVersionDescriptor
 import net.mt32.expoll.helper.defaultJSON
 import java.io.File
@@ -134,7 +134,7 @@ data class ConfigData(
     var otpLiveTimeSeconds: Long = 0, // this should be at least 30 seconds
 )
 
-var config: ConfigData = ConfigData()
+lateinit var config: ConfigData
 
 object ConfigLoader {
 
@@ -144,7 +144,7 @@ object ConfigLoader {
         val defaultConf: JsonObject = defaultJSON.decodeFromString(defaultConfigFile)
         val desiredConfig: JsonObject = defaultJSON.decodeFromString(desiredConfigFile)
 
-        val merged = mergeJsonObjects(defaultConf, desiredConfig)
+        val merged = JSONHelper.mergeJsonObjects(defaultConf, desiredConfig)
         config = defaultJSON.decodeFromJsonElement(merged)
         config.otpLiveTimeSeconds = config.otpLiveTimeSeconds.coerceAtLeast(30)
 

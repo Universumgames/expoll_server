@@ -1,7 +1,7 @@
 package net.mt32.expoll.analytics
 
 import net.mt32.expoll.commons.helper.UnixTimestamp
-import net.mt32.expoll.commons.helper.getDelayToMidnight
+import net.mt32.expoll.commons.helper.getMillisToMidnight
 import net.mt32.expoll.notification.ExpollNotificationHandler
 import java.util.*
 
@@ -15,7 +15,7 @@ object AnalyticsStorage {
 
     init {
         val now = Calendar.getInstance()
-        val delay = getDelayToMidnight(now)
+        val delay = getMillisToMidnight(now)
         timer.schedule(object : TimerTask() {
             override fun run() {
                 resetStatistics()

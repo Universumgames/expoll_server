@@ -5,13 +5,13 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.coroutines.runBlocking
 import net.mt32.expoll.auth.OIDC
+import net.mt32.expoll.commons.helper.UnixTimestamp
+import net.mt32.expoll.commons.helper.getMillisToMidnight
 import net.mt32.expoll.database.DatabaseFactory
 import net.mt32.expoll.entities.OTP
 import net.mt32.expoll.entities.Session
 import net.mt32.expoll.entities.User
 import net.mt32.expoll.entities.notifications.APNDevice
-import net.mt32.expoll.commons.helper.UnixTimestamp
-import net.mt32.expoll.commons.helper.getDelayToMidnight
 import net.mt32.expoll.notification.ExpollNotificationHandler
 import net.mt32.expoll.plugins.*
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -21,7 +21,7 @@ import kotlin.concurrent.thread
 private val timer: Timer = Timer()
 
 fun main(args: Array<String>) {
-    val environment = if (args.isEmpty()) "" else args[0]
+    val environment = if (args.isEmpty()) "default" else args[0]
     if (args.isEmpty())
         println("Define an environment to load the config from by providing it as the first argument")
     ConfigLoader.load(environment)
@@ -34,12 +34,14 @@ fun main(args: Array<String>) {
     oidcThread.join()
     println("Server initialisation finished")
     sendStartupNotification()
+    println(DatabaseFactory.db != null)
 
     embeddedServer(Netty, port = config.serverPort, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
 }
 
 fun Application.module() {
+    println(DatabaseFactory.db != null)
     configureSecurity()
     configureHTTP()
     configureSerialization()
@@ -49,7 +51,7 @@ fun Application.module() {
 
 private fun initCleanup() {
     val now = Calendar.getInstance()
-    val delay = getDelayToMidnight(now)
+    val delay = getMillisToMidnight(now)
     cleanupCoroutine()
     timer.schedule(object : TimerTask() {
         override fun run() {

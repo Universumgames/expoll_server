@@ -407,7 +407,7 @@ class User : IUser, DatabaseEntity {
                                 null -> SortOrder.ASC
                             }
                 )
-                return@transaction sorted.limit(limit, offset).toList().map { User(it) } to User.selectAll().count()
+                return@transaction sorted.limit(limit).offset(offset).toList().map { User(it) } to User.selectAll().count()
             }
         }
 

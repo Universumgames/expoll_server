@@ -317,7 +317,7 @@ class Poll : DatabaseEntity, IPoll {
                         null -> SortOrder.ASC
                     }
                 )
-                val limited = if (limit > 0) sorted.limit(limit, offset) else sorted
+                val limited = if (limit > 0) sorted.limit(limit).offset(offset) else sorted
                 return@transaction limited.toList().map { Poll(it) }
             }
         }

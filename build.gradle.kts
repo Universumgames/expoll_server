@@ -15,18 +15,18 @@ val expoll_commons_version: String by project
 plugins {
     application
     java
-    kotlin("jvm") version "2.1.0"
+    kotlin("jvm") version "2.2.10"
     id("io.ktor.plugin") version "3.0.3"
-    id("org.jetbrains.kotlin.plugin.serialization") version "2.1.0"
+    id("org.jetbrains.kotlin.plugin.serialization") version "2.2.10"
     id("com.gradleup.shadow") version "8.3.5"
 }
 
 kotlin {
-    jvmToolchain(23)
+    jvmToolchain(24)
 }
 
 group = "net.mt32.expoll"
-version = "4.7.3.1"
+version = "4.7.4"
 
 application {
     mainClass.set("net.mt32.expoll.ApplicationKt")
@@ -54,6 +54,10 @@ tasks.withType<ShadowJar>{
     mergeGroovyExtensionModules()
 }
 
+tasks.test {
+    useJUnitPlatform()
+}
+
 repositories {
     mavenCentral()
     gradlePluginPortal()
@@ -71,6 +75,10 @@ repositories {
 }
 
 dependencies {
+    // Unit Tests
+    testImplementation(kotlin("test"))
+    testImplementation("io.ktor:ktor-server-test-host:${ktor_version}")
+
     // Ktor server
     implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-core-jvm:$ktor_version")
@@ -96,7 +104,6 @@ dependencies {
     implementation("io.ktor:ktor-serialization-kotlinx-cbor:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-protobuf:$ktor_version")
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
-    testImplementation("io.ktor:ktor-server-test-host:$ktor_version")
 
     // Ktor client
     implementation("io.ktor:ktor-client-core:$ktor_version")
@@ -113,10 +120,10 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-jdbc:$exposed_version")
 
     // WebAuthn
-    implementation("com.yubico:webauthn-server-core:2.5.0")
+    implementation("com.yubico:webauthn-server-core:2.7.0")
 
     // JWT
-    implementation("com.auth0:java-jwt:4.4.0")
+    implementation("com.auth0:java-jwt:4.5.0")
 
     // Web Push
     implementation("nl.martijndwars:web-push:5.1.1")
@@ -125,19 +132,13 @@ dependencies {
     // Mail
     implementation("jakarta.mail:jakarta.mail-api:$jakarta_mail_version")
     implementation("org.eclipse.angus:angus-mail:$angus_mail_version")
-    implementation("org.thymeleaf:thymeleaf:3.1.2.RELEASE")
-    implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.3.0")
+    implementation("org.thymeleaf:thymeleaf:3.1.3.RELEASE")
+    implementation("nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.4.0")
 
     //testImplementation(kotlin("test"))
 
     // Common
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     implementation("net.mt32.expoll.commons:expoll-kotlin-commons:$expoll_commons_version")
-
-    // Unit Tests
-    testImplementation("org.junit.jupiter:junit-jupiter:5.10.1")
-    testImplementation(platform("org.junit:junit-bom:5.7.0"))
-    testImplementation(kotlin("test-junit5"))
 }

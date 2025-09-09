@@ -1,7 +1,7 @@
 package net.mt32.expoll.entities
 
 import net.mt32.expoll.commons.helper.UnixTimestamp
-import net.mt32.expoll.commons.helper.toBase62
+import net.mt32.expoll.commons.helper.toLossyBase62
 import net.mt32.expoll.commons.helper.toUnixTimestampFromDB
 import net.mt32.expoll.commons.serializable.request.Platform
 import net.mt32.expoll.commons.tUserID
@@ -74,7 +74,7 @@ class OTP : DatabaseEntity {
             do {
                 val bytes = ByteArray(config.otpBaseLength * 2)
                 ThreadLocalRandom.current().nextBytes(bytes)
-                otp = bytes.toBase62().substring(0, config.otpBaseLength)
+                otp = bytes.toLossyBase62().substring(0, config.otpBaseLength)
             } while (fromOTP(otp).first != null)
             return otp
         }

@@ -10,7 +10,7 @@ import java.net.URLDecoder
 
 @Deprecated(
     "Don't use this Method anymore, use the ktor serializer instead for serialising the request body",
-    ReplaceWith("ktor serializer and call.receive()")
+    ReplaceWith("call.receive()")
 )
 suspend fun getDataFromAny(call: ApplicationCall, key: String): String? {
     val request = call.request
