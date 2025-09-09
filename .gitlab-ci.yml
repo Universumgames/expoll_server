@@ -17,11 +17,24 @@ variables:
     GIT_SUBMODULE_STRATEGY: recursive
 
 stages: # List of stages for jobs, and their order of execution
+    - test
     - build
     - deploy
 
+test:
+    image: gradle:9.0.0-jdk24
+    stage: test
+    script:
+      - gradle test
+    artifacts:
+      when: always
+      reports:
+        junit: build/test-results/test/*.xml
+      paths:
+        - build/reports/tests/test
+
 compiling: # This job runs in the build stage, which runs first.
-    image: gradle:8-jdk23
+    image: gradle:9.0.0-jdk24
     stage: build
     script:
         - gradle buildFatJar --no-daemon
