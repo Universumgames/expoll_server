@@ -130,35 +130,30 @@ private suspend fun registerResponse(call: ApplicationCall) {
 //val authStorage: MutableMap<tUserID, AssertionRequest> = mutableMapOf()
 val challengeStorage: MutableMap<ByteArray, AssertionRequest> = mutableMapOf()
 private suspend fun authInit(call: ApplicationCall) {
-    val username = call.getDataFromAny("username")
+    var username = call.getDataFromAny("username")
     val mail = call.getDataFromAny("mail")
-    if (username == null && mail == null) {
-        call.respond(ReturnCode.MISSING_PARAMS)
-        return
+
+    if (username == null && mail != null){
+        username = User.byMail(mail)?.username
     }
-    val user = username?.let { User.byUsername(it) } ?: mail?.let { User.byMail(it) }
-    if (user == null || !user.loginAble) {
-        call.respond(ReturnCode.BAD_REQUEST)
-        return
+
+    val assertionOptions = if (username == null) {
+        StartAssertionOptions.builder().build()
+    } else {
+        StartAssertionOptions.builder().username(username).build()
     }
 
     val request = rp.startAssertion(
-        StartAssertionOptions.builder()
-            .username(username)
-            .build()
+        assertionOptions
     )
-    //authStorage[user.id] = request
     challengeStorage[request.publicKeyCredentialRequestOptions.challenge] = request
     call.respond(request.toCredentialsGetJson())
 }
 
 private suspend fun authRes(call: ApplicationCall) {
-    val username = call.getDataFromAny("username")
-    val mail = call.getDataFromAny("mail")
     val publicKeyCredentialJson = call.receiveText()
     val pkc = PublicKeyCredential.parseAssertionResponseJson(publicKeyCredentialJson)
 
-    //val request = authStorage[user.id]
     val request = challengeStorage[pkc.response.clientData.challenge]
     if (request == null) {
         call.respond(ReturnCode.BAD_REQUEST)
