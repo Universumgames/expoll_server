@@ -10,5 +10,9 @@
         "build": "214",
         "releasedTimestamp": 1759970655000,
         "url": "https://testflight.apple.com/join/OpUycQnW"
-    }
+    },
+    "platformKeys": [
+        "ios",
+        "macos"
+    ]
 }
