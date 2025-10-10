@@ -2,13 +2,13 @@
     "stable": {
         "version": "3.4.2",
         "build": "213",
-        "releaseTimestamp": 1759970586000,
+        "releasedTimestamp": 1759970586000,
         "url": "https://apps.apple.com/app/expoll/id1639799209"
     },
     "beta": {
         "version": "3.4.3",
         "build": "214",
-        "buildTimestamp": 1759970655000,
+        "releasedTimestamp": 1759970655000,
         "url": "https://testflight.apple.com/join/OpUycQnW"
     }
 }
